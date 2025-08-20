@@ -127,6 +127,83 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
+        /* Discount code section styling */
+        .discount-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .discount-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .discount-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .discount-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        
+        .discount-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .apply-discount-btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .apply-discount-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .apply-discount-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .discount-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .discount-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .discount-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
         .addons-section {
             background: #f8f9fa;
             padding: 30px;
@@ -195,7 +272,13 @@
             color: #6c757d;
         }
         
-        /* REMOVED: price-total class since we're removing the redundant total line */
+        .discount-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: #28a745;
+            font-weight: 600;
+        }
         
         .book-button {
             width: 100%;
@@ -260,8 +343,11 @@
             .event-title {
                 font-size: 24px;
             }
-            .form-section, .addons-section, .price-section {
+            .form-section, .addons-section, .price-section, .discount-section {
                 padding: 20px;
+            }
+            .discount-input-group {
+                flex-direction: column;
             }
         }
         
@@ -320,6 +406,16 @@
                 </div>
             </div>
             
+            <!-- Discount Code Section -->
+            <div class="discount-section">
+                <div class="discount-title">💰 Have a Discount Code?</div>
+                <div class="discount-input-group">
+                    <input type="text" id="discountCode" class="discount-input" placeholder="Enter discount code" maxlength="20">
+                    <button id="applyDiscountBtn" class="apply-discount-btn" onclick="applyDiscountCode()">Apply</button>
+                </div>
+                <div id="discountMessage" class="discount-message" style="display: none;"></div>
+            </div>
+            
             <div class="addons-section" id="addonsSection" style="display: none;">
                 <h3 class="addons-title">Optional Add-ons</h3>
                 <div id="addonsList"></div>
@@ -337,8 +433,6 @@
                     </div>
                 </div>
                 
-                <!-- REMOVED: Redundant total line since button shows the total -->
-                
                 <button id="bookButton" class="book-button" onclick="processBooking()">
                     Complete Booking - Pay £<span id="buttonPrice">0</span>
                 </button>
@@ -354,6 +448,7 @@
         // Global variables
         let eventData = null;
         let selectedAddons = [];
+        let appliedDiscount = null;
         let baseURL = window.location.origin;
         
         // Check if we're in an iframe
@@ -374,45 +469,33 @@
         
         async function loadEventData() {
             try {
-                // Add debug logging
-                console.log('Event ID:', eventId);
-                console.log('Sheet ID:', SHEET_ID);
-                
                 // Fetch data from Google Sheets using Google Sheets API
                 const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
-                console.log('API URL:', sheetUrl);
                 
                 const response = await fetch(sheetUrl);
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
                 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('API Error Details:', errorText);
-                    throw new Error('Failed to load event data: ' + errorText);
+                    throw new Error('Failed to load event data');
                 }
                 
                 const data = await response.json();
-                console.log('API Response:', data);
                 const rows = data.values;
                 
                 // Find our event (skip header row)
                 let eventRow = null;
                 for (let i = 1; i < rows.length; i++) {
-                    console.log('Checking row:', i, 'Event ID:', rows[i][0], 'Active:', rows[i][17]);
-                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { // Check event_id and active status
+                    if (rows[i][0] === eventId && rows[i][17] === 'yes') {
                         eventRow = rows[i];
                         break;
                     }
                 }
                 
                 if (!eventRow) {
-                    console.error('Event not found. Available events:', rows.slice(1).map(row => row[0]));
                     showError('Event not found or no longer available.');
                     return;
                 }
                 
-                // Parse event data (rest of the function stays the same)
+                // Parse event data
                 eventData = {
                     id: eventRow[0],
                     name: eventRow[1],
@@ -450,9 +533,99 @@
                 displayEvent();
                 
             } catch (error) {
-                console.error('Full Error:', error);
-                showError('Unable to load event details. Error: ' + error.message);
+                console.error('Error:', error);
+                showError('Unable to load event details. Please try again later.');
             }
+        }
+        
+        async function applyDiscountCode() {
+            const codeInput = document.getElementById('discountCode');
+            const messageDiv = document.getElementById('discountMessage');
+            const applyBtn = document.getElementById('applyDiscountBtn');
+            
+            const code = codeInput.value.trim().toUpperCase();
+            
+            if (!code) {
+                showDiscountMessage('Please enter a discount code.', 'error');
+                return;
+            }
+            
+            // Disable button while checking
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Checking...';
+            
+            try {
+                // Fetch discount codes from Google Sheets
+                const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
+                const response = await fetch(discountUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Unable to verify discount code');
+                }
+                
+                const data = await response.json();
+                const rows = data.values;
+                
+                if (!rows || rows.length < 2) {
+                    showDiscountMessage('No discount codes available.', 'error');
+                    return;
+                }
+                
+                // Find matching discount code
+                let discountFound = null;
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row[0] && row[0].toUpperCase() === code && row[3] === 'yes') {
+                        discountFound = {
+                            code: row[0],
+                            type: row[1], // percentage or fixed
+                            value: parseFloat(row[2]) || 0,
+                            active: row[3],
+                            description: row[4] || '',
+                            usageLimit: row[5] || 'unlimited'
+                        };
+                        break;
+                    }
+                }
+                
+                if (discountFound) {
+                    appliedDiscount = discountFound;
+                    showDiscountMessage(`✅ ${discountFound.description || 'Discount applied successfully!'}`, 'success');
+                    codeInput.disabled = true;
+                    applyBtn.textContent = 'Applied';
+                    updatePricing();
+                } else {
+                    showDiscountMessage('❌ Invalid or expired discount code.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Discount code error:', error);
+                showDiscountMessage('Unable to verify discount code. Please try again.', 'error');
+            } finally {
+                if (!appliedDiscount) {
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply';
+                }
+            }
+        }
+        
+        function showDiscountMessage(message, type) {
+            const messageDiv = document.getElementById('discountMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `discount-message discount-${type}`;
+            messageDiv.style.display = 'block';
+        }
+        
+        function calculateDiscount(subtotal) {
+            if (!appliedDiscount) return 0;
+            
+            if (appliedDiscount.type === 'percentage') {
+                return subtotal * (appliedDiscount.value / 100);
+            } else if (appliedDiscount.type === 'fixed') {
+                return Math.min(appliedDiscount.value, subtotal); // Don't discount more than the total
+            }
+            
+            return 0;
         }
         
         function displayEvent() {
@@ -511,7 +684,6 @@
             const checkbox = document.getElementById(`addon${index}`);
             const addonItem = checkbox.parentElement;
             
-            // Toggle checkbox state
             checkbox.checked = !checkbox.checked;
             
             if (checkbox.checked) {
@@ -522,7 +694,6 @@
                 selectedAddons = selectedAddons.filter(i => i !== index);
             }
             
-            // CRITICAL: Update pricing immediately
             updatePricing();
             
             // Add visual feedback
@@ -530,18 +701,11 @@
             setTimeout(() => {
                 addonItem.style.transform = '';
             }, 150);
-            
-            // Debug logging
-            console.log('Selected addons:', selectedAddons);
-            console.log('Addon toggled:', index, 'Now selected:', checkbox.checked);
         }
         
         function updatePricing() {
-            // Calculate total with addons
-            let total = eventData.basePrice + eventData.transactionFee;
-            
-            // Debug logging
-            console.log('Base calculation:', eventData.basePrice, '+', eventData.transactionFee, '=', total);
+            // Calculate subtotal with addons
+            let subtotal = eventData.basePrice + eventData.transactionFee;
             
             // Clear and rebuild price breakdown
             const breakdown = document.getElementById('priceBreakdown');
@@ -556,13 +720,10 @@
                 </div>
             `;
             
-            // Add selected addons to breakdown and total
+            // Add selected addons
             selectedAddons.forEach(index => {
                 const addon = eventData.addons[index];
-                total += addon.price;
-                
-                console.log('Adding addon:', addon.name, addon.price, 'New total:', total);
-                
+                subtotal += addon.price;
                 breakdown.innerHTML += `
                     <div class="price-line">
                         <span>${addon.name}</span>
@@ -571,12 +732,28 @@
                 `;
             });
             
-            console.log('Final total:', total);
+            // Calculate and apply discount
+            const discountAmount = calculateDiscount(subtotal);
+            const finalTotal = subtotal - discountAmount;
             
-            // Update the button with new total
+            // Show discount if applied
+            if (appliedDiscount && discountAmount > 0) {
+                const discountText = appliedDiscount.type === 'percentage' 
+                    ? `${appliedDiscount.code} (${appliedDiscount.value}% off)`
+                    : `${appliedDiscount.code} (£${appliedDiscount.value} off)`;
+                    
+                breakdown.innerHTML += `
+                    <div class="discount-line">
+                        <span>${discountText}</span>
+                        <span>-£${discountAmount.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            // Update the button with final total
             const button = document.getElementById('bookButton');
             if (button && !button.disabled) {
-                button.innerHTML = `Complete Booking - Pay £${total.toFixed(2)}`;
+                button.innerHTML = `Complete Booking - Pay £${finalTotal.toFixed(2)}`;
             }
         }
         
@@ -600,7 +777,7 @@
             button.disabled = true;
             button.textContent = 'Processing...';
             
-            // Calculate final amount
+            // Calculate final amount with discount
             let totalAmount = eventData.basePrice + eventData.transactionFee;
             const selectedAddonNames = [];
             
@@ -609,6 +786,9 @@
                 totalAmount += addon.price;
                 selectedAddonNames.push(addon.name);
             });
+            
+            const discountAmount = calculateDiscount(totalAmount);
+            const finalAmount = totalAmount - discountAmount;
             
             try {
                 // Create checkout session
@@ -622,7 +802,10 @@
                         eventName: eventData.name,
                         customerName: name,
                         customerEmail: email,
-                        amount: totalAmount,
+                        amount: finalAmount,
+                        originalAmount: totalAmount,
+                        discountCode: appliedDiscount ? appliedDiscount.code : null,
+                        discountAmount: discountAmount,
                         addons: selectedAddonNames
                     })
                 });
@@ -632,15 +815,13 @@
                 if (data.url) {
                     // Check if we're in an iframe
                     if (window.self !== window.top) {
-                        // Open in new tab if in iframe
                         window.open(data.url, '_blank');
                         button.textContent = 'Opening payment page...';
                         setTimeout(() => {
                             button.disabled = false;
-                            button.innerHTML = `Complete Booking - Pay £${totalAmount.toFixed(2)}`;
+                            button.innerHTML = `Complete Booking - Pay £${finalAmount.toFixed(2)}`;
                         }, 3000);
                     } else {
-                        // Redirect normally
                         window.location.href = data.url;
                     }
                 } else {
@@ -651,7 +832,7 @@
                 console.error('Booking error:', error);
                 alert('Unable to process booking. Please try again.');
                 button.disabled = false;
-                button.innerHTML = `Complete Booking - Pay £${totalAmount.toFixed(2)}`;
+                button.innerHTML = `Complete Booking - Pay £${finalAmount.toFixed(2)}`;
             }
         }
         
@@ -667,6 +848,18 @@
             document.getElementById('error').style.display = 'block';
             document.getElementById('error').textContent = message;
         }
+        
+        // Allow Enter key to apply discount code
+        document.addEventListener('DOMContentLoaded', function() {
+            const discountInput = document.getElementById('discountCode');
+            if (discountInput) {
+                discountInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        applyDiscountCode();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
