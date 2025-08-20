@@ -1,4 +1,5 @@
 // This file handles creating Stripe payment sessions
+// Fixed redirect URL to success.html
 export default async function handler(req, res) {
     // Only accept POST requests
     if (req.method !== 'POST') {
