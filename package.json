@@ -1,27 +1,8 @@
 {
   "name": "booking-platform",
   "version": "1.0.0",
-  "description": "NBRH Booking Platform",
-  "main": "index.js",
-  "scripts": {
-    "build": "next build",
-    "start": "next start",
-    "dev": "next dev"
-  },
   "dependencies": {
     "googleapis": "^108.0.0",
-    "stripe": "^12.0.0",
-    "next": "^13.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kennedyadamu1994-stack/booking-platform.git"
-  },
-  "author": "Kennedy Adamu",
-  "license": "ISC"
+    "stripe": "^12.0.0"
+  }
 }
