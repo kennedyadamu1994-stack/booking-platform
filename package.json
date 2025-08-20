@@ -1,9 +1,27 @@
 {
   "name": "booking-platform",
   "version": "1.0.0",
-  "description": "Custom booking platform with Stripe integration",
+  "description": "NBRH Booking Platform",
+  "main": "index.js",
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "dev": "next dev"
+  },
   "dependencies": {
-    "stripe": "^14.10.0",
-    "jsonwebtoken": "^9.0.0"
-  }
+    "googleapis": "^108.0.0",
+    "stripe": "^12.0.0",
+    "next": "^13.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kennedyadamu1994-stack/booking-platform.git"
+  },
+  "author": "Kennedy Adamu",
+  "license": "ISC"
 }
