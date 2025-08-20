@@ -382,74 +382,87 @@
         }
         
         async function loadEventData() {
-            try {
-                // Fetch data from Google Sheets using Google Sheets API
-                const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
-                const response = await fetch(sheetUrl);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load event data');
-                }
-                
-                const data = await response.json();
-                const rows = data.values;
-                
-                // Find our event (skip header row)
-                let eventRow = null;
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { // Check event_id and active status
-                        eventRow = rows[i];
-                        break;
-                    }
-                }
-                
-                if (!eventRow) {
-                    showError('Event not found or no longer available.');
-                    return;
-                }
-                
-                // Parse event data
-                eventData = {
-                    id: eventRow[0],
-                    name: eventRow[1],
-                    description: eventRow[2],
-                    date: eventRow[3],
-                    time: eventRow[4],
-                    location: eventRow[5],
-                    basePrice: parseFloat(eventRow[6]) || 0,
-                    transactionFee: parseFloat(eventRow[7]) || 0,
-                    totalSpots: parseInt(eventRow[8]) || 0,
-                    spotsRemaining: parseInt(eventRow[9]) || 0,
-                    addons: []
-                };
-                
-                // Parse add-ons
-                if (eventRow[11] && eventRow[12]) {
-                    eventData.addons.push({
-                        name: eventRow[11],
-                        price: parseFloat(eventRow[12])
-                    });
-                }
-                if (eventRow[13] && eventRow[14]) {
-                    eventData.addons.push({
-                        name: eventRow[13],
-                        price: parseFloat(eventRow[14])
-                    });
-                }
-                if (eventRow[15] && eventRow[16]) {
-                    eventData.addons.push({
-                        name: eventRow[15],
-                        price: parseFloat(eventRow[16])
-                    });
-                }
-                
-                displayEvent();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showError('Unable to load event details. Please try again later.');
+    try {
+        // Add debug logging
+        console.log('Event ID:', eventId);
+        console.log('Sheet ID:', SHEET_ID);
+        
+        // Fetch data from Google Sheets using Google Sheets API
+        const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
+        console.log('API URL:', sheetUrl);
+        
+        const response = await fetch(sheetUrl);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Details:', errorText);
+            throw new Error('Failed to load event data: ' + errorText);
+        }
+        
+        const data = await response.json();
+        console.log('API Response:', data);
+        const rows = data.values;
+        
+        // Find our event (skip header row)
+        let eventRow = null;
+        for (let i = 1; i < rows.length; i++) {
+            console.log('Checking row:', i, 'Event ID:', rows[i][0], 'Active:', rows[i][17]);
+            if (rows[i][0] === eventId && rows[i][17] === 'yes') { // Check event_id and active status
+                eventRow = rows[i];
+                break;
             }
         }
+        
+        if (!eventRow) {
+            console.error('Event not found. Available events:', rows.slice(1).map(row => row[0]));
+            showError('Event not found or no longer available.');
+            return;
+        }
+        
+        // Parse event data (rest of the function stays the same)
+        eventData = {
+            id: eventRow[0],
+            name: eventRow[1],
+            description: eventRow[2],
+            date: eventRow[3],
+            time: eventRow[4],
+            location: eventRow[5],
+            basePrice: parseFloat(eventRow[6]) || 0,
+            transactionFee: parseFloat(eventRow[7]) || 0,
+            totalSpots: parseInt(eventRow[8]) || 0,
+            spotsRemaining: parseInt(eventRow[9]) || 0,
+            addons: []
+        };
+        
+        // Parse add-ons
+        if (eventRow[11] && eventRow[12]) {
+            eventData.addons.push({
+                name: eventRow[11],
+                price: parseFloat(eventRow[12])
+            });
+        }
+        if (eventRow[13] && eventRow[14]) {
+            eventData.addons.push({
+                name: eventRow[13],
+                price: parseFloat(eventRow[14])
+            });
+        }
+        if (eventRow[15] && eventRow[16]) {
+            eventData.addons.push({
+                name: eventRow[15],
+                price: parseFloat(eventRow[16])
+            });
+        }
+        
+        displayEvent();
+        
+    } catch (error) {
+        console.error('Full Error:', error);
+        showError('Unable to load event details. Error: ' + error.message);
+    }
+}
         
         function displayEvent() {
             // Hide loading, show form
