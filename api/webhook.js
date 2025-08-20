@@ -44,9 +44,6 @@ export default async function handler(req, res) {
                 
                 // Update Google Sheets
                 await updateGoogleSheets(bookingData);
-                
-                // Send confirmation email (optional - requires email service setup)
-                // await sendConfirmationEmail(bookingData);
             }
         } else {
             // This is from our success page
@@ -82,14 +79,53 @@ export default async function handler(req, res) {
     }
 }
 
+async function getAccessToken() {
+    try {
+        // Get service account from environment variable
+        const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+        
+        // Create JWT
+        const jwt = require('jsonwebtoken');
+        const now = Math.floor(Date.now() / 1000);
+        
+        const payload = {
+            iss: serviceAccount.client_email,
+            scope: 'https://www.googleapis.com/auth/spreadsheets',
+            aud: 'https://oauth2.googleapis.com/token',
+            exp: now + 3600,
+            iat: now
+        };
+        
+        const token = jwt.sign(payload, serviceAccount.private_key, { algorithm: 'RS256' });
+        
+        // Exchange JWT for access token
+        const response = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${token}`
+        });
+        
+        const data = await response.json();
+        return data.access_token;
+        
+    } catch (error) {
+        console.error('Failed to get access token:', error);
+        throw error;
+    }
+}
+
 async function updateGoogleSheets(bookingData) {
     const SHEET_ID = process.env.GOOGLE_SHEET_ID;
-    const API_KEY = process.env.GOOGLE_API_KEY;
     
     try {
+        // Get access token using service account
+        const accessToken = await getAccessToken();
+        
         // Append to Bookings sheet
         const range = 'Bookings!A:J';
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED`;
         
         const values = [[
             bookingData.booking_id,
@@ -108,16 +144,21 @@ async function updateGoogleSheets(bookingData) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
             },
             body: JSON.stringify({ values })
         });
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Google Sheets API error:', errorText);
             throw new Error('Failed to update Google Sheets');
         }
         
+        console.log('Successfully updated Google Sheets');
+        
         // Also update spots remaining in Events sheet
-        await updateSpotsRemaining(bookingData.event_id);
+        await updateSpotsRemaining(bookingData.event_id, accessToken);
         
     } catch (error) {
         console.error('Google Sheets update failed:', error);
@@ -125,8 +166,65 @@ async function updateGoogleSheets(bookingData) {
     }
 }
 
-async function updateSpotsRemaining(eventId) {
-    // This would update the spots_remaining column
-    // Implementation depends on your specific needs
-    console.log(`Updating spots for event: ${eventId}`);
+async function updateSpotsRemaining(eventId, accessToken) {
+    try {
+        const SHEET_ID = process.env.GOOGLE_SHEET_ID;
+        
+        // First, get current data to find the row
+        const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:J`;
+        
+        const getResponse = await fetch(getUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        
+        if (!getResponse.ok) {
+            throw new Error('Failed to get current event data');
+        }
+        
+        const data = await getResponse.json();
+        const rows = data.values;
+        
+        // Find the event row
+        let rowIndex = -1;
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i][0] === eventId) {
+                rowIndex = i + 1; // +1 because sheets are 1-indexed
+                break;
+            }
+        }
+        
+        if (rowIndex === -1) {
+            console.log(`Event ${eventId} not found for spots update`);
+            return;
+        }
+        
+        // Get current spots remaining (column J = index 9)
+        const currentSpots = parseInt(rows[rowIndex - 1][9]) || 0;
+        const newSpots = Math.max(0, currentSpots - 1);
+        
+        // Update the spots remaining
+        const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!J${rowIndex}?valueInputOption=USER_ENTERED`;
+        
+        const updateResponse = await fetch(updateUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+                values: [[newSpots]]
+            })
+        });
+        
+        if (updateResponse.ok) {
+            console.log(`Updated spots for ${eventId}: ${currentSpots} -> ${newSpots}`);
+        } else {
+            console.error('Failed to update spots remaining');
+        }
+        
+    } catch (error) {
+        console.error('Error updating spots remaining:', error);
+    }
 }
