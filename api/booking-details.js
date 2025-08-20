@@ -1,12 +1,20 @@
 // API Endpoint: /api/booking-details.js
-// This works with your existing Vercel environment variables
-
-const { google } = require('googleapis');
+// Updated with better error handling
 
 export default async function handler(req, res) {
+    // Add CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+
     if (req.method !== 'GET') {
         res.setHeader('Allow', ['GET']);
-        return res.status(405).end(`Method ${req.method} Not Allowed`);
+        return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
     }
 
     try {
@@ -16,72 +24,138 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'session_id is required' });
         }
 
+        // Import googleapis dynamically
+        const { google } = await import('googleapis');
+
+        // Check environment variables
+        if (!process.env.GOOGLE_SERVICE_ACCOUNT) {
+            console.error('Missing GOOGLE_SERVICE_ACCOUNT environment variable');
+            return res.status(500).json({ error: 'Google credentials not configured' });
+        }
+
+        if (!process.env.GOOGLE_SHEET_ID) {
+            console.error('Missing GOOGLE_SHEET_ID environment variable');
+            return res.status(500).json({ error: 'Google Sheet ID not configured' });
+        }
+
+        // Parse Google credentials
+        let credentials;
+        try {
+            credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+        } catch (err) {
+            console.error('Error parsing GOOGLE_SERVICE_ACCOUNT:', err);
+            return res.status(500).json({ error: 'Invalid Google credentials format' });
+        }
+
         // Use your existing environment variables
         const auth = new google.auth.GoogleAuth({
-            credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT),
+            credentials: credentials,
             scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
         });
 
         const sheets = google.sheets({ version: 'v4', auth });
         const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-        // Read both sheets
-        const [bookingResponse, eventsResponse] = await Promise.all([
-            sheets.spreadsheets.values.get({
-                spreadsheetId: spreadsheetId,
-                range: 'Sheet1!A:K', // Your booking log sheet
-            }),
-            sheets.spreadsheets.values.get({
-                spreadsheetId: spreadsheetId,
-                range: 'Events!A:S', // Your events sheet
-            })
-        ]);
+        console.log('Attempting to read from spreadsheet:', spreadsheetId);
+
+        // Read both sheets with error handling
+        let bookingResponse, eventsResponse;
+        
+        try {
+            [bookingResponse, eventsResponse] = await Promise.all([
+                sheets.spreadsheets.values.get({
+                    spreadsheetId: spreadsheetId,
+                    range: 'Sheet1!A:K', // Your booking log sheet
+                }),
+                sheets.spreadsheets.values.get({
+                    spreadsheetId: spreadsheetId,
+                    range: 'Events!A:S', // Your events sheet
+                })
+            ]);
+        } catch (sheetsError) {
+            console.error('Error reading from Google Sheets:', sheetsError);
+            return res.status(500).json({ 
+                error: 'Failed to read from Google Sheets', 
+                details: sheetsError.message 
+            });
+        }
 
         const bookingRows = bookingResponse.data.values;
         const eventRows = eventsResponse.data.values;
 
+        console.log('Booking rows found:', bookingRows ? bookingRows.length : 0);
+        console.log('Event rows found:', eventRows ? eventRows.length : 0);
+
         if (!bookingRows || bookingRows.length === 0) {
-            return res.status(404).json({ error: 'No booking data found' });
+            return res.status(404).json({ error: 'No booking data found in Sheet1' });
         }
 
         if (!eventRows || eventRows.length === 0) {
-            return res.status(404).json({ error: 'No event data found' });
+            return res.status(404).json({ error: 'No event data found in Events sheet' });
         }
 
         // Find the booking by stripe_payment_id
         const bookingHeaders = bookingRows[0];
+        console.log('Booking headers:', bookingHeaders);
+        
+        const stripePaymentIdIndex = bookingHeaders.indexOf('stripe_payment_id');
+        if (stripePaymentIdIndex === -1) {
+            return res.status(500).json({ error: 'stripe_payment_id column not found in booking sheet' });
+        }
+
         const bookingRow = bookingRows.find(row => {
-            const stripePaymentIdIndex = bookingHeaders.indexOf('stripe_payment_id');
             return row[stripePaymentIdIndex] === session_id;
         });
 
         if (!bookingRow) {
-            return res.status(404).json({ error: 'Booking not found' });
+            console.log('Booking not found for session_id:', session_id);
+            return res.status(404).json({ error: 'Booking not found for this session_id' });
         }
+
+        console.log('Found booking row:', bookingRow);
 
         // Get the event_id from the booking
         const eventIdIndex = bookingHeaders.indexOf('event_id');
+        if (eventIdIndex === -1) {
+            return res.status(500).json({ error: 'event_id column not found in booking sheet' });
+        }
+        
         const eventId = bookingRow[eventIdIndex];
+        console.log('Looking for event_id:', eventId);
 
         // Find the event details by event_id
         const eventHeaders = eventRows[0];
+        console.log('Event headers:', eventHeaders);
+        
+        const eventIdHeaderIndex = eventHeaders.indexOf('event_id');
+        if (eventIdHeaderIndex === -1) {
+            return res.status(500).json({ error: 'event_id column not found in Events sheet' });
+        }
+
         const eventRow = eventRows.find(row => {
-            const eventIdIndex = eventHeaders.indexOf('event_id');
-            return row[eventIdIndex] === eventId;
+            return row[eventIdHeaderIndex] === eventId;
         });
 
         if (!eventRow) {
-            return res.status(404).json({ error: 'Event details not found' });
+            console.log('Event not found for event_id:', eventId);
+            return res.status(404).json({ error: 'Event details not found for this event_id' });
         }
+
+        console.log('Found event row:', eventRow);
 
         // Combine booking and event data
         const bookingDetails = combineBookingAndEventData(bookingHeaders, bookingRow, eventHeaders, eventRow);
 
-        res.json(bookingDetails);
+        console.log('Returning booking details:', bookingDetails);
+        res.status(200).json(bookingDetails);
 
     } catch (error) {
-        console.error('Error fetching booking details:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
+        console.error('Unexpected error in booking-details API:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
 
