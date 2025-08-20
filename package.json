@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Custom booking platform with Stripe integration",
   "dependencies": {
-    "stripe": "^14.10.0"
+    "stripe": "^14.10.0",
+    "jsonwebtoken": "^9.0.0"
   }
 }
