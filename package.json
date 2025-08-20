@@ -1,0 +1,8 @@
+{
+  "name": "booking-platform",
+  "version": "1.0.0",
+  "description": "Custom booking platform with Stripe integration",
+  "dependencies": {
+    "stripe": "^14.10.0"
+  }
+}
