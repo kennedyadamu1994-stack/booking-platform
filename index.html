@@ -195,15 +195,7 @@
             color: #6c757d;
         }
         
-        .price-total {
-            display: flex;
-            justify-content: space-between;
-            font-size: 24px;
-            font-weight: 700;
-            color: #212529;
-            padding-top: 15px;
-            border-top: 2px solid #e9ecef;
-        }
+        /* REMOVED: price-total class since we're removing the redundant total line */
         
         .book-button {
             width: 100%;
@@ -344,10 +336,9 @@
                         <span id="transactionFee">£0</span>
                     </div>
                 </div>
-                <div class="price-total">
-                    <span>Total</span>
-                    <span id="totalPrice">£0</span>
-                </div>
+                
+                <!-- REMOVED: Redundant total line since button shows the total -->
+                
                 <button id="bookButton" class="book-button" onclick="processBooking()">
                     Complete Booking - Pay £<span id="buttonPrice">0</span>
                 </button>
@@ -520,6 +511,7 @@
             const checkbox = document.getElementById(`addon${index}`);
             const addonItem = checkbox.parentElement;
             
+            // Toggle checkbox state
             checkbox.checked = !checkbox.checked;
             
             if (checkbox.checked) {
@@ -530,18 +522,26 @@
                 selectedAddons = selectedAddons.filter(i => i !== index);
             }
             
-            // CRITICAL: Update pricing immediately after any change
+            // CRITICAL: Update pricing immediately
             updatePricing();
             
-            // Add visual feedback so users see the selection happened
+            // Add visual feedback
             addonItem.style.transform = 'scale(1.02)';
             setTimeout(() => {
                 addonItem.style.transform = '';
             }, 150);
+            
+            // Debug logging
+            console.log('Selected addons:', selectedAddons);
+            console.log('Addon toggled:', index, 'Now selected:', checkbox.checked);
         }
         
         function updatePricing() {
+            // Calculate total with addons
             let total = eventData.basePrice + eventData.transactionFee;
+            
+            // Debug logging
+            console.log('Base calculation:', eventData.basePrice, '+', eventData.transactionFee, '=', total);
             
             // Clear and rebuild price breakdown
             const breakdown = document.getElementById('priceBreakdown');
@@ -556,10 +556,13 @@
                 </div>
             `;
             
-            // Add selected addons to price breakdown and total
+            // Add selected addons to breakdown and total
             selectedAddons.forEach(index => {
                 const addon = eventData.addons[index];
                 total += addon.price;
+                
+                console.log('Adding addon:', addon.name, addon.price, 'New total:', total);
+                
                 breakdown.innerHTML += `
                     <div class="price-line">
                         <span>${addon.name}</span>
@@ -568,19 +571,12 @@
                 `;
             });
             
-            // Update all total price displays
-            document.getElementById('totalPrice').textContent = `£${total.toFixed(2)}`;
+            console.log('Final total:', total);
             
-            // Update the button price (this is the key fix)
-            const buttonPriceSpan = document.getElementById('buttonPrice');
-            if (buttonPriceSpan) {
-                buttonPriceSpan.textContent = total.toFixed(2);
-            }
-            
-            // Also update the entire button text to ensure it shows the current total
+            // Update the button with new total
             const button = document.getElementById('bookButton');
             if (button && !button.disabled) {
-                button.innerHTML = `Complete Booking - Pay £<span id="buttonPrice">${total.toFixed(2)}</span>`;
+                button.innerHTML = `Complete Booking - Pay £${total.toFixed(2)}`;
             }
         }
         
@@ -641,7 +637,7 @@
                         button.textContent = 'Opening payment page...';
                         setTimeout(() => {
                             button.disabled = false;
-                            button.innerHTML = `Complete Booking - Pay £<span id="buttonPrice">${totalAmount.toFixed(2)}</span>`;
+                            button.innerHTML = `Complete Booking - Pay £${totalAmount.toFixed(2)}`;
                         }, 3000);
                     } else {
                         // Redirect normally
@@ -655,7 +651,7 @@
                 console.error('Booking error:', error);
                 alert('Unable to process booking. Please try again.');
                 button.disabled = false;
-                button.innerHTML = `Complete Booking - Pay £<span id="buttonPrice">${totalAmount.toFixed(2)}</span>`;
+                button.innerHTML = `Complete Booking - Pay £${totalAmount.toFixed(2)}`;
             }
         }
         
