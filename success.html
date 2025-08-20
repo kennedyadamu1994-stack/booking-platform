@@ -104,16 +104,64 @@
             font-weight: 600;
         }
         
+        .calendar-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .calendar-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .calendar-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .calendar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background: white;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        
+        .calendar-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
         .home-button {
             display: inline-block;
-            padding: 15px 40px;
+            padding: 15px 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
             border-radius: 10px;
             font-weight: 600;
             transition: all 0.3s;
-            margin-top: 20px;
         }
         
         .home-button:hover {
@@ -121,10 +169,42 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
         
+        .secondary-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .secondary-button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
         .loading {
             display: none;
             color: #6c757d;
             margin-top: 20px;
+        }
+        
+        @media (max-width: 480px) {
+            .calendar-buttons {
+                flex-direction: column;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .success-card {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
@@ -151,6 +231,24 @@
             </div>
         </div>
         
+        <div class="calendar-section" id="calendarSection" style="display: none;">
+            <div class="calendar-title">📅 Add to Calendar</div>
+            <div class="calendar-buttons">
+                <a href="#" id="googleCalendar" class="calendar-btn">
+                    📅 Google Calendar
+                </a>
+                <a href="#" id="outlookCalendar" class="calendar-btn">
+                    📅 Outlook
+                </a>
+                <a href="#" id="appleCalendar" class="calendar-btn">
+                    📅 Apple Calendar
+                </a>
+                <a href="#" id="downloadIcs" class="calendar-btn">
+                    💾 Download .ics
+                </a>
+            </div>
+        </div>
+        
         <p class="message">
             A confirmation email has been sent to your email address with all the event details and your booking reference.
         </p>
@@ -158,22 +256,190 @@
         <div class="loading" id="updatingStatus">
             <p>Updating booking system...</p>
         </div>
-    
+        
+        <div class="button-group">
+            <a href="https://www.thenbrh.co.uk/" class="home-button">
+                🏠 Back to Home
+            </a>
+        </div>
     </div>
     
     <script>
-        // Get session ID from URL
+        /* 
+        DYNAMIC CALENDAR - GOOGLE SHEETS INTEGRATION
+        
+        This page fetches booking details from your Google Sheet via API:
+        GET /api/booking-details?session_id=pi_3RyElu4ajNC0yBi40vVgd11i
+        
+        Note: session_id parameter should be the Stripe payment ID (stripe_payment_id from your sheet)
+        
+        Expected API Response:
+        {
+            "event_title": "Kids Tennis Camp",
+            "event_description": "Fun tennis camp for kids with professional coaching and equipment\n\nIncluded Add-ons: Ball Set",
+            "event_location": "NBRH Tennis Courts, Main Location",
+            "start_date": "2025-01-30T09:00:00Z",
+            "end_date": "2025-01-30T12:00:00Z",
+            "amount_paid": "£19.5",
+            "customer_name": "Adam",
+            "customer_email": "kennedy_adamu@yahoo.co.uk",
+            "booking_id": "CS_TEST_",
+            "addons_selected": "Ball Set"
+        }
+        */
+
+        // Get parameters from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
         
-        if (sessionId) {
-            // Show booking reference (first 8 characters of session ID)
-            const bookingRef = sessionId.substring(0, 8).toUpperCase();
-            document.getElementById('bookingRef').textContent = bookingRef;
-            document.getElementById('bookingDetails').style.display = 'block';
+        // Dynamic event details - will be populated from Google Sheets API
+        let eventDetails = {
+            title: "Your Booked Session",
+            description: "Thank you for booking with us!",
+            location: "TBC",
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 2 * 60 * 60 * 1000),
+        };
+        
+        // Fetch event details from your Google Sheets API
+        async function fetchEventDetailsFromAPI(sessionId) {
+            try {
+                // Show loading state
+                showLoadingState(true);
+                
+                const response = await fetch(`/api/booking-details?session_id=${sessionId}`);
+                if (response.ok) {
+                    const bookingData = await response.json();
+                    
+                    // Update event details with data from Google Sheets
+                    eventDetails = {
+                        title: bookingData.event_title || eventDetails.title,
+                        description: bookingData.event_description || eventDetails.description,
+                        location: bookingData.event_location || eventDetails.location,
+                        startDate: bookingData.start_date ? new Date(bookingData.start_date) : eventDetails.startDate,
+                        endDate: bookingData.end_date ? new Date(bookingData.end_date) : eventDetails.endDate,
+                    };
+                    
+                    // Update displayed booking details
+                    if (bookingData.amount_paid) {
+                        document.getElementById('amountPaid').textContent = bookingData.amount_paid;
+                    }
+                    
+                    // Update calendar links with real data
+                    setupCalendarLinks();
+                    
+                    console.log('Event details loaded from Google Sheets:', eventDetails);
+                    showLoadingState(false);
+                    
+                } else {
+                    console.warn('Could not fetch booking details from API');
+                    showLoadingState(false);
+                    // Calendar will work with default placeholder data
+                }
+            } catch (error) {
+                console.error('Error fetching booking details:', error);
+                showLoadingState(false);
+                // Calendar will work with default placeholder data
+            }
+        }
+        
+        // Show/hide loading state for calendar section
+        function showLoadingState(loading) {
+            const calendarSection = document.getElementById('calendarSection');
+            const calendarButtons = document.querySelector('.calendar-buttons');
             
-            // Update the booking in Google Sheets
-            updateBookingRecord(sessionId);
+            if (loading) {
+                calendarButtons.innerHTML = '<div style="color: #6c757d; padding: 10px;">Loading event details...</div>';
+            } else {
+                // Restore calendar buttons (setupCalendarLinks will populate them)
+                calendarButtons.innerHTML = `
+                    <a href="#" id="googleCalendar" class="calendar-btn">📅 Google Calendar</a>
+                    <a href="#" id="outlookCalendar" class="calendar-btn">📅 Outlook</a>
+                    <a href="#" id="appleCalendar" class="calendar-btn">📅 Apple Calendar</a>
+                    <a href="#" id="downloadIcs" class="calendar-btn">💾 Download .ics</a>
+                `;
+            }
+        }
+        
+        // Initialize the page
+        async function initializePage() {
+            if (sessionId) {
+                // Show booking reference (first 8 characters of session ID)
+                const bookingRef = sessionId.substring(0, 8).toUpperCase();
+                document.getElementById('bookingRef').textContent = bookingRef;
+                document.getElementById('bookingDetails').style.display = 'block';
+                
+                // Show calendar section
+                document.getElementById('calendarSection').style.display = 'block';
+                
+                // Set up initial calendar links (with placeholder data)
+                setupCalendarLinks();
+                
+                // Load dynamic event details from Google Sheets
+                await fetchEventDetailsFromAPI(sessionId);
+                
+                // Update the booking in Google Sheets
+                updateBookingRecord(sessionId);
+            }
+        }
+        
+        // Start initialization
+        initializePage();
+        
+        function setupCalendarLinks() {
+            const { title, description, location, startDate, endDate } = eventDetails;
+            
+            // Format dates for calendar links
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+            
+            const startFormatted = formatDate(startDate);
+            const endFormatted = formatDate(endDate);
+            
+            // Google Calendar
+            const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startFormatted}/${endFormatted}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
+            document.getElementById('googleCalendar').href = googleUrl;
+            
+            // Outlook Calendar
+            const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startFormatted}&enddt=${endFormatted}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
+            document.getElementById('outlookCalendar').href = outlookUrl;
+            
+            // Apple Calendar (same as ICS download)
+            document.getElementById('appleCalendar').addEventListener('click', downloadIcsFile);
+            document.getElementById('downloadIcs').addEventListener('click', downloadIcsFile);
+        }
+        
+        function downloadIcsFile(e) {
+            e.preventDefault();
+            
+            const { title, description, location, startDate, endDate } = eventDetails;
+            
+            // Create ICS content
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Your Company//Your App//EN
+BEGIN:VEVENT
+UID:${sessionId || Math.random().toString(36)}@yourcompany.com
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+SUMMARY:${title}
+DESCRIPTION:${description}
+LOCATION:${location}
+END:VEVENT
+END:VCALENDAR`;
+            
+            // Create and download file
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `booking-${sessionId || 'event'}.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
         }
         
         async function updateBookingRecord(sessionId) {
