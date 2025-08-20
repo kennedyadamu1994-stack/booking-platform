@@ -1,5 +1,5 @@
-// Final working version of /api/booking-details.js
-// Updated to use correct sheet names: "Bookings" and "Events"
+// Enhanced /api/booking-details.js
+// Handles both Checkout Session IDs and Payment Intent IDs
 
 module.exports = async (req, res) => {
     try {
@@ -23,6 +23,30 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'session_id is required' });
         }
 
+        // Determine if we have a checkout session ID or payment intent ID
+        let paymentIntentId = session_id;
+        
+        if (session_id.startsWith('cs_test_') || session_id.startsWith('cs_live_')) {
+            console.log('Checkout session ID detected, converting to payment intent ID...');
+            
+            // Import Stripe to get payment intent from checkout session
+            const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+            
+            try {
+                const checkoutSession = await stripe.checkout.sessions.retrieve(session_id);
+                paymentIntentId = checkoutSession.payment_intent;
+                console.log('Converted to payment intent ID:', paymentIntentId);
+            } catch (stripeError) {
+                console.error('Error retrieving checkout session from Stripe:', stripeError.message);
+                return res.status(500).json({ 
+                    error: 'Failed to retrieve checkout session from Stripe',
+                    details: stripeError.message 
+                });
+            }
+        } else {
+            console.log('Payment intent ID detected, using directly');
+        }
+
         // Import googleapis
         const { google } = require('googleapis');
 
@@ -40,15 +64,15 @@ module.exports = async (req, res) => {
 
         console.log('Reading from Bookings and Events sheets...');
 
-        // Read from both correct sheets
+        // Read from both sheets
         const [bookingResponse, eventsResponse] = await Promise.all([
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Bookings!A:K', // Changed from Sheet1 to Bookings
+                range: 'Bookings!A:K',
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Events!A:K', // Use correct range based on debug info
+                range: 'Events!A:K',
             })
         ]);
 
@@ -66,7 +90,7 @@ module.exports = async (req, res) => {
             return res.status(404).json({ error: 'No event data found in Events sheet' });
         }
 
-        // Find the booking by stripe_payment_id
+        // Find the booking by payment intent ID
         const bookingHeaders = bookingRows[0];
         console.log('Booking headers:', bookingHeaders);
         
@@ -76,20 +100,20 @@ module.exports = async (req, res) => {
         }
 
         const bookingRow = bookingRows.find(row => {
-            return row[stripePaymentIdIndex] === session_id;
+            return row[stripePaymentIdIndex] === paymentIntentId;
         });
 
         if (!bookingRow) {
-            console.log('Booking not found for session_id:', session_id);
-            // Return fake data for testing even if booking not found
-            return res.status(200).json({
-                event_title: 'Test Event (Booking Not Found)',
-                event_description: 'API is working but could not find booking for session_id: ' + session_id,
-                event_location: 'NBRH Location',
-                start_date: '2025-01-30T10:00:00Z',
-                end_date: '2025-01-30T12:00:00Z',
-                amount_paid: '£25.00',
-                debug_note: 'Booking not found, returning test data'
+            console.log('Booking not found for payment intent ID:', paymentIntentId);
+            // Return detailed debug info
+            return res.status(404).json({
+                error: 'Booking not found',
+                debug_info: {
+                    original_session_id: session_id,
+                    searched_payment_intent_id: paymentIntentId,
+                    available_payment_intents: bookingRows.slice(1).map(row => row[stripePaymentIdIndex]).filter(Boolean),
+                    total_bookings: bookingRows.length - 1
+                }
             });
         }
 
