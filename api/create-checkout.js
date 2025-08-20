@@ -43,7 +43,7 @@ export default async function handler(req, res) {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.SITE_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.SITE_URL}?event=${eventId}`,
             metadata: {
                 eventId: eventId,
