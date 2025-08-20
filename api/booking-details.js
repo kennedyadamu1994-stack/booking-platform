@@ -1,7 +1,9 @@
-// API Endpoint: /api/booking-details.js
-// Updated with better error handling
+// CommonJS version of /api/booking-details.js
+// This should work better with Vercel
 
-export default async function handler(req, res) {
+const { google } = require('googleapis');
+
+module.exports = async function handler(req, res) {
     // Add CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -13,70 +15,92 @@ export default async function handler(req, res) {
     }
 
     if (req.method !== 'GET') {
-        res.setHeader('Allow', ['GET']);
         return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
     }
 
     try {
         const { session_id } = req.query;
         
+        console.log('API called with session_id:', session_id);
+        
+        // Check environment variables
+        console.log('Environment variables check:');
+        console.log('- GOOGLE_SERVICE_ACCOUNT exists:', !!process.env.GOOGLE_SERVICE_ACCOUNT);
+        console.log('- GOOGLE_SHEET_ID exists:', !!process.env.GOOGLE_SHEET_ID);
+        
         if (!session_id) {
             return res.status(400).json({ error: 'session_id is required' });
         }
 
-        // Import googleapis dynamically
-        const { google } = await import('googleapis');
-
-        // Check environment variables
+        // Check for required environment variables
         if (!process.env.GOOGLE_SERVICE_ACCOUNT) {
-            console.error('Missing GOOGLE_SERVICE_ACCOUNT environment variable');
-            return res.status(500).json({ error: 'Google credentials not configured' });
+            console.error('GOOGLE_SERVICE_ACCOUNT environment variable not found');
+            return res.status(500).json({ 
+                error: 'GOOGLE_SERVICE_ACCOUNT environment variable not found' 
+            });
         }
 
         if (!process.env.GOOGLE_SHEET_ID) {
-            console.error('Missing GOOGLE_SHEET_ID environment variable');
-            return res.status(500).json({ error: 'Google Sheet ID not configured' });
+            console.error('GOOGLE_SHEET_ID environment variable not found');
+            return res.status(500).json({ 
+                error: 'GOOGLE_SHEET_ID environment variable not found' 
+            });
         }
 
-        // Parse Google credentials
+        // Try to parse the service account JSON
         let credentials;
         try {
             credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-        } catch (err) {
-            console.error('Error parsing GOOGLE_SERVICE_ACCOUNT:', err);
-            return res.status(500).json({ error: 'Invalid Google credentials format' });
+            console.log('Successfully parsed GOOGLE_SERVICE_ACCOUNT');
+        } catch (parseError) {
+            console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT:', parseError.message);
+            return res.status(500).json({ 
+                error: 'Invalid GOOGLE_SERVICE_ACCOUNT format', 
+                details: parseError.message 
+            });
         }
 
-        // Use your existing environment variables
-        const auth = new google.auth.GoogleAuth({
-            credentials: credentials,
-            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-        });
+        // Create Google Sheets client
+        let auth, sheets;
+        try {
+            auth = new google.auth.GoogleAuth({
+                credentials: credentials,
+                scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+            });
+            
+            sheets = google.sheets({ version: 'v4', auth });
+            console.log('Successfully created Google Sheets client');
+        } catch (authError) {
+            console.error('Failed to create Google auth:', authError.message);
+            return res.status(500).json({ 
+                error: 'Failed to create Google auth', 
+                details: authError.message 
+            });
+        }
 
-        const sheets = google.sheets({ version: 'v4', auth });
+        // Test reading from sheets
         const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-
         console.log('Attempting to read from spreadsheet:', spreadsheetId);
 
-        // Read both sheets with error handling
         let bookingResponse, eventsResponse;
-        
         try {
             [bookingResponse, eventsResponse] = await Promise.all([
                 sheets.spreadsheets.values.get({
                     spreadsheetId: spreadsheetId,
-                    range: 'Sheet1!A:K', // Your booking log sheet
+                    range: 'Sheet1!A:K',
                 }),
                 sheets.spreadsheets.values.get({
                     spreadsheetId: spreadsheetId,
-                    range: 'Events!A:S', // Your events sheet
+                    range: 'Events!A:S',
                 })
             ]);
+            console.log('Successfully read from both sheets');
         } catch (sheetsError) {
-            console.error('Error reading from Google Sheets:', sheetsError);
+            console.error('Failed to read from Google Sheets:', sheetsError.message);
             return res.status(500).json({ 
                 error: 'Failed to read from Google Sheets', 
-                details: sheetsError.message 
+                details: sheetsError.message,
+                spreadsheetId: spreadsheetId
             });
         }
 
@@ -150,18 +174,17 @@ export default async function handler(req, res) {
         res.status(200).json(bookingDetails);
 
     } catch (error) {
-        console.error('Unexpected error in booking-details API:', error);
-        res.status(500).json({ 
-            error: 'Internal server error', 
+        console.error('Unexpected error:', error);
+        return res.status(500).json({ 
+            error: 'Unexpected error', 
             details: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
-}
+};
 
 // Helper function to combine booking and event data
 function combineBookingAndEventData(bookingHeaders, bookingRow, eventHeaders, eventRow) {
-    // Helper to get values from either sheet
     const getBookingValue = (columnName) => {
         const index = bookingHeaders.indexOf(columnName);
         return index !== -1 ? bookingRow[index] : null;
