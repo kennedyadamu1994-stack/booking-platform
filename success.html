@@ -325,11 +325,8 @@
                         document.getElementById('amountPaid').textContent = bookingData.amount_paid;
                     }
                     
-                    // Update calendar links with real data
-                    setupCalendarLinks();
-                    
                     console.log('Event details loaded from Google Sheets:', eventDetails);
-                    showLoadingState(false);
+                    showLoadingState(false); // This will now handle setupCalendarLinks
                     
                 } else {
                     console.warn('Could not fetch booking details from API');
@@ -358,6 +355,11 @@
                     <a href="#" id="appleCalendar" class="calendar-btn">📅 Apple Calendar</a>
                     <a href="#" id="downloadIcs" class="calendar-btn">💾 Download .ics</a>
                 `;
+                
+                // Wait a moment for DOM to update, then setup calendar links
+                setTimeout(() => {
+                    setupCalendarLinks();
+                }, 100);
             }
         }
         
@@ -389,6 +391,17 @@
         function setupCalendarLinks() {
             const { title, description, location, startDate, endDate } = eventDetails;
             
+            // Check if calendar buttons exist before setting up links
+            const googleCalendar = document.getElementById('googleCalendar');
+            const outlookCalendar = document.getElementById('outlookCalendar');
+            const appleCalendar = document.getElementById('appleCalendar');
+            const downloadIcs = document.getElementById('downloadIcs');
+            
+            if (!googleCalendar || !outlookCalendar || !appleCalendar || !downloadIcs) {
+                console.log('Calendar buttons not found, skipping setup');
+                return;
+            }
+            
             // Format dates for calendar links
             const formatDate = (date) => {
                 return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -399,15 +412,24 @@
             
             // Google Calendar
             const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startFormatted}/${endFormatted}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
-            document.getElementById('googleCalendar').href = googleUrl;
+            googleCalendar.href = googleUrl;
             
             // Outlook Calendar
             const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startFormatted}&enddt=${endFormatted}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
-            document.getElementById('outlookCalendar').href = outlookUrl;
+            outlookCalendar.href = outlookUrl;
             
-            // Apple Calendar (same as ICS download)
-            document.getElementById('appleCalendar').addEventListener('click', downloadIcsFile);
-            document.getElementById('downloadIcs').addEventListener('click', downloadIcsFile);
+            // Apple Calendar and Download ICS - remove existing event listeners first
+            appleCalendar.replaceWith(appleCalendar.cloneNode(true));
+            downloadIcs.replaceWith(downloadIcs.cloneNode(true));
+            
+            // Re-get elements after cloning
+            const newAppleCalendar = document.getElementById('appleCalendar');
+            const newDownloadIcs = document.getElementById('downloadIcs');
+            
+            newAppleCalendar.addEventListener('click', downloadIcsFile);
+            newDownloadIcs.addEventListener('click', downloadIcsFile);
+            
+            console.log('Calendar links setup complete');
         }
         
         function downloadIcsFile(e) {
