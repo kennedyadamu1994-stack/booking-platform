@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Spot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .booking-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .event-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+        
+        .event-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .event-description {
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+        
+        .event-meta {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        
+        .meta-icon {
+            width: 24px;
+            margin-right: 15px;
+            opacity: 0.7;
+        }
+        
+        .spots-remaining {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px 20px;
+            margin: 0 30px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .spots-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .spots-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .form-section {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .addons-section {
+            background: #f8f9fa;
+            padding: 30px;
+        }
+        
+        .addons-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        .addon-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .addon-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+        
+        .addon-item.selected {
+            background: #e7f3ff;
+            border-color: #667eea;
+        }
+        
+        .addon-checkbox {
+            width: 22px;
+            height: 22px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .addon-details {
+            flex-grow: 1;
+        }
+        
+        .addon-name {
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .addon-price {
+            color: #667eea;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        
+        .price-section {
+            padding: 30px;
+            background: white;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: #6c757d;
+        }
+        
+        .price-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+            padding-top: 15px;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .book-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .book-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .book-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 640px) {
+            .event-header {
+                padding: 20px;
+            }
+            .event-title {
+                font-size: 24px;
+            }
+            .form-section, .addons-section, .price-section {
+                padding: 20px;
+            }
+        }
+        
+        /* For iframe embedding */
+        .in-iframe {
+            background: white;
+        }
+        .in-iframe .booking-container {
+            box-shadow: none;
+            border-radius: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking-container">
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading booking form...</p>
+        </div>
+        
+        <div id="error" class="error-message" style="display: none;"></div>
+        
+        <div id="bookingForm" style="display: none;">
+            <div class="event-header">
+                <h1 class="event-title" id="eventTitle">Event Name</h1>
+                <p class="event-description" id="eventDescription">Event description</p>
+            </div>
+            
+            <div class="event-meta">
+                <div class="meta-item">
+                    <span class="meta-icon">📅</span>
+                    <span id="eventDate">Date</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">⏰</span>
+                    <span id="eventTime">Time</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">📍</span>
+                    <span id="eventLocation">Location</span>
+                </div>
+            </div>
+            
+            <div class="spots-remaining" id="spotsInfo">
+                <span id="spotsText">Checking availability...</span>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label" for="customerName">Your Name *</label>
+                    <input type="text" id="customerName" class="form-input" required placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="customerEmail">Your Email *</label>
+                    <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
+                </div>
+            </div>
+            
+            <div class="addons-section" id="addonsSection" style="display: none;">
+                <h3 class="addons-title">Optional Add-ons</h3>
+                <div id="addonsList"></div>
+            </div>
+            
+            <div class="price-section">
+                <div id="priceBreakdown">
+                    <div class="price-line">
+                        <span>Session Fee</span>
+                        <span id="basePrice">£0</span>
+                    </div>
+                    <div class="price-line">
+                        <span>Booking Fee</span>
+                        <span id="transactionFee">£0</span>
+                    </div>
+                </div>
+                <div class="price-total">
+                    <span>Total</span>
+                    <span id="totalPrice">£0</span>
+                </div>
+                <button id="bookButton" class="book-button" onclick="processBooking()">
+                    Complete Booking - Pay £<span id="buttonPrice">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SHEET_ID = 'YOUR_SHEET_ID_HERE';
+        const STRIPE_PUBLIC_KEY = 'YOUR_STRIPE_PUBLIC_KEY_HERE';
+        
+        // Global variables
+        let eventData = null;
+        let selectedAddons = [];
+        let baseURL = window.location.origin;
+        
+        // Check if we're in an iframe
+        if (window.self !== window.top) {
+            document.body.classList.add('in-iframe');
+        }
+        
+        // Get event ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        
+        // Initialize
+        if (!eventId) {
+            showError('No event specified. Please use a valid booking link.');
+        } else {
+            loadEventData();
+        }
+        
+        async function loadEventData() {
+            try {
+                // Fetch data from Google Sheets using Google Sheets API
+                const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=YOUR_GOOGLE_API_KEY`;
+                const response = await fetch(sheetUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load event data');
+                }
+                
+                const data = await response.json();
+                const rows = data.values;
+                
+                // Find our event (skip header row)
+                let eventRow = null;
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { // Check event_id and active status
+                        eventRow = rows[i];
+                        break;
+                    }
+                }
+                
+                if (!eventRow) {
+                    showError('Event not found or no longer available.');
+                    return;
+                }
+                
+                // Parse event data
+                eventData = {
+                    id: eventRow[0],
+                    name: eventRow[1],
+                    description: eventRow[2],
+                    date: eventRow[3],
+                    time: eventRow[4],
+                    location: eventRow[5],
+                    basePrice: parseFloat(eventRow[6]) || 0,
+                    transactionFee: parseFloat(eventRow[7]) || 0,
+                    totalSpots: parseInt(eventRow[8]) || 0,
+                    spotsRemaining: parseInt(eventRow[9]) || 0,
+                    addons: []
+                };
+                
+                // Parse add-ons
+                if (eventRow[11] && eventRow[12]) {
+                    eventData.addons.push({
+                        name: eventRow[11],
+                        price: parseFloat(eventRow[12])
+                    });
+                }
+                if (eventRow[13] && eventRow[14]) {
+                    eventData.addons.push({
+                        name: eventRow[13],
+                        price: parseFloat(eventRow[14])
+                    });
+                }
+                if (eventRow[15] && eventRow[16]) {
+                    eventData.addons.push({
+                        name: eventRow[15],
+                        price: parseFloat(eventRow[16])
+                    });
+                }
+                
+                displayEvent();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Unable to load event details. Please try again later.');
+            }
+        }
+        
+        function displayEvent() {
+            // Hide loading, show form
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('bookingForm').style.display = 'block';
+            
+            // Fill in event details
+            document.getElementById('eventTitle').textContent = eventData.name;
+            document.getElementById('eventDescription').textContent = eventData.description;
+            document.getElementById('eventDate').textContent = formatDate(eventData.date);
+            document.getElementById('eventTime').textContent = eventData.time;
+            document.getElementById('eventLocation').textContent = eventData.location;
+            
+            // Update spots
+            const spotsInfo = document.getElementById('spotsInfo');
+            const spotsText = document.getElementById('spotsText');
+            
+            if (eventData.spotsRemaining <= 0) {
+                spotsInfo.className = 'spots-remaining spots-out';
+                spotsText.textContent = 'SOLD OUT - No spots available';
+                document.getElementById('bookButton').disabled = true;
+            } else if (eventData.spotsRemaining <= 5) {
+                spotsInfo.className = 'spots-remaining spots-low';
+                spotsText.textContent = `Hurry! Only ${eventData.spotsRemaining} spots left`;
+            } else {
+                spotsInfo.className = 'spots-remaining';
+                spotsText.textContent = `${eventData.spotsRemaining} spots available`;
+            }
+            
+            // Display add-ons
+            if (eventData.addons.length > 0) {
+                document.getElementById('addonsSection').style.display = 'block';
+                const addonsList = document.getElementById('addonsList');
+                
+                eventData.addons.forEach((addon, index) => {
+                    const addonDiv = document.createElement('div');
+                    addonDiv.className = 'addon-item';
+                    addonDiv.onclick = () => toggleAddon(index);
+                    addonDiv.innerHTML = `
+                        <input type="checkbox" class="addon-checkbox" id="addon${index}">
+                        <div class="addon-details">
+                            <div class="addon-name">${addon.name}</div>
+                        </div>
+                        <div class="addon-price">+£${addon.price.toFixed(2)}</div>
+                    `;
+                    addonsList.appendChild(addonDiv);
+                });
+            }
+            
+            // Update prices
+            updatePricing();
+        }
+        
+        function toggleAddon(index) {
+            const checkbox = document.getElementById(`addon${index}`);
+            const addonItem = checkbox.parentElement;
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                addonItem.classList.add('selected');
+                selectedAddons.push(index);
+            } else {
+                addonItem.classList.remove('selected');
+                selectedAddons = selectedAddons.filter(i => i !== index);
+            }
+            
+            updatePricing();
+        }
+        
+        function updatePricing() {
+            let total = eventData.basePrice + eventData.transactionFee;
+            
+            // Update base prices
+            document.getElementById('basePrice').textContent = `£${eventData.basePrice.toFixed(2)}`;
+            document.getElementById('transactionFee').textContent = `£${eventData.transactionFee.toFixed(2)}`;
+            
+            // Clear and rebuild price breakdown
+            const breakdown = document.getElementById('priceBreakdown');
+            breakdown.innerHTML = `
+                <div class="price-line">
+                    <span>Session Fee</span>
+                    <span>£${eventData.basePrice.toFixed(2)}</span>
+                </div>
+                <div class="price-line">
+                    <span>Booking Fee</span>
+                    <span>£${eventData.transactionFee.toFixed(2)}</span>
+                </div>
+            `;
+            
+            // Add selected addons
+            selectedAddons.forEach(index => {
+                const addon = eventData.addons[index];
+                total += addon.price;
+                breakdown.innerHTML += `
+                    <div class="price-line">
+                        <span>${addon.name}</span>
+                        <span>£${addon.price.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            // Update total
+            document.getElementById('totalPrice').textContent = `£${total.toFixed(2)}`;
+            document.getElementById('buttonPrice').textContent = total.toFixed(2);
+        }
+        
+        async function processBooking() {
+            const name = document.getElementById('customerName').value.trim();
+            const email = document.getElementById('customerEmail').value.trim();
+            
+            // Validation
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            // Disable button
+            const button = document.getElementById('bookButton');
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            
+            // Calculate final amount
+            let totalAmount = eventData.basePrice + eventData.transactionFee;
+            const selectedAddonNames = [];
+            
+            selectedAddons.forEach(index => {
+                const addon = eventData.addons[index];
+                totalAmount += addon.price;
+                selectedAddonNames.push(addon.name);
+            });
+            
+            try {
+                // Create checkout session
+                const response = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        eventId: eventData.id,
+                        eventName: eventData.name,
+                        customerName: name,
+                        customerEmail: email,
+                        amount: totalAmount,
+                        addons: selectedAddonNames
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.url) {
+                    // Check if we're in an iframe
+                    if (window.self !== window.top) {
+                        // Open in new tab if in iframe
+                        window.open(data.url, '_blank');
+                        button.textContent = 'Opening payment page...';
+                        setTimeout(() => {
+                            button.disabled = false;
+                            button.innerHTML = `Complete Booking - Pay £<span id="buttonPrice">${totalAmount.toFixed(2)}</span>`;
+                        }, 3000);
+                    } else {
+                        // Redirect normally
+                        window.location.href = data.url;
+                    }
+                } else {
+                    throw new Error('Unable to create checkout session');
+                }
+                
+            } catch (error) {
+                console.error('Booking error:', error);
+                alert('Unable to process booking. Please try again.');
+                button.disabled = false;
+                button.innerHTML = `Complete Booking - Pay £<span id="buttonPrice">${totalAmount.toFixed(2)}</span>`;
+            }
+        }
+        
+        function formatDate(dateStr) {
+            const parts = dateStr.split('/');
+            const date = new Date(parts[2], parts[1] - 1, parts[0]);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-GB', options);
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = message;
+        }
+    </script>
+</body>
+</html>
