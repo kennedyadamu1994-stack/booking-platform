@@ -311,32 +311,38 @@
                 if (response.ok) {
                     const bookingData = await response.json();
                     
+                    console.log('Raw API response:', bookingData);
+                    
                     // Update event details with data from Google Sheets
                     eventDetails = {
-                        title: bookingData.event_title || eventDetails.title,
-                        description: bookingData.event_description || eventDetails.description,
-                        location: bookingData.event_location || eventDetails.location,
-                        startDate: bookingData.start_date ? new Date(bookingData.start_date) : eventDetails.startDate,
-                        endDate: bookingData.end_date ? new Date(bookingData.end_date) : eventDetails.endDate,
+                        title: bookingData.event_title || 'Your Booked Session',
+                        description: bookingData.event_description || 'Thank you for booking with us!',
+                        location: bookingData.event_location || 'TBC',
+                        startDate: bookingData.start_date ? new Date(bookingData.start_date) : new Date(),
+                        endDate: bookingData.end_date ? new Date(bookingData.end_date) : new Date(Date.now() + 2 * 60 * 60 * 1000),
                     };
+                    
+                    console.log('Updated eventDetails:', eventDetails);
                     
                     // Update displayed booking details
                     if (bookingData.amount_paid) {
                         document.getElementById('amountPaid').textContent = bookingData.amount_paid;
                     }
                     
-                    console.log('Event details loaded from Google Sheets:', eventDetails);
-                    showLoadingState(false); // This will now handle setupCalendarLinks
+                    console.log('Event details loaded from Google Sheets successfully');
+                    showLoadingState(false); // This will handle setupCalendarLinks
                     
                 } else {
-                    console.warn('Could not fetch booking details from API');
+                    console.warn('Could not fetch booking details from API, response:', response.status);
+                    // Use default placeholder data but still set up calendar
+                    console.log('Using placeholder eventDetails:', eventDetails);
                     showLoadingState(false);
-                    // Calendar will work with default placeholder data
                 }
             } catch (error) {
                 console.error('Error fetching booking details:', error);
+                // Use default placeholder data but still set up calendar
+                console.log('Error occurred, using placeholder eventDetails:', eventDetails);
                 showLoadingState(false);
-                // Calendar will work with default placeholder data
             }
         }
         
@@ -374,10 +380,10 @@
                 // Show calendar section
                 document.getElementById('calendarSection').style.display = 'block';
                 
-                // Set up initial calendar links (with placeholder data)
-                setupCalendarLinks();
+                // DON'T set up calendar links yet - wait for API data
+                showLoadingState(true);
                 
-                // Load dynamic event details from Google Sheets
+                // Load dynamic event details from Google Sheets FIRST
                 await fetchEventDetailsFromAPI(sessionId);
                 
                 // Update the booking in Google Sheets
@@ -389,6 +395,8 @@
         initializePage();
         
         function setupCalendarLinks() {
+            console.log('Setting up calendar links with eventDetails:', eventDetails);
+            
             const { title, description, location, startDate, endDate } = eventDetails;
             
             // Check if calendar buttons exist before setting up links
@@ -402,9 +410,19 @@
                 return;
             }
             
+            console.log('Calendar data being used:', {
+                title: title,
+                description: description,
+                location: location,
+                startDate: startDate,
+                endDate: endDate
+            });
+            
             // Format dates for calendar links
             const formatDate = (date) => {
-                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                const formatted = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                console.log('Formatted date:', date, '→', formatted);
+                return formatted;
             };
             
             const startFormatted = formatDate(startDate);
@@ -413,10 +431,12 @@
             // Google Calendar
             const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startFormatted}/${endFormatted}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
             googleCalendar.href = googleUrl;
+            console.log('Google Calendar URL:', googleUrl);
             
             // Outlook Calendar
             const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startFormatted}&enddt=${endFormatted}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
             outlookCalendar.href = outlookUrl;
+            console.log('Outlook Calendar URL:', outlookUrl);
             
             // Apple Calendar and Download ICS - remove existing event listeners first
             appleCalendar.replaceWith(appleCalendar.cloneNode(true));
@@ -429,13 +449,17 @@
             newAppleCalendar.addEventListener('click', downloadIcsFile);
             newDownloadIcs.addEventListener('click', downloadIcsFile);
             
-            console.log('Calendar links setup complete');
+            console.log('Calendar links setup complete with real data');
         }
         
         function downloadIcsFile(e) {
             e.preventDefault();
             
             const { title, description, location, startDate, endDate } = eventDetails;
+            
+            console.log('Downloading ICS file with data:', {
+                title, description, location, startDate, endDate
+            });
             
             // Create ICS content
             const icsContent = `BEGIN:VCALENDAR
@@ -452,6 +476,8 @@ LOCATION:${location}
 END:VEVENT
 END:VCALENDAR`;
             
+            console.log('ICS content:', icsContent);
+            
             // Create and download file
             const blob = new Blob([icsContent], { type: 'text/calendar' });
             const url = window.URL.createObjectURL(blob);
@@ -462,6 +488,8 @@ END:VCALENDAR`;
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            
+            console.log('ICS file download initiated');
         }
         
         async function updateBookingRecord(sessionId) {
