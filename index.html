@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Your Spot</title>
+    <title>Checkout</title>
     <style>
         * {
             margin: 0;
@@ -13,316 +13,457 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f7;
             min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
         
-        .booking-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            max-width: 600px;
-            width: 100%;
-            overflow: hidden;
-            animation: slideIn 0.4s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .event-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Header */
+        .header {
+            background: #1c1c1e;
             color: white;
-            padding: 30px;
-        }
-        
-        .event-title {
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .event-description {
-            opacity: 0.95;
-            line-height: 1.5;
-        }
-        
-        .event-meta {
-            padding: 30px;
-            background: #f8f9fa;
-        }
-        
-        .meta-item {
+            padding: 15px 20px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .header .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .header .help-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid #48484a;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Main Content */
+        .booking-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f7;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
             margin-bottom: 15px;
-            color: #495057;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
-        .meta-icon {
-            width: 24px;
-            margin-right: 15px;
-            opacity: 0.7;
+        /* Event Details Card */
+        .event-card {
+            padding: 20px;
         }
         
-        .spots-remaining {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px 20px;
-            margin: 0 30px;
-            border-radius: 10px;
+        .event-content {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .event-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
             text-align: center;
             font-weight: 600;
         }
         
+        .event-details {
+            flex: 1;
+        }
+        
+        .event-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .event-meta-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            color: #8e8e93;
+            font-size: 14px;
+        }
+        
+        .event-meta-item span {
+            margin-right: 8px;
+        }
+        
+        .ticket-info {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f2f2f7;
+        }
+        
+        .ticket-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .ticket-quantity {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        
+        .ticket-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        
+        .booking-fee {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-left: 20px;
+        }
+        
+        .spots-indicator {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .spots-available {
+            background: #e8f5e8;
+            color: #30a330;
+        }
+        
         .spots-low {
-            background: #fff3cd;
-            color: #856404;
+            background: #fff4e5;
+            color: #ff9500;
         }
         
         .spots-out {
-            background: #f8d7da;
-            color: #721c24;
+            background: #ffeaea;
+            color: #ff3b30;
         }
         
-        .form-section {
-            padding: 30px;
+        /* Customer Info Card */
+        .customer-card {
+            padding: 20px;
+        }
+        
+        .customer-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
         
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #495057;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #1c1c1e;
+            font-weight: 500;
         }
         
         .form-input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
             font-size: 16px;
-            transition: all 0.3s;
+            background: white;
+            transition: border-color 0.2s;
         }
         
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #007aff;
         }
         
-        /* Discount code section styling */
-        .discount-section {
-            background: #f8f9fa;
-            padding: 30px;
-            border-top: 1px solid #e9ecef;
+        /* Price Details Card */
+        .price-card {
+            padding: 20px;
         }
         
-        .discount-title {
+        .price-card h3 {
             font-size: 16px;
-            margin-bottom: 15px;
-            color: #495057;
             font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+        }
+        
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #8e8e93;
+            font-size: 14px;
+        }
+        
+        .price-line.total {
+            color: #1c1c1e;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f2f2f7;
+        }
+        
+        .discount-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #30a330;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        /* Discount Section */
+        .discount-card {
+            padding: 20px;
+        }
+        
+        .discount-card h3 {
+            font-size: 16px;
+            color: #007aff;
+            margin-bottom: 15px;
+            font-weight: 500;
         }
         
         .discount-input-group {
             display: flex;
             gap: 10px;
+            margin-bottom: 10px;
         }
         
         .discount-input {
             flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
             font-size: 16px;
             text-transform: uppercase;
-            transition: all 0.3s;
         }
         
-        .discount-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .apply-discount-btn {
+        .apply-btn {
             padding: 12px 20px;
-            background: #667eea;
+            background: #007aff;
             color: white;
             border: none;
-            border-radius: 10px;
-            font-weight: 600;
+            border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
             white-space: nowrap;
         }
         
-        .apply-discount-btn:hover {
-            background: #5a67d8;
-            transform: translateY(-1px);
-        }
-        
-        .apply-discount-btn:disabled {
-            background: #6c757d;
+        .apply-btn:disabled {
+            background: #8e8e93;
             cursor: not-allowed;
         }
         
         .discount-message {
             margin-top: 10px;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 500;
         }
         
         .discount-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #e8f5e8;
+            color: #30a330;
         }
         
         .discount-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #ffeaea;
+            color: #ff3b30;
         }
         
-        .addons-section {
-            background: #f8f9fa;
-            padding: 30px;
+        /* Add-ons */
+        .addons-card {
+            padding: 20px;
         }
         
-        .addons-title {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #495057;
+        .addons-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
         }
         
         .addon-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f7;
+            cursor: pointer;
         }
         
-        .addon-item:hover {
-            border-color: #667eea;
-            transform: translateX(5px);
-        }
-        
-        .addon-item.selected {
-            background: #e7f3ff;
-            border-color: #667eea;
+        .addon-item:last-child {
+            border-bottom: none;
         }
         
         .addon-checkbox {
-            width: 22px;
-            height: 22px;
-            margin-right: 15px;
-            cursor: pointer;
+            margin-right: 12px;
         }
         
         .addon-details {
-            flex-grow: 1;
+            flex: 1;
         }
         
         .addon-name {
-            font-weight: 600;
-            color: #212529;
+            font-size: 14px;
+            color: #1c1c1e;
         }
         
         .addon-price {
-            color: #667eea;
-            font-weight: 600;
-            margin-left: auto;
+            font-size: 14px;
+            color: #8e8e93;
+            font-weight: 500;
         }
         
-        .price-section {
-            padding: 30px;
+
+        
+        /* Consent */
+        .consent-card {
+            padding: 20px;
+        }
+        
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .consent-text {
+            font-size: 12px;
+            color: #8e8e93;
+            line-height: 1.4;
+        }
+        
+        .consent-text a {
+            color: #007aff;
+            text-decoration: none;
+        }
+        
+        /* Payment Button */
+        .payment-section {
+            padding: 0 20px 20px;
+        }
+        
+        .payment-method {
             background: white;
-            border-top: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         
-        .price-line {
+        .payment-current {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            color: #6c757d;
+            align-items: center;
+            gap: 10px;
         }
         
-        .discount-line {
+        .payment-logo {
+            width: 30px;
+            height: 20px;
+            background: #1c1c1e;
+            border-radius: 4px;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            color: #28a745;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
             font-weight: 600;
         }
         
-        .book-button {
+        .payment-name {
+            font-size: 16px;
+            color: #1c1c1e;
+        }
+        
+        .payment-change {
+            color: #007aff;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .pay-button {
             width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            background: #1c1c1e;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
-        .book-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-        
-        .book-button:disabled {
-            background: #6c757d;
+        .pay-button:disabled {
+            background: #8e8e93;
             cursor: not-allowed;
-            opacity: 0.6;
         }
         
+        /* Loading and Error States */
         .loading {
             text-align: center;
-            padding: 60px;
-            color: #6c757d;
-        }
-        
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px;
-            text-align: center;
+            padding: 60px 20px;
+            color: #8e8e93;
         }
         
         .loading-spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #007aff;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -335,109 +476,157 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Responsive design */
-        @media (max-width: 640px) {
-            .event-header {
-                padding: 20px;
-            }
-            .event-title {
-                font-size: 24px;
-            }
-            .form-section, .addons-section, .price-section, .discount-section {
-                padding: 20px;
-            }
-            .discount-input-group {
-                flex-direction: column;
-            }
+        .error-message {
+            background: #ffeaea;
+            color: #ff3b30;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px;
+            text-align: center;
         }
         
-        /* For iframe embedding */
-        .in-iframe {
-            background: white;
-        }
-        .in-iframe .booking-container {
-            box-shadow: none;
-            border-radius: 0;
+        /* Responsive */
+        @media (max-width: 640px) {
+            .booking-container {
+                padding: 15px;
+            }
+            
+            .event-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .event-image {
+                width: 100%;
+                height: 120px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="booking-container">
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <p>Loading booking form...</p>
-        </div>
-        
-        <div id="error" class="error-message" style="display: none;"></div>
-        
-        <div id="bookingForm" style="display: none;">
-            <div class="event-header">
-                <h1 class="event-title" id="eventTitle">Event Name</h1>
-                <p class="event-description" id="eventDescription">Event description</p>
-            </div>
-            
-            <div class="event-meta">
-                <div class="meta-item">
-                    <span class="meta-icon">📅</span>
-                    <span id="eventDate">Date</span>
+    <div class="header">
+        <button class="close-btn">×</button>
+        <h1>Checkout</h1>
+        <button class="help-btn">?</button>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading booking form...</p>
+    </div>
+    
+    <div id="error" class="error-message" style="display: none;"></div>
+    
+    <div class="booking-container" id="bookingForm" style="display: none;">
+        <!-- Event Details Card -->
+        <div class="card event-card">
+            <div class="event-content">
+                <div class="event-image" id="eventImage">
+                    EVENT<br>IMAGE
                 </div>
-                <div class="meta-item">
-                    <span class="meta-icon">⏰</span>
-                    <span id="eventTime">Time</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-icon">📍</span>
-                    <span id="eventLocation">Location</span>
-                </div>
-            </div>
-            
-            <div class="spots-remaining" id="spotsInfo">
-                <span id="spotsText">Checking availability...</span>
-            </div>
-            
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label" for="customerName">Your Name *</label>
-                    <input type="text" id="customerName" class="form-input" required placeholder="Enter your full name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="customerEmail">Your Email *</label>
-                    <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
-                </div>
-            </div>
-            
-            <!-- Discount Code Section -->
-            <div class="discount-section">
-                <div class="discount-title">💰 Have a Discount Code?</div>
-                <div class="discount-input-group">
-                    <input type="text" id="discountCode" class="discount-input" placeholder="Enter discount code" maxlength="20">
-                    <button id="applyDiscountBtn" class="apply-discount-btn" onclick="applyDiscountCode()">Apply</button>
-                </div>
-                <div id="discountMessage" class="discount-message" style="display: none;"></div>
-            </div>
-            
-            <div class="addons-section" id="addonsSection" style="display: none;">
-                <h3 class="addons-title">Optional Add-ons</h3>
-                <div id="addonsList"></div>
-            </div>
-            
-            <div class="price-section">
-                <div id="priceBreakdown">
-                    <div class="price-line">
-                        <span>Session Fee</span>
-                        <span id="basePrice">£0</span>
+                <div class="event-details">
+                    <div class="event-title" id="eventTitle">Event Name</div>
+                    <div class="event-meta-item">
+                        <span>📍</span>
+                        <span id="eventLocation">Location</span>
                     </div>
-                    <div class="price-line">
-                        <span>Booking Fee</span>
-                        <span id="transactionFee">£0</span>
+                    <div class="event-meta-item">
+                        <span>📅</span>
+                        <span id="eventDateTime">Date & Time</span>
                     </div>
+                </div>
+            </div>
+            
+            <div class="ticket-info">
+                <div class="ticket-line">
+                    <span class="ticket-quantity">1x Adult (16+)</span>
+                    <span class="ticket-price" id="ticketPrice">£0.00</span>
+                </div>
+                <div class="booking-fee">
+                    <span>1x Booking fees: £<span id="bookingFeeAmount">0.00</span></span>
                 </div>
                 
-                <button id="bookButton" class="book-button" onclick="processBooking()">
-                    Complete Booking - Pay £<span id="buttonPrice">0</span>
-                </button>
+                <div class="spots-indicator" id="spotsIndicator">
+                    <span id="spotsText">Checking availability...</span>
+                </div>
             </div>
         </div>
+
+        <!-- Customer Information -->
+        <div class="card customer-card">
+            <h3>Your Details</h3>
+            <div class="form-group">
+                <label class="form-label" for="customerName">Full Name *</label>
+                <input type="text" id="customerName" class="form-input" required placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="customerEmail">Email Address *</label>
+                <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
+            </div>
+        </div>
+
+        <!-- Add-ons Section -->
+        <div class="card addons-card" id="addonsSection" style="display: none;">
+            <h3>Optional Add-ons</h3>
+            <div id="addonsList"></div>
+        </div>
+
+        <!-- Price Details -->
+        <div class="card price-card">
+            <h3>Price details</h3>
+            <div id="priceBreakdown">
+                <div class="price-line">
+                    <span>Tickets:</span>
+                    <span id="ticketsPrice">£0.00</span>
+                </div>
+                <div class="price-line">
+                    <span>Booking fee:</span>
+                    <span id="feePrice">£0.00</span>
+                </div>
+            </div>
+            <div class="price-line total">
+                <span>Total</span>
+                <span id="totalPrice">£0.00</span>
+            </div>
+        </div>
+
+        <!-- Discount Code -->
+        <div class="card discount-card">
+            <h3>Apply a voucher, gift card or discount code</h3>
+            <div class="discount-input-group">
+                <input type="text" id="discountCode" class="discount-input" placeholder="Enter code" maxlength="20">
+                <button id="applyDiscountBtn" class="apply-btn" onclick="applyDiscountCode()">Apply</button>
+            </div>
+            <div id="discountMessage" class="discount-message" style="display: none;"></div>
+        </div>
+
+
+
+        <!-- Marketing Consent -->
+        <div class="card consent-card">
+            <div class="consent-checkbox">
+                <input type="checkbox" id="marketingConsent">
+                <label for="marketingConsent" class="consent-text">
+                    By clicking here, you agree to receive more information from <a href="#">EVENT ORGANIZER</a>, producers of this event and other epic experiences. You can unsubscribe any time by contacting the producer.
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Section -->
+    <div class="payment-section" id="paymentSection" style="display: none;">
+        <div class="payment-method">
+            <div class="payment-current">
+                <div class="payment-logo">Pay</div>
+                <span class="payment-name">Apple Pay</span>
+            </div>
+            <a href="#" class="payment-change">Change method</a>
+        </div>
+        
+        <button id="payButton" class="pay-button" onclick="processBooking()">
+            <span class="payment-logo">Pay</span>
+            Complete Payment
+        </button>
     </div>
 
     <script>
@@ -450,11 +639,6 @@
         let selectedAddons = [];
         let appliedDiscount = null;
         let baseURL = window.location.origin;
-        
-        // Check if we're in an iframe
-        if (window.self !== window.top) {
-            document.body.classList.add('in-iframe');
-        }
         
         // Get event ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -536,6 +720,74 @@
                 console.error('Error:', error);
                 showError('Unable to load event details. Please try again later.');
             }
+        }
+        
+        function displayEvent() {
+            // Hide loading, show form
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('bookingForm').style.display = 'block';
+            document.getElementById('paymentSection').style.display = 'block';
+            
+            // Fill in event details
+            document.getElementById('eventTitle').textContent = eventData.name;
+            document.getElementById('eventLocation').textContent = eventData.location;
+            document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
+            
+            // Update prices
+            document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
+            document.getElementById('bookingFeeAmount').textContent = eventData.transactionFee.toFixed(2);
+            
+            // Update spots
+            const spotsIndicator = document.getElementById('spotsIndicator');
+            const spotsText = document.getElementById('spotsText');
+            
+            if (eventData.spotsRemaining <= 0) {
+                spotsIndicator.className = 'spots-indicator spots-out';
+                spotsText.textContent = 'SOLD OUT - No spots available';
+                document.getElementById('payButton').disabled = true;
+            } else if (eventData.spotsRemaining <= 5) {
+                spotsIndicator.className = 'spots-indicator spots-low';
+                spotsText.textContent = `Hurry! Only ${eventData.spotsRemaining} spots left`;
+            } else {
+                spotsIndicator.className = 'spots-indicator spots-available';
+                spotsText.textContent = `${eventData.spotsRemaining} spots available`;
+            }
+            
+            // Display add-ons
+            if (eventData.addons.length > 0) {
+                document.getElementById('addonsSection').style.display = 'block';
+                const addonsList = document.getElementById('addonsList');
+                
+                eventData.addons.forEach((addon, index) => {
+                    const addonDiv = document.createElement('div');
+                    addonDiv.className = 'addon-item';
+                    addonDiv.onclick = () => toggleAddon(index);
+                    addonDiv.innerHTML = `
+                        <input type="checkbox" class="addon-checkbox" id="addon${index}">
+                        <div class="addon-details">
+                            <div class="addon-name">${addon.name}</div>
+                            <div class="addon-price">+£${addon.price.toFixed(2)}</div>
+                        </div>
+                    `;
+                    addonsList.appendChild(addonDiv);
+                });
+            }
+            
+            // Update pricing
+            updatePricing();
+        }
+        
+        function toggleAddon(index) {
+            const checkbox = document.getElementById(`addon${index}`);
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                selectedAddons.push(index);
+            } else {
+                selectedAddons = selectedAddons.filter(i => i !== index);
+            }
+            
+            updatePricing();
         }
         
         async function applyDiscountCode() {
@@ -622,100 +874,32 @@
             if (appliedDiscount.type === 'percentage') {
                 return subtotal * (appliedDiscount.value / 100);
             } else if (appliedDiscount.type === 'fixed') {
-                return Math.min(appliedDiscount.value, subtotal); // Don't discount more than the total
+                return Math.min(appliedDiscount.value, subtotal);
             }
             
             return 0;
         }
         
-        function displayEvent() {
-            // Hide loading, show form
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('bookingForm').style.display = 'block';
-            
-            // Fill in event details
-            document.getElementById('eventTitle').textContent = eventData.name;
-            document.getElementById('eventDescription').textContent = eventData.description;
-            document.getElementById('eventDate').textContent = formatDate(eventData.date);
-            document.getElementById('eventTime').textContent = eventData.time;
-            document.getElementById('eventLocation').textContent = eventData.location;
-            
-            // Update spots
-            const spotsInfo = document.getElementById('spotsInfo');
-            const spotsText = document.getElementById('spotsText');
-            
-            if (eventData.spotsRemaining <= 0) {
-                spotsInfo.className = 'spots-remaining spots-out';
-                spotsText.textContent = 'SOLD OUT - No spots available';
-                document.getElementById('bookButton').disabled = true;
-            } else if (eventData.spotsRemaining <= 5) {
-                spotsInfo.className = 'spots-remaining spots-low';
-                spotsText.textContent = `Hurry! Only ${eventData.spotsRemaining} spots left`;
-            } else {
-                spotsInfo.className = 'spots-remaining';
-                spotsText.textContent = `${eventData.spotsRemaining} spots available`;
-            }
-            
-            // Display add-ons
-            if (eventData.addons.length > 0) {
-                document.getElementById('addonsSection').style.display = 'block';
-                const addonsList = document.getElementById('addonsList');
-                
-                eventData.addons.forEach((addon, index) => {
-                    const addonDiv = document.createElement('div');
-                    addonDiv.className = 'addon-item';
-                    addonDiv.onclick = () => toggleAddon(index);
-                    addonDiv.innerHTML = `
-                        <input type="checkbox" class="addon-checkbox" id="addon${index}">
-                        <div class="addon-details">
-                            <div class="addon-name">${addon.name}</div>
-                        </div>
-                        <div class="addon-price">+£${addon.price.toFixed(2)}</div>
-                    `;
-                    addonsList.appendChild(addonDiv);
-                });
-            }
-            
-            // Update prices
-            updatePricing();
-        }
-        
-        function toggleAddon(index) {
-            const checkbox = document.getElementById(`addon${index}`);
-            const addonItem = checkbox.parentElement;
-            
-            checkbox.checked = !checkbox.checked;
-            
-            if (checkbox.checked) {
-                addonItem.classList.add('selected');
-                selectedAddons.push(index);
-            } else {
-                addonItem.classList.remove('selected');
-                selectedAddons = selectedAddons.filter(i => i !== index);
-            }
-            
-            updatePricing();
-            
-            // Add visual feedback
-            addonItem.style.transform = 'scale(1.02)';
-            setTimeout(() => {
-                addonItem.style.transform = '';
-            }, 150);
-        }
-        
         function updatePricing() {
             // Calculate subtotal with addons
-            let subtotal = eventData.basePrice + eventData.transactionFee;
+            let ticketsTotal = eventData.basePrice;
+            let addonsTotal = 0;
             
-            // Clear and rebuild price breakdown
+            selectedAddons.forEach(index => {
+                addonsTotal += eventData.addons[index].price;
+            });
+            
+            const subtotal = ticketsTotal + eventData.transactionFee + addonsTotal;
+            
+            // Update price breakdown
             const breakdown = document.getElementById('priceBreakdown');
-            breakdown.innerHTML = `
+            let html = `
                 <div class="price-line">
-                    <span>Session Fee</span>
-                    <span>£${eventData.basePrice.toFixed(2)}</span>
+                    <span>Tickets:</span>
+                    <span>£${ticketsTotal.toFixed(2)}</span>
                 </div>
                 <div class="price-line">
-                    <span>Booking Fee</span>
+                    <span>Booking fee:</span>
                     <span>£${eventData.transactionFee.toFixed(2)}</span>
                 </div>
             `;
@@ -723,10 +907,9 @@
             // Add selected addons
             selectedAddons.forEach(index => {
                 const addon = eventData.addons[index];
-                subtotal += addon.price;
-                breakdown.innerHTML += `
+                html += `
                     <div class="price-line">
-                        <span>${addon.name}</span>
+                        <span>${addon.name}:</span>
                         <span>£${addon.price.toFixed(2)}</span>
                     </div>
                 `;
@@ -742,7 +925,7 @@
                     ? `${appliedDiscount.code} (${appliedDiscount.value}% off)`
                     : `${appliedDiscount.code} (£${appliedDiscount.value} off)`;
                     
-                breakdown.innerHTML += `
+                html += `
                     <div class="discount-line">
                         <span>${discountText}</span>
                         <span>-£${discountAmount.toFixed(2)}</span>
@@ -750,10 +933,15 @@
                 `;
             }
             
-            // Update the button with final total
-            const button = document.getElementById('bookButton');
-            if (button && !button.disabled) {
-                button.innerHTML = `Complete Booking - Pay £${finalTotal.toFixed(2)}`;
+            breakdown.innerHTML = html;
+            
+            // Update total
+            document.getElementById('totalPrice').textContent = `£${finalTotal.toFixed(2)}`;
+            
+            // Update pay button
+            const payButton = document.getElementById('payButton');
+            if (payButton && !payButton.disabled) {
+                payButton.innerHTML = `<span class="payment-logo">Pay</span> £${finalTotal.toFixed(2)}`;
             }
         }
         
@@ -773,9 +961,9 @@
             }
             
             // Disable button
-            const button = document.getElementById('bookButton');
+            const button = document.getElementById('payButton');
             button.disabled = true;
-            button.textContent = 'Processing...';
+            button.innerHTML = '<span class="payment-logo">Pay</span> Processing...';
             
             // Calculate final amount with discount
             let totalAmount = eventData.basePrice + eventData.transactionFee;
@@ -813,17 +1001,7 @@
                 const data = await response.json();
                 
                 if (data.url) {
-                    // Check if we're in an iframe
-                    if (window.self !== window.top) {
-                        window.open(data.url, '_blank');
-                        button.textContent = 'Opening payment page...';
-                        setTimeout(() => {
-                            button.disabled = false;
-                            button.innerHTML = `Complete Booking - Pay £${finalAmount.toFixed(2)}`;
-                        }, 3000);
-                    } else {
-                        window.location.href = data.url;
-                    }
+                    window.location.href = data.url;
                 } else {
                     throw new Error('Unable to create checkout session');
                 }
@@ -832,7 +1010,7 @@
                 console.error('Booking error:', error);
                 alert('Unable to process booking. Please try again.');
                 button.disabled = false;
-                button.innerHTML = `Complete Booking - Pay £${finalAmount.toFixed(2)}`;
+                updatePricing();
             }
         }
         
