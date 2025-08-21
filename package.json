@@ -1,8 +1,9 @@
 {
   "name": "booking-platform",
   "version": "1.0.0",
+  "description": "Custom booking platform with Stripe integration",
   "dependencies": {
-    "googleapis": "^108.0.0",
-    "stripe": "^12.0.0"
+    "stripe": "^14.10.0",
+    "jsonwebtoken": "^9.0.0"
   }
 }
