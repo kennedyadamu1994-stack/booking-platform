@@ -104,23 +104,16 @@
             font-weight: 600;
         }
         
-        .button-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-        
         .home-button {
             display: inline-block;
-            padding: 15px 30px;
+            padding: 15px 40px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
             border-radius: 10px;
             font-weight: 600;
             transition: all 0.3s;
+            margin-top: 20px;
         }
         
         .home-button:hover {
@@ -132,16 +125,6 @@
             display: none;
             color: #6c757d;
             margin-top: 20px;
-        }
-        
-        @media (max-width: 480px) {
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .success-card {
-                padding: 30px 20px;
-            }
         }
     </style>
 </head>
@@ -175,12 +158,7 @@
         <div class="loading" id="updatingStatus">
             <p>Updating booking system...</p>
         </div>
-        
-        <div class="button-group">
-            <a href="https://www.thenbrh.co.uk/" class="home-button">
-                🏠 Back to Home
-            </a>
-        </div>
+    
     </div>
     
     <script>
