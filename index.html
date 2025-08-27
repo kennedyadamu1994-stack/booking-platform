@@ -129,13 +129,13 @@
                 <strong>Skill Level Tracking Debug:</strong><br>
                 Selected Skill Level: <span id="debugSkillLevel">None selected</span><br>
                 Column M Index: <span id="debugColumnIndex">12</span><br>
-                Sheet Range: <span id="debugSheetRange">Bookings!A:M</span><br>
+                Sheet Range: <span id="debugSheetRange">Bookings!A:N</span><br>
                 Ready for submission: <span id="debugReadyStatus">No</span><br>
                 <hr style="margin: 10px 0;">
-                <strong>🛠️ Anti-Truncation Fix Applied:</strong><br>
+                <strong>Anti-Truncation Fix Applied:</strong><br>
                 Issue: Google Sheets API omits trailing empty columns<br>
                 Solution: Added safety column N to preserve column M<br>
-                Status: <span style="color: green;">✅ Column M protected from truncation</span>
+                Status: <span style="color: green;">Column M protected from truncation</span>
             </div>
         </div>
 
@@ -176,7 +176,7 @@
         const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
         const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
 
-        // Exact Bookings sheet columns A–M (do not change order) + N for safety
+        // Exact Bookings sheet columns A–N (INCLUDES ANTI-TRUNCATION COLUMN)
         const SHEET_COLUMNS = [
             'booking_id',               // A
             'booking_date',             // B
@@ -198,7 +198,7 @@
         const COLUMN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
         const SKILL_LEVEL_COLUMN_INDEX = 12; // zero-based => column M
         const SKILL_LEVEL_COLUMN_LETTER = 'M';
-        const BOOKINGS_RANGE = 'Bookings!A:N'; // Extended to include safety column N
+        const BOOKINGS_RANGE = 'Bookings!A:N'; // FIXED: Now includes safety column N
 
         // ===== State =====
         let eventData = null;
@@ -231,13 +231,13 @@
             // Update debug info
             updateDebugInfo();
             
-            console.log('✅ Skill level selected:', selectedValue, '- Will be saved to column M');
+            console.log('Skill level selected:', selectedValue, '- Will be saved to column M');
         }
 
         function validateSkillLevel() {
             const skillLevel = document.getElementById('skillLevel').value;
             if (!skillLevel || skillLevel === '') {
-                alert('⚠️ Please select your skill level before proceeding. This helps us provide the best experience for you.');
+                alert('Please select your skill level before proceeding. This helps us provide the best experience for you.');
                 document.getElementById('skillLevel').focus();
                 return false;
             }
@@ -268,7 +268,7 @@
             
             if (debugElements.readyStatus) {
                 const isReady = currentSkillLevel !== '';
-                debugElements.readyStatus.textContent = isReady ? 'Yes ✅' : 'No ❌';
+                debugElements.readyStatus.textContent = isReady ? 'Yes' : 'No';
                 debugElements.readyStatus.style.color = isReady ? 'green' : 'red';
             }
         }
@@ -413,11 +413,11 @@
 
                 if (discountFound) {
                     appliedDiscount = discountFound;
-                    showDiscountMessage(`✅ ${discountFound.description || 'Discount applied successfully!'}`,'success');
+                    showDiscountMessage(`${discountFound.description || 'Discount applied successfully!'}`,'success');
                     codeInput.disabled = true; applyBtn.textContent = 'Applied';
                     updatePricing();
                 } else {
-                    showDiscountMessage('❌ Invalid or expired discount code.','error');
+                    showDiscountMessage('Invalid or expired discount code.','error');
                 }
             } catch (e) {
                 console.error('Discount code error:', e);
@@ -473,9 +473,9 @@
             if (payButton && !payButton.disabled) payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
         }
 
-        // Build a row matching A–M exactly (skill_level at M)
+        // Build a row matching A–N (with skill level at M, safety column at N)
         function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
-            // Ensure skill level is never empty (Google Sheets API omits trailing empty columns)
+            // Ensure skill level is never empty (prevent truncation)
             const safeSkillLevel = skillLevel && skillLevel.trim() !== '' ? skillLevel : 'Not specified';
             
             const row = [
@@ -491,16 +491,14 @@
                 status,                                      // J status
                 emailToMe || '',                             // K email_sent_to_me
                 emailToInstructor || '',                     // L email_sent_to_instructor
-                safeSkillLevel                               // M skill_level  *** CRITICAL: Column M ***
+                safeSkillLevel,                              // M skill_level  *** CRITICAL: Column M ***
+                'PRESERVE_COLUMN_M'                          // N safety column (prevents M truncation)
             ];
             
-            // Add a safety column N to prevent M from being truncated
-            row.push('PRESERVE_COLUMN_M'); // N - This ensures column M is never the last column
-            
-            console.log('📊 Sheet row constructed for columns A-N (M=skill level):', row);
-            console.log(`✅ Skill level "${safeSkillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
-            console.log('🛡️ Added safety column N to prevent truncation of column M');
-            console.log(`📏 Row length: ${row.length} (should be 14 for A-N)`);
+            console.log('Sheet row constructed for columns A-N (M=skill level):', row);
+            console.log(`Skill level "${safeSkillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
+            console.log('Added safety column N to prevent truncation of column M');
+            console.log(`Row length: ${row.length} (should be 14 for A-N)`);
             
             return row;
         }
@@ -535,13 +533,12 @@
             const discountAmount = calculateDiscount(totalAmount);
             const finalAmount = totalAmount - discountAmount;
 
-            // Log skill level for debugging
-            console.log('🔍 Processing booking with skill level:', skillLevel);
-            console.log('📝 This will be saved to Column M in the Google Sheet');
-            console.log('🛠️ ANTI-TRUNCATION FIX: Added safety column N to prevent Google Sheets API from truncating column M');
-            console.log('📊 Issue: Google Sheets API omits trailing empty columns - our fix ensures M is never truncated');
+            console.log('Processing booking with skill level:', skillLevel);
+            console.log('This will be saved to Column M in the Google Sheet');
+            console.log('ANTI-TRUNCATION FIX: Added safety column N to prevent Google Sheets API from truncating column M');
+            console.log('Issue: Google Sheets API omits trailing empty columns - our fix ensures M is never truncated');
 
-            // Construct exact row for Bookings!A:M
+            // Construct exact row for Bookings!A:N
             const sheetRow = buildSheetRow({
                 name, email, skillLevel, selectedAddonNames, finalAmount,
                 status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
@@ -591,14 +588,14 @@
                         event_name: eventData.name,
                         customer_name: name,
                         customer_email: email,
-                        skill_level: skillLevel, // *** IMPORTANT ***
+                        skill_level: skillLevel,
                         addons_selected: selectedAddonNames.join(', '),
                         amount_paid: Number(finalAmount.toFixed(2)),
-                        skill_level_column: 'M' // Extra reference
+                        skill_level_column: 'M'
                     }
                 };
 
-                console.log('📤 Sending booking request with payload:', requestPayload);
+                console.log('Sending booking request with payload:', requestPayload);
 
                 const response = await fetch('/api/create-checkout',{
                     method:'POST',
@@ -608,13 +605,13 @@
 
                 const data = await response.json();
                 if (data.url) {
-                    console.log('✅ Checkout session created successfully with skill level:', skillLevel);
+                    console.log('Checkout session created successfully with skill level:', skillLevel);
                     window.location.href = data.url;
                 } else {
                     throw new Error('Unable to create checkout session');
                 }
             } catch (e){
-                console.error('❌ Booking error:', e);
+                console.error('Booking error:', e);
                 alert('Unable to process booking. Please try again.');
                 button.disabled = false;
                 updatePricing();
