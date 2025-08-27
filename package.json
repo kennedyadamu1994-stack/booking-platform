@@ -4,6 +4,7 @@
   "description": "Custom booking platform with Stripe integration",
   "dependencies": {
     "stripe": "^14.10.0",
+    "googleapis": "^144.0.0",
     "jsonwebtoken": "^9.0.0"
   }
 }
