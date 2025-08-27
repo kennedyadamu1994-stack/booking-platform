@@ -1,487 +1,630 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;min-height:100vh}
-    .header{background:#1c1c1e;color:#fff;padding:15px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-    .header h1{font-size:18px;font-weight:600;text-align:center;flex:1}
-    .header .close-btn{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:5px}
-    .header .help-btn{background:none;border:1px solid #48484a;color:#fff;font-size:16px;cursor:pointer;padding:5px;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
-    .booking-container{max-width:500px;margin:0 auto;padding:20px;background:#f5f5f7}
-    .card{background:#fff;border-radius:12px;margin-bottom:15px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .event-card{padding:20px}
-    .event-content{display:block}
-    .event-details{width:100%}
-    .event-title{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:8px;line-height:1.3}
-    .event-meta-item{display:flex;align-items:center;margin-bottom:4px;color:#8e8e93;font-size:14px}
-    .event-meta-item span{margin-right:8px}
-    .ticket-info{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
-    .ticket-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .ticket-quantity,.ticket-price{font-size:16px;font-weight:600;color:#1c1c1e}
-    .booking-fee{font-size:14px;color:#8e8e93;margin-left:20px}
-    .spots-indicator{margin-top:10px;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;text-align:center}
-    .spots-available{background:#e8f5e8;color:#30a330}
-    .spots-low{background:#fff4e5;color:#ff9500}
-    .spots-out{background:#ffeaea;color:#ff3b30}
-    .customer-card{padding:20px}
-    .customer-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
-    .form-group{margin-bottom:15px}
-    .form-label{display:block;margin-bottom:6px;font-size:14px;color:#1c1c1e;font-weight:500}
-    .form-input{width:100%;padding:12px 16px;border:1px solid #d1d1d6;border-radius:8px;font-size:16px;background:#fff;transition:border-color .2s}
-    .form-input:focus{outline:none;border-color:#007aff}
-    .price-card{padding:20px}
-    .price-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
-    .price-line{display:flex;justify-content:space-between;margin-bottom:8px;color:#8e8e93;font-size:14px}
-    .price-line.total{color:#1c1c1e;font-weight:600;font-size:16px;margin-top:10px;padding-top:10px;border-top:1px solid #f2f2f7}
-    .discount-line{display:flex;justify-content:space-between;margin-bottom:8px;color:#30a330;font-size:14px;font-weight:500}
-    .discount-card{padding:20px}
-    .discount-card h3{font-size:16px;color:#007aff;margin-bottom:15px;font-weight:500}
-    .discount-input-group{display:flex;gap:10px;margin-bottom:10px}
-    .discount-input{flex:1;padding:12px 16px;border:1px solid #d1d1d6;border-radius:8px;font-size:16px;text-transform:uppercase}
-    .apply-btn{padding:12px 20px;background:#007aff;color:#fff;border:none;border-radius:8px;font-weight:500;cursor:pointer;white-space:nowrap}
-    .apply-btn:disabled{background:#8e8e93;cursor:not-allowed}
-    .discount-message{margin-top:10px;padding:10px;border-radius:6px;font-size:14px}
-    .discount-success{background:#e8f5e8;color:#30a330}
-    .discount-error{background:#ffeaea;color:#ff3b30}
-    .addons-card{padding:20px}
-    .addons-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
-    .addon-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f2f2f7;cursor:pointer}
-    .addon-item:last-child{border-bottom:none}
-    .addon-checkbox{margin-right:12px}
-    .addon-details{flex:1}
-    .addon-name{font-size:14px;color:#1c1c1e}
-    .addon-price{font-size:14px;color:#8e8e93;font-weight:500}
-    .payment-section{padding:0 20px 20px}
-    .pay-button{width:100%;padding:16px;background:#FF006E;color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
-    .pay-button:disabled{background:#8e8e93;cursor:not-allowed}
-    .loading{text-align:center;padding:60px 20px;color:#8e8e93}
-    .loading-spinner{border:3px solid #f3f3f3;border-top:3px solid #007aff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 20px}
-    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-    .error-message{background:#ffeaea;color:#ff3b30;padding:20px;border-radius:12px;margin:20px;text-align:center}
-    @media (max-width:640px){.booking-container{padding:15px}}
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Checkout</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;min-height:100vh}
+        .header{background:#1c1c1e;color:#fff;padding:15px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+        .header h1{font-size:18px;font-weight:600;text-align:center;flex:1}
+        .header .close-btn{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:5px}
+        .header .help-btn{background:none;border:1px solid #48484a;color:#fff;font-size:16px;cursor:pointer;padding:5px;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+        .booking-container{max-width:500px;margin:0 auto;padding:20px;background:#f5f5f7}
+        .card{background:#fff;border-radius:12px;margin-bottom:15px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .event-card{padding:20px}
+        .event-content{display:block}
+        .event-details{width:100%}
+        .event-title{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:8px;line-height:1.3}
+        .event-meta-item{display:flex;align-items:center;margin-bottom:4px;color:#8e8e93;font-size:14px}
+        .event-meta-item span{margin-right:8px}
+        .ticket-info{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
+        .ticket-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+        .ticket-quantity,.ticket-price{font-size:16px;font-weight:600;color:#1c1c1e}
+        .booking-fee{font-size:14px;color:#8e8e93;margin-left:20px}
+        .spots-indicator{margin-top:10px;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:500;text-align:center}
+        .spots-available{background:#e8f5e8;color:#30a330}
+        .spots-low{background:#fff4e5;color:#ff9500}
+        .spots-out{background:#ffeaea;color:#ff3b30}
+        .customer-card{padding:20px}
+        .customer-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
+        .form-group{margin-bottom:15px}
+        .form-label{display:block;margin-bottom:6px;font-size:14px;color:#1c1c1e;font-weight:500}
+        .form-input{width:100%;padding:12px 16px;border:1px solid #d1d1d6;border-radius:8px;font-size:16px;background:#fff;transition:border-color .2s}
+        .form-input:focus{outline:none;border-color:#007aff}
+        .form-input.valid{border-color:#30a330}
+        .skill-level-info{margin-top:5px;font-size:12px;color:#8e8e93;font-style:italic}
+        .price-card{padding:20px}
+        .price-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
+        .price-line{display:flex;justify-content:space-between;margin-bottom:8px;color:#8e8e93;font-size:14px}
+        .price-line.total{color:#1c1c1e;font-weight:600;font-size:16px;margin-top:10px;padding-top:10px;border-top:1px solid #f2f2f7}
+        .discount-line{display:flex;justify-content:space-between;margin-bottom:8px;color:#30a330;font-size:14px;font-weight:500}
+        .discount-card{padding:20px}
+        .discount-card h3{font-size:16px;color:#007aff;margin-bottom:15px;font-weight:500}
+        .discount-input-group{display:flex;gap:10px;margin-bottom:10px}
+        .discount-input{flex:1;padding:12px 16px;border:1px solid #d1d1d6;border-radius:8px;font-size:16px;text-transform:uppercase}
+        .apply-btn{padding:12px 20px;background:#007aff;color:#fff;border:none;border-radius:8px;font-weight:500;cursor:pointer;white-space:nowrap}
+        .apply-btn:disabled{background:#8e8e93;cursor:not-allowed}
+        .discount-message{margin-top:10px;padding:10px;border-radius:6px;font-size:14px}
+        .discount-success{background:#e8f5e8;color:#30a330}
+        .discount-error{background:#ffeaea;color:#ff3b30}
+        .addons-card{padding:20px}
+        .addons-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
+        .addon-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f2f2f7;cursor:pointer}
+        .addon-item:last-child{border-bottom:none}
+        .addon-checkbox{margin-right:12px}
+        .addon-details{flex:1}
+        .addon-name{font-size:14px;color:#1c1c1e}
+        .addon-price{font-size:14px;color:#8e8e93;font-weight:500}
+        .payment-section{padding:0 20px 20px}
+        .pay-button{width:100%;padding:16px;background:#FF006E;color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+        .pay-button:disabled{background:#8e8e93;cursor:not-allowed}
+        .debug-info{background:#f8f8f8;border:1px solid #ddd;border-radius:8px;padding:15px;margin:15px 0;font-family:monospace;font-size:12px;display:none}
+        .debug-info.show{display:block}
+        .debug-toggle{background:#007aff;color:white;border:none;border-radius:4px;padding:5px 10px;font-size:11px;cursor:pointer;margin:10px 0}
+        .loading{text-align:center;padding:60px 20px;color:#8e8e93}
+        .loading-spinner{border:3px solid #f3f3f3;border-top:3px solid #007aff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 20px}
+        @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+        .error-message{background:#ffeaea;color:#ff3b30;padding:20px;border-radius:12px;margin:20px;text-align:center}
+        @media (max-width:640px){.booking-container{padding:15px}}
+    </style>
 </head>
 <body>
-  <div class="header">
-    <button class="close-btn">×</button>
-    <h1>Checkout</h1>
-    <button class="help-btn">?</button>
-  </div>
+    <div class="header">
+        <button class="close-btn">×</button>
+        <h1>Checkout</h1>
+        <button class="help-btn">?</button>
+    </div>
 
-  <div id="loading" class="loading">
-    <div class="loading-spinner"></div>
-    <p>Loading booking form...</p>
-  </div>
-  <div id="error" class="error-message" style="display:none;"></div>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading booking form...</p>
+    </div>
+    <div id="error" class="error-message" style="display:none;"></div>
 
-  <div class="booking-container" id="bookingForm" style="display:none;">
-    <!-- Event Details -->
-    <div class="card event-card">
-      <div class="event-content">
-        <div class="event-details">
-          <div class="event-title" id="eventTitle">Event Name</div>
-          <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
-          <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
+    <div class="booking-container" id="bookingForm" style="display:none;">
+        <!-- Event Details Card -->
+        <div class="card event-card">
+            <div class="event-content">
+                <div class="event-details">
+                    <div class="event-title" id="eventTitle">Event Name</div>
+                    <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
+                    <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
+                </div>
+            </div>
+            <div class="ticket-info">
+                <div class="ticket-line"><span class="ticket-quantity">1x Adult (16+)</span><span class="ticket-price" id="ticketPrice">£0.00</span></div>
+                <div class="booking-fee"><span>1x Booking fees: £<span id="bookingFeeAmount">0.00</span></span></div>
+                <div class="spots-indicator" id="spotsIndicator"><span id="spotsText">Checking availability...</span></div>
+            </div>
         </div>
-      </div>
-      <div class="ticket-info">
-        <div class="ticket-line"><span class="ticket-quantity">1x Adult (16+)</span><span class="ticket-price" id="ticketPrice">£0.00</span></div>
-        <div class="booking-fee"><span>1x Booking fees: £<span id="bookingFeeAmount">0.00</span></span></div>
-        <div class="spots-indicator" id="spotsIndicator"><span id="spotsText">Checking availability...</span></div>
-      </div>
+
+        <!-- Customer Information -->
+        <div class="card customer-card">
+            <h3>Your Details</h3>
+            <div class="form-group">
+                <label class="form-label" for="customerName">Full Name *</label>
+                <input type="text" id="customerName" class="form-input" required placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="customerEmail">Email Address *</label>
+                <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="skillLevel">Skill Level * <span style="color:#007aff;">(This will be recorded in your booking)</span></label>
+                <select id="skillLevel" class="form-input" required onchange="onSkillLevelChange()">
+                    <option value="" selected disabled>Select your skill level</option>
+                    <option value="Beginner">Beginner - New to this activity</option>
+                    <option value="Intermediate">Intermediate - Some experience</option>
+                    <option value="Advanced">Advanced - Very experienced</option>
+                    <option value="Advanced+">Advanced+ - Expert level</option>
+                </select>
+                <div class="skill-level-info">Your skill level helps us provide the best experience for you</div>
+            </div>
+            
+            <!-- Debug section -->
+            <button type="button" class="debug-toggle" onclick="toggleDebug()">Show Debug Info</button>
+            <div id="debugInfo" class="debug-info">
+                <strong>Skill Level Tracking Debug:</strong><br>
+                Selected Skill Level: <span id="debugSkillLevel">None selected</span><br>
+                Column M Index: <span id="debugColumnIndex">12</span><br>
+                Sheet Range: <span id="debugSheetRange">Bookings!A:M</span><br>
+                Ready for submission: <span id="debugReadyStatus">No</span>
+            </div>
+        </div>
+
+        <!-- Add-ons -->
+        <div class="card addons-card" id="addonsSection" style="display:none;">
+            <h3>Optional Add-ons</h3>
+            <div id="addonsList"></div>
+        </div>
+
+        <!-- Price Details -->
+        <div class="card price-card">
+            <h3>Price details</h3>
+            <div id="priceBreakdown">
+                <div class="price-line"><span>Tickets:</span><span id="ticketsPrice">£0.00</span></div>
+                <div class="price-line"><span>Booking fee:</span><span id="feePrice">£0.00</span></div>
+            </div>
+            <div class="price-line total"><span>Total</span><span id="totalPrice">£0.00</span></div>
+        </div>
+
+        <!-- Discount Code -->
+        <div class="card discount-card">
+            <h3>Apply a voucher, gift card or discount code</h3>
+            <div class="discount-input-group">
+                <input type="text" id="discountCode" class="discount-input" placeholder="Enter code" maxlength="20">
+                <button id="applyDiscountBtn" class="apply-btn" onclick="applyDiscountCode()">Apply</button>
+            </div>
+            <div id="discountMessage" class="discount-message" style="display:none;"></div>
+        </div>
     </div>
 
-    <!-- Customer Information -->
-    <div class="card customer-card">
-      <h3>Your Details</h3>
-      <div class="form-group">
-        <label class="form-label" for="customerName">Full Name *</label>
-        <input type="text" id="customerName" class="form-input" required placeholder="Enter your full name">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="customerEmail">Email Address *</label>
-        <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="skillLevel">Skill Level *</label>
-        <select id="skillLevel" class="form-input" required>
-          <option value="" selected disabled>Select level</option>
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate">Intermediate</option>
-          <option value="Advanced">Advanced</option>
-          <option value="Advanced+">Advanced+</option>
-        </select>
-      </div>
+    <!-- Payment Section -->
+    <div class="payment-section" id="paymentSection" style="display:none;">
+        <button id="payButton" class="pay-button" onclick="processBooking()">Complete Payment</button>
     </div>
 
-    <!-- Add-ons -->
-    <div class="card addons-card" id="addonsSection" style="display:none;">
-      <h3>Optional Add-ons</h3>
-      <div id="addonsList"></div>
-    </div>
+    <script>
+        // ===== Config =====
+        const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
+        const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
 
-    <!-- Price Details -->
-    <div class="card price-card">
-      <h3>Price details</h3>
-      <div id="priceBreakdown">
-        <div class="price-line"><span>Tickets:</span><span id="ticketsPrice">£0.00</span></div>
-        <div class="price-line"><span>Booking fee:</span><span id="feePrice">£0.00</span></div>
-      </div>
-      <div class="price-line total"><span>Total</span><span id="totalPrice">£0.00</span></div>
-    </div>
+        // Exact Bookings sheet columns A–M (do not change order)
+        const SHEET_COLUMNS = [
+            'booking_id',               // A
+            'booking_date',             // B
+            'event_id',                 // C
+            'event_name',               // D
+            'customer_name',            // E
+            'customer_email',           // F
+            'amount_paid',              // G
+            'addons_selected',          // H
+            'stripe_payment_id',        // I
+            'status',                   // J
+            'email_sent_to_me',         // K
+            'email_sent_to_instructor', // L
+            'skill_level'               // M *** SKILL LEVEL GOES HERE ***
+        ];
+        
+        // Handy hints for the backend (belt & braces)
+        const COLUMN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
+        const SKILL_LEVEL_COLUMN_INDEX = 12; // zero-based => column M
+        const SKILL_LEVEL_COLUMN_LETTER = 'M';
+        const BOOKINGS_RANGE = 'Bookings!A:M';
 
-    <!-- Discount Code -->
-    <div class="card discount-card">
-      <h3>Apply a voucher, gift card or discount code</h3>
-      <div class="discount-input-group">
-        <input type="text" id="discountCode" class="discount-input" placeholder="Enter code" maxlength="20">
-        <button id="applyDiscountBtn" class="apply-btn" onclick="applyDiscountCode()">Apply</button>
-      </div>
-      <div id="discountMessage" class="discount-message" style="display:none;"></div>
-    </div>
-  </div>
+        // ===== State =====
+        let eventData = null;
+        let selectedAddons = [];
+        let appliedDiscount = null;
+        let currentSkillLevel = '';
 
-  <!-- Payment Section -->
-  <div class="payment-section" id="paymentSection" style="display:none;">
-    <button id="payButton" class="pay-button" onclick="processBooking()">Complete Payment</button>
-  </div>
-
-  <script>
-    // Config
-    const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
-    const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
-
-    // Fixed Bookings sheet order A–M
-    const SHEET_COLUMNS = [
-      'booking_id','booking_date','event_id','event_name',
-      'customer_name','customer_email','amount_paid','addons_selected',
-      'stripe_payment_id','status','email_sent_to_me','email_sent_to_instructor',
-      'skill_level' // column M
-    ];
-    const BOOKINGS_RANGE = 'Bookings!A:M';
-
-    // State
-    let eventData = null;
-    let selectedAddons = [];
-    let appliedDiscount = null;
-
-    // Boot
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('event');
-    if (!eventId) showError('No event specified. Please use a valid booking link.');
-    else loadEventData();
-
-    // Load event
-    async function loadEventData() {
-      try {
-        const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
-        const response = await fetch(sheetUrl);
-        if (!response.ok) throw new Error('Failed to load event data');
-        const data = await response.json();
-        const rows = data.values;
-
-        let eventRow = null;
-        for (let i = 1; i < rows.length; i++) {
-          if (rows[i][0] === eventId && rows[i][17] === 'yes') { eventRow = rows[i]; break; }
-        }
-        if (!eventRow) { showError('Event not found or no longer available.'); return; }
-
-        eventData = {
-          id: eventRow[0],
-          name: eventRow[1],
-          description: eventRow[2],
-          date: eventRow[3],
-          time: eventRow[4],
-          location: eventRow[5],
-          basePrice: parseFloat(eventRow[6]) || 0,
-          transactionFee: parseFloat(eventRow[7]) || 0,
-          totalSpots: parseInt(eventRow[8]) || 0,
-          spotsRemaining: parseInt(eventRow[9]) || 0,
-          addons: []
-        };
-
-        if (eventRow[11] && eventRow[12]) eventData.addons.push({ name: eventRow[11], price: parseFloat(eventRow[12]) });
-        if (eventRow[13] && eventRow[14]) eventData.addons.push({ name: eventRow[13], price: parseFloat(eventRow[14]) });
-        if (eventRow[15] && eventRow[16]) eventData.addons.push({ name: eventRow[15], price: parseFloat(eventRow[16]) });
-
-        displayEvent();
-      } catch (error) {
-        console.error('Error:', error);
-        showError('Unable to load event details. Please try again later.');
-      }
-    }
-
-    // UI fill
-    function displayEvent() {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('bookingForm').style.display = 'block';
-      document.getElementById('paymentSection').style.display = 'block';
-
-      document.getElementById('eventTitle').textContent = eventData.name;
-      document.getElementById('eventLocation').textContent = eventData.location;
-      document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
-
-      document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
-      document.getElementById('bookingFeeAmount').textContent = eventData.transactionFee.toFixed(2);
-
-      const spotsIndicator = document.getElementById('spotsIndicator');
-      const spotsText = document.getElementById('spotsText');
-      if (eventData.spotsRemaining <= 0) {
-        spotsIndicator.className = 'spots-indicator spots-out';
-        spotsText.textContent = 'SOLD OUT - No spots available';
-        document.getElementById('payButton').disabled = true;
-      } else if (eventData.spotsRemaining <= 5) {
-        spotsIndicator.className = 'spots-indicator spots-low';
-        spotsText.textContent = `Hurry! Only ${eventData.spotsRemaining} spots left`;
-      } else {
-        spotsIndicator.className = 'spots-indicator spots-available';
-        spotsText.textContent = `${eventData.spotsRemaining} spots available`;
-      }
-
-      if (eventData.addons.length > 0) {
-        document.getElementById('addonsSection').style.display = 'block';
-        const addonsList = document.getElementById('addonsList');
-        eventData.addons.forEach((addon, index) => {
-          const addonDiv = document.createElement('div');
-          addonDiv.className = 'addon-item';
-          addonDiv.onclick = () => toggleAddon(index);
-          addonDiv.innerHTML = `
-            <input type="checkbox" class="addon-checkbox" id="addon${index}">
-            <div class="addon-details">
-              <div class="addon-name">${addon.name}</div>
-              <div class="addon-price">+£${addon.price.toFixed(2)}</div>
-            </div>`;
-          addonsList.appendChild(addonDiv);
-        });
-      }
-
-      updatePricing();
-    }
-
-    function toggleAddon(index) {
-      const checkbox = document.getElementById(`addon${index}`);
-      checkbox.checked = !checkbox.checked;
-      if (checkbox.checked) selectedAddons.push(index);
-      else selectedAddons = selectedAddons.filter(i => i !== index);
-      updatePricing();
-    }
-
-    // Discounts & pricing
-    async function applyDiscountCode() {
-      const codeInput = document.getElementById('discountCode');
-      const applyBtn = document.getElementById('applyDiscountBtn');
-      const code = codeInput.value.trim().toUpperCase();
-      if (!code){ showDiscountMessage('Please enter a discount code.','error'); return; }
-
-      applyBtn.disabled = true; applyBtn.textContent = 'Checking...';
-      try {
-        const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
-        const response = await fetch(discountUrl);
-        if (!response.ok) throw new Error('Unable to verify discount code');
-        const data = await response.json();
-        const rows = data.values || [];
-        let discountFound = null;
-
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          if (row[0] && row[0].toUpperCase() === code && row[3] === 'yes') {
-            discountFound = {
-              code: row[0], type: row[1],
-              value: parseFloat(row[2])||0, active: row[3],
-              description: row[4]||'', usageLimit: row[5]||'unlimited'
-            };
-            break;
-          }
-        }
-
-        if (discountFound) {
-          appliedDiscount = discountFound;
-          showDiscountMessage(`✅ ${discountFound.description || 'Discount applied successfully!'}`,'success');
-          codeInput.disabled = true; applyBtn.textContent = 'Applied';
-          updatePricing();
+        // ===== Boot =====
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        if (!eventId) {
+            showError('No event specified. Please use a valid booking link.');
         } else {
-          showDiscountMessage('❌ Invalid or expired discount code.','error');
+            loadEventData();
         }
-      } catch (e) {
-        console.error('Discount code error:', e);
-        showDiscountMessage('Unable to verify discount code. Please try again.','error');
-      } finally {
-        if (!appliedDiscount){ applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
-      }
-    }
 
-    function showDiscountMessage(message,type){
-      const el = document.getElementById('discountMessage');
-      el.textContent = message;
-      el.className = `discount-message discount-${type}`;
-      el.style.display = 'block';
-    }
-
-    function calculateDiscount(subtotal){
-      if (!appliedDiscount) return 0;
-      if (appliedDiscount.type === 'percentage') return subtotal * (appliedDiscount.value/100);
-      if (appliedDiscount.type === 'fixed') return Math.min(appliedDiscount.value, subtotal);
-      return 0;
-    }
-
-    function updatePricing(){
-      let ticketsTotal = eventData.basePrice;
-      let addonsTotal = 0;
-      selectedAddons.forEach(i => addonsTotal += eventData.addons[i].price);
-      const subtotal = ticketsTotal + eventData.transactionFee + addonsTotal;
-
-      let html = `
-        <div class="price-line"><span>Tickets:</span><span>£${ticketsTotal.toFixed(2)}</span></div>
-        <div class="price-line"><span>Booking fee:</span><span>£${eventData.transactionFee.toFixed(2)}</span></div>
-      `;
-      selectedAddons.forEach(i => {
-        const a = eventData.addons[i];
-        html += `<div class="price-line"><span>${a.name}:</span><span>£${a.price.toFixed(2)}</span></div>`;
-      });
-
-      const discountAmount = calculateDiscount(subtotal);
-      const finalTotal = subtotal - discountAmount;
-
-      if (appliedDiscount && discountAmount > 0){
-        const txt = appliedDiscount.type === 'percentage'
-          ? `${appliedDiscount.code} (${appliedDiscount.value}% off)`
-          : `${appliedDiscount.code} (£${appliedDiscount.value} off)`;
-        html += `<div class="discount-line"><span>${txt}</span><span>-£${discountAmount.toFixed(2)}</span></div>`;
-      }
-
-      document.getElementById('priceBreakdown').innerHTML = html;
-      document.getElementById('totalPrice').textContent = `£${finalTotal.toFixed(2)}`;
-
-      const payButton = document.getElementById('payButton');
-      if (payButton && !payButton.disabled) payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
-    }
-
-    // Build row exactly A–M (M = skill_level)
-    function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending' }){
-      return [
-        '',                                   // A booking_id (server fills)
-        new Date().toISOString(),             // B booking_date
-        eventData.id,                         // C event_id
-        eventData.name,                       // D event_name
-        name,                                 // E customer_name
-        email,                                // F customer_email
-        Number(finalAmount.toFixed(2)),       // G amount_paid
-        selectedAddonNames.join(', '),        // H addons_selected
-        '',                                   // I stripe_payment_id (server fills)
-        status,                               // J status
-        '',                                   // K email_sent_to_me
-        '',                                   // L email_sent_to_instructor
-        skillLevel                            // M skill_level
-      ];
-    }
-
-    // Submit booking
-    async function processBooking(){
-      const name = document.getElementById('customerName').value.trim();
-      const email = document.getElementById('customerEmail').value.trim();
-      const skillLevel = document.getElementById('skillLevel').value;
-
-      if (!name){ alert('Please enter your name'); return; }
-      if (!email || !email.includes('@')){ alert('Please enter a valid email address'); return; }
-      if (!skillLevel){ alert('Please select your skill level'); return; }
-
-      const button = document.getElementById('payButton');
-      button.disabled = true;
-      button.innerHTML = 'Processing...';
-
-      let totalAmount = eventData.basePrice + eventData.transactionFee;
-      const selectedAddonNames = [];
-      selectedAddons.forEach(i => {
-        const a = eventData.addons[i];
-        totalAmount += a.price;
-        selectedAddonNames.push(a.name);
-      });
-
-      const discountAmount = calculateDiscount(totalAmount);
-      const finalAmount = totalAmount - discountAmount;
-
-      const sheetRow = buildSheetRow({
-        name, email, skillLevel, selectedAddonNames, finalAmount, status:'pending'
-      });
-
-      try{
-        const res = await fetch('/api/create-checkout', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            // Keep existing fields
-            eventId: eventData.id,
-            eventName: eventData.name,
-            customerName: name,
-            customerEmail: email,
-            amount: finalAmount,
-            originalAmount: totalAmount,
-            discountCode: appliedDiscount ? appliedDiscount.code : null,
-            discountAmount: discountAmount,
-            addons: selectedAddonNames,
-
-            // Send skill level explicitly
-            skillLevel: skillLevel,
-            skill_level: skillLevel,
-
-            // Exact sheet write instructions (A–M)
-            sheetRange: BOOKINGS_RANGE,         // "Bookings!A:M"
-            sheetColumns: SHEET_COLUMNS,        // names in A→M order
-            sheetRow: sheetRow,                 // values aligned to A→M
-
-            // Safety hints for backend
-            skillLevelColumnIndex: 12,          // zero-based -> column M
-            skillLevelColumnLetter: 'M',
-
-            // Stripe metadata (webhook can also write it)
-            stripeMetadata: {
-              event_id: eventData.id,
-              event_name: eventData.name,
-              customer_name: name,
-              customer_email: email,
-              skill_level: skillLevel,
-              addons_selected: selectedAddonNames.join(', '),
-              amount_paid: Number(finalAmount.toFixed(2))
+        // ===== Skill Level Functions =====
+        function onSkillLevelChange() {
+            const skillSelect = document.getElementById('skillLevel');
+            const selectedValue = skillSelect.value;
+            currentSkillLevel = selectedValue;
+            
+            // Visual feedback
+            if (selectedValue) {
+                skillSelect.classList.add('valid');
+            } else {
+                skillSelect.classList.remove('valid');
             }
-          })
-        });
+            
+            // Update debug info
+            updateDebugInfo();
+            
+            console.log('✅ Skill level selected:', selectedValue, '- Will be saved to column M');
+        }
 
-        const data = await res.json();
-        if (data.url) window.location.href = data.url;
-        else throw new Error('Unable to create checkout session');
-      } catch (e){
-        console.error('Booking error:', e);
-        alert('Unable to process booking. Please try again.');
-        button.disabled = false;
-        updatePricing();
-      }
-    }
+        function validateSkillLevel() {
+            const skillLevel = document.getElementById('skillLevel').value;
+            if (!skillLevel || skillLevel === '') {
+                alert('⚠️ Please select your skill level before proceeding. This helps us provide the best experience for you.');
+                document.getElementById('skillLevel').focus();
+                return false;
+            }
+            return true;
+        }
 
-    // Helpers
-    function formatDate(dateStr){
-      const parts = dateStr.split('/');
-      const date = new Date(parts[2], parts[1]-1, parts[0]);
-      const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-      return date.toLocaleDateString('en-GB', opts);
-    }
-    function showError(msg){
-      document.getElementById('loading').style.display = 'none';
-      const err = document.getElementById('error');
-      err.style.display = 'block';
-      err.textContent = msg;
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      const discountInput = document.getElementById('discountCode');
-      if (discountInput){
-        discountInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') applyDiscountCode();
+        function updateDebugInfo() {
+            const debugElements = {
+                skillLevel: document.getElementById('debugSkillLevel'),
+                columnIndex: document.getElementById('debugColumnIndex'),
+                sheetRange: document.getElementById('debugSheetRange'),
+                readyStatus: document.getElementById('debugReadyStatus')
+            };
+            
+            if (debugElements.skillLevel) {
+                const skillValue = currentSkillLevel || 'None selected';
+                debugElements.skillLevel.textContent = skillValue;
+                debugElements.skillLevel.style.color = currentSkillLevel ? 'green' : 'red';
+            }
+            
+            if (debugElements.columnIndex) {
+                debugElements.columnIndex.textContent = `${SKILL_LEVEL_COLUMN_INDEX} (Column ${SKILL_LEVEL_COLUMN_LETTER})`;
+            }
+            
+            if (debugElements.sheetRange) {
+                debugElements.sheetRange.textContent = BOOKINGS_RANGE;
+            }
+            
+            if (debugElements.readyStatus) {
+                const isReady = currentSkillLevel !== '';
+                debugElements.readyStatus.textContent = isReady ? 'Yes ✅' : 'No ❌';
+                debugElements.readyStatus.style.color = isReady ? 'green' : 'red';
+            }
+        }
+
+        function toggleDebug() {
+            const debugInfo = document.getElementById('debugInfo');
+            const debugToggle = document.querySelector('.debug-toggle');
+            
+            if (debugInfo.classList.contains('show')) {
+                debugInfo.classList.remove('show');
+                debugToggle.textContent = 'Show Debug Info';
+            } else {
+                debugInfo.classList.add('show');
+                debugToggle.textContent = 'Hide Debug Info';
+                updateDebugInfo();
+            }
+        }
+
+        // ===== Data load =====
+        async function loadEventData() {
+            try {
+                const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error('Failed to load event data');
+                const data = await response.json();
+                const rows = data.values;
+
+                let eventRow = null;
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { eventRow = rows[i]; break; }
+                }
+                if (!eventRow) { showError('Event not found or no longer available.'); return; }
+
+                eventData = {
+                    id: eventRow[0],
+                    name: eventRow[1],
+                    description: eventRow[2],
+                    date: eventRow[3],
+                    time: eventRow[4],
+                    location: eventRow[5],
+                    basePrice: parseFloat(eventRow[6]) || 0,
+                    transactionFee: parseFloat(eventRow[7]) || 0,
+                    totalSpots: parseInt(eventRow[8]) || 0,
+                    spotsRemaining: parseInt(eventRow[9]) || 0,
+                    addons: []
+                };
+
+                if (eventRow[11] && eventRow[12]) eventData.addons.push({ name: eventRow[11], price: parseFloat(eventRow[12]) });
+                if (eventRow[13] && eventRow[14]) eventData.addons.push({ name: eventRow[13], price: parseFloat(eventRow[14]) });
+                if (eventRow[15] && eventRow[16]) eventData.addons.push({ name: eventRow[15], price: parseFloat(eventRow[16]) });
+
+                displayEvent();
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Unable to load event details. Please try again later.');
+            }
+        }
+
+        // ===== UI fill =====
+        function displayEvent() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('bookingForm').style.display = 'block';
+            document.getElementById('paymentSection').style.display = 'block';
+
+            document.getElementById('eventTitle').textContent = eventData.name;
+            document.getElementById('eventLocation').textContent = eventData.location;
+            document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
+
+            document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
+            document.getElementById('bookingFeeAmount').textContent = eventData.transactionFee.toFixed(2);
+
+            const spotsIndicator = document.getElementById('spotsIndicator');
+            const spotsText = document.getElementById('spotsText');
+            if (eventData.spotsRemaining <= 0) {
+                spotsIndicator.className = 'spots-indicator spots-out';
+                spotsText.textContent = 'SOLD OUT - No spots available';
+                document.getElementById('payButton').disabled = true;
+            } else if (eventData.spotsRemaining <= 5) {
+                spotsIndicator.className = 'spots-indicator spots-low';
+                spotsText.textContent = `Hurry! Only ${eventData.spotsRemaining} spots left`;
+            } else {
+                spotsIndicator.className = 'spots-indicator spots-available';
+                spotsText.textContent = `${eventData.spotsRemaining} spots available`;
+            }
+
+            if (eventData.addons.length > 0) {
+                document.getElementById('addonsSection').style.display = 'block';
+                const addonsList = document.getElementById('addonsList');
+                eventData.addons.forEach((addon, index) => {
+                    const addonDiv = document.createElement('div');
+                    addonDiv.className = 'addon-item';
+                    addonDiv.onclick = () => toggleAddon(index);
+                    addonDiv.innerHTML = `
+                        <input type="checkbox" class="addon-checkbox" id="addon${index}">
+                        <div class="addon-details">
+                            <div class="addon-name">${addon.name}</div>
+                            <div class="addon-price">+£${addon.price.toFixed(2)}</div>
+                        </div>`;
+                    addonsList.appendChild(addonDiv);
+                });
+            }
+
+            updatePricing();
+            updateDebugInfo();
+        }
+
+        function toggleAddon(index) {
+            const checkbox = document.getElementById(`addon${index}`);
+            checkbox.checked = !checkbox.checked;
+            if (checkbox.checked) selectedAddons.push(index);
+            else selectedAddons = selectedAddons.filter(i => i !== index);
+            updatePricing();
+        }
+
+        // ===== Discounts & pricing =====
+        async function applyDiscountCode() {
+            const codeInput = document.getElementById('discountCode');
+            const applyBtn = document.getElementById('applyDiscountBtn');
+            const code = codeInput.value.trim().toUpperCase();
+            if (!code){ showDiscountMessage('Please enter a discount code.','error'); return; }
+
+            applyBtn.disabled = true; applyBtn.textContent = 'Checking...';
+            try {
+                const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
+                const response = await fetch(discountUrl);
+                if (!response.ok) throw new Error('Unable to verify discount code');
+                const data = await response.json();
+                const rows = data.values || [];
+                let discountFound = null;
+
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row[0] && row[0].toUpperCase() === code && row[3] === 'yes') {
+                        discountFound = {
+                            code: row[0], type: row[1],
+                            value: parseFloat(row[2])||0, active: row[3],
+                            description: row[4]||'', usageLimit: row[5]||'unlimited'
+                        };
+                        break;
+                    }
+                }
+
+                if (discountFound) {
+                    appliedDiscount = discountFound;
+                    showDiscountMessage(`✅ ${discountFound.description || 'Discount applied successfully!'}`,'success');
+                    codeInput.disabled = true; applyBtn.textContent = 'Applied';
+                    updatePricing();
+                } else {
+                    showDiscountMessage('❌ Invalid or expired discount code.','error');
+                }
+            } catch (e) {
+                console.error('Discount code error:', e);
+                showDiscountMessage('Unable to verify discount code. Please try again.','error');
+            } finally {
+                if (!appliedDiscount){ applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+            }
+        }
+
+        function showDiscountMessage(message,type){
+            const el = document.getElementById('discountMessage');
+            el.textContent = message;
+            el.className = `discount-message discount-${type}`;
+            el.style.display = 'block';
+        }
+
+        function calculateDiscount(subtotal){
+            if (!appliedDiscount) return 0;
+            if (appliedDiscount.type === 'percentage') return subtotal * (appliedDiscount.value/100);
+            if (appliedDiscount.type === 'fixed') return Math.min(appliedDiscount.value, subtotal);
+            return 0;
+        }
+
+        function updatePricing(){
+            let ticketsTotal = eventData.basePrice;
+            let addonsTotal = 0;
+            selectedAddons.forEach(i => addonsTotal += eventData.addons[i].price);
+            const subtotal = ticketsTotal + eventData.transactionFee + addonsTotal;
+
+            let html = `
+                <div class="price-line"><span>Tickets:</span><span>£${ticketsTotal.toFixed(2)}</span></div>
+                <div class="price-line"><span>Booking fee:</span><span>£${eventData.transactionFee.toFixed(2)}</span></div>
+            `;
+            selectedAddons.forEach(i => {
+                const a = eventData.addons[i];
+                html += `<div class="price-line"><span>${a.name}:</span><span>£${a.price.toFixed(2)}</span></div>`;
+            });
+
+            const discountAmount = calculateDiscount(subtotal);
+            const finalTotal = subtotal - discountAmount;
+
+            if (appliedDiscount && discountAmount > 0){
+                const txt = appliedDiscount.type === 'percentage'
+                    ? `${appliedDiscount.code} (${appliedDiscount.value}% off)`
+                    : `${appliedDiscount.code} (£${appliedDiscount.value} off)`;
+                html += `<div class="discount-line"><span>${txt}</span><span>-£${discountAmount.toFixed(2)}</span></div>`;
+            }
+
+            document.getElementById('priceBreakdown').innerHTML = html;
+            document.getElementById('totalPrice').textContent = `£${finalTotal.toFixed(2)}`;
+
+            const payButton = document.getElementById('payButton');
+            if (payButton && !payButton.disabled) payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
+        }
+
+        // Build a row matching A–M exactly (skill_level at M)
+        function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
+            const row = [
+                bookingId,                                   // A booking_id
+                new Date().toISOString(),                    // B booking_date
+                eventData.id,                                // C event_id
+                eventData.name,                              // D event_name
+                name,                                        // E customer_name
+                email,                                       // F customer_email
+                Number(finalAmount.toFixed(2)),              // G amount_paid
+                selectedAddonNames.join(', '),               // H addons_selected
+                stripePaymentId,                             // I stripe_payment_id
+                status,                                      // J status
+                emailToMe,                                   // K email_sent_to_me
+                emailToInstructor,                           // L email_sent_to_instructor
+                skillLevel || 'Not specified'                // M skill_level  *** CRITICAL: Column M ***
+            ];
+            
+            console.log('📊 Sheet row constructed for columns A-M:', row);
+            console.log(`✅ Skill level "${skillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
+            
+            return row;
+        }
+
+        // ===== Booking submit =====
+        async function processBooking(){
+            // Enhanced validation with skill level emphasis
+            const name = document.getElementById('customerName').value.trim();
+            const email = document.getElementById('customerEmail').value.trim();
+            const skillLevel = document.getElementById('skillLevel').value;
+
+            if (!name){ alert('Please enter your name'); return; }
+            if (!email || !email.includes('@')){ alert('Please enter a valid email address'); return; }
+            
+            // Extra validation for skill level
+            if (!validateSkillLevel()) {
+                return;
+            }
+
+            const button = document.getElementById('payButton');
+            button.disabled = true;
+            button.innerHTML = 'Processing...';
+
+            let totalAmount = eventData.basePrice + eventData.transactionFee;
+            const selectedAddonNames = [];
+            selectedAddons.forEach(i => {
+                const a = eventData.addons[i];
+                totalAmount += a.price;
+                selectedAddonNames.push(a.name);
+            });
+
+            const discountAmount = calculateDiscount(totalAmount);
+            const finalAmount = totalAmount - discountAmount;
+
+            // Log skill level for debugging
+            console.log('🔍 Processing booking with skill level:', skillLevel);
+            console.log('📝 This will be saved to Column M in the Google Sheet');
+
+            // Construct exact row for Bookings!A:M
+            const sheetRow = buildSheetRow({
+                name, email, skillLevel, selectedAddonNames, finalAmount,
+                status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
+            });
+
+            try{
+                const requestPayload = {
+                    // Core booking data
+                    eventId: eventData.id,
+                    eventName: eventData.name,
+                    customerName: name,
+                    customerEmail: email,
+                    skillLevel: skillLevel, // Top-level for easy access
+                    amount: finalAmount,
+                    originalAmount: totalAmount,
+                    discountCode: appliedDiscount ? appliedDiscount.code : null,
+                    discountAmount: discountAmount,
+                    addons: selectedAddonNames,
+
+                    // Explicit sheet instructions with emphasis on skill level
+                    sheetRange: BOOKINGS_RANGE,
+                    sheetColumns: SHEET_COLUMNS,
+                    sheetRow: sheetRow,
+                    columnLetters: COLUMN_LETTERS,
+                    skillLevelColumnIndex: SKILL_LEVEL_COLUMN_INDEX,
+                    skillLevelColumnLetter: SKILL_LEVEL_COLUMN_LETTER,
+                    forceSkillOnColumnM: true,
+                    
+                    // Extra safety - put skill level in multiple places
+                    skillLevelData: {
+                        value: skillLevel,
+                        columnIndex: SKILL_LEVEL_COLUMN_INDEX,
+                        columnLetter: SKILL_LEVEL_COLUMN_LETTER,
+                        position: 'Column M',
+                        validated: true
+                    },
+
+                    // Stripe metadata with skill level
+                    stripeMetadata: {
+                        event_id: eventData.id,
+                        event_name: eventData.name,
+                        customer_name: name,
+                        customer_email: email,
+                        skill_level: skillLevel, // *** IMPORTANT ***
+                        addons_selected: selectedAddonNames.join(', '),
+                        amount_paid: Number(finalAmount.toFixed(2)),
+                        skill_level_column: 'M' // Extra reference
+                    }
+                };
+
+                console.log('📤 Sending booking request with payload:', requestPayload);
+
+                const response = await fetch('/api/create-checkout',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify(requestPayload)
+                });
+
+                const data = await response.json();
+                if (data.url) {
+                    console.log('✅ Checkout session created successfully with skill level:', skillLevel);
+                    window.location.href = data.url;
+                } else {
+                    throw new Error('Unable to create checkout session');
+                }
+            } catch (e){
+                console.error('❌ Booking error:', e);
+                alert('Unable to process booking. Please try again.');
+                button.disabled = false;
+                updatePricing();
+            }
+        }
+
+        // ===== Misc =====
+        function formatDate(dateStr){
+            const parts = dateStr.split('/');
+            const date = new Date(parts[2], parts[1]-1, parts[0]);
+            const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+            return date.toLocaleDateString('en-GB', opts);
+        }
+
+        function showError(msg){
+            document.getElementById('loading').style.display = 'none';
+            const err = document.getElementById('error');
+            err.style.display = 'block';
+            err.textContent = msg;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const discountInput = document.getElementById('discountCode');
+            if (discountInput){
+                discountInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') applyDiscountCode();
+                });
+            }
+            
+            // Initialize debug info
+            updateDebugInfo();
         });
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
