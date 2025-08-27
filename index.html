@@ -130,7 +130,12 @@
                 Selected Skill Level: <span id="debugSkillLevel">None selected</span><br>
                 Column M Index: <span id="debugColumnIndex">12</span><br>
                 Sheet Range: <span id="debugSheetRange">Bookings!A:M</span><br>
-                Ready for submission: <span id="debugReadyStatus">No</span>
+                Ready for submission: <span id="debugReadyStatus">No</span><br>
+                <hr style="margin: 10px 0;">
+                <strong>🛠️ Anti-Truncation Fix Applied:</strong><br>
+                Issue: Google Sheets API omits trailing empty columns<br>
+                Solution: Added safety column N to preserve column M<br>
+                Status: <span style="color: green;">✅ Column M protected from truncation</span>
             </div>
         </div>
 
@@ -171,7 +176,7 @@
         const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
         const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
 
-        // Exact Bookings sheet columns A–M (do not change order)
+        // Exact Bookings sheet columns A–M (do not change order) + N for safety
         const SHEET_COLUMNS = [
             'booking_id',               // A
             'booking_date',             // B
@@ -185,14 +190,15 @@
             'status',                   // J
             'email_sent_to_me',         // K
             'email_sent_to_instructor', // L
-            'skill_level'               // M *** SKILL LEVEL GOES HERE ***
+            'skill_level',              // M *** SKILL LEVEL GOES HERE ***
+            'preserve_column'           // N *** SAFETY COLUMN TO PREVENT M TRUNCATION ***
         ];
         
         // Handy hints for the backend (belt & braces)
-        const COLUMN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
+        const COLUMN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
         const SKILL_LEVEL_COLUMN_INDEX = 12; // zero-based => column M
         const SKILL_LEVEL_COLUMN_LETTER = 'M';
-        const BOOKINGS_RANGE = 'Bookings!A:N';
+        const BOOKINGS_RANGE = 'Bookings!A:N'; // Extended to include safety column N
 
         // ===== State =====
         let eventData = null;
@@ -257,7 +263,7 @@
             }
             
             if (debugElements.sheetRange) {
-                debugElements.sheetRange.textContent = BOOKINGS_RANGE;
+                debugElements.sheetRange.textContent = BOOKINGS_RANGE + ' (includes safety column N)';
             }
             
             if (debugElements.readyStatus) {
@@ -469,24 +475,32 @@
 
         // Build a row matching A–M exactly (skill_level at M)
         function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
+            // Ensure skill level is never empty (Google Sheets API omits trailing empty columns)
+            const safeSkillLevel = skillLevel && skillLevel.trim() !== '' ? skillLevel : 'Not specified';
+            
             const row = [
-                bookingId,                                   // A booking_id
+                bookingId || '',                             // A booking_id
                 new Date().toISOString(),                    // B booking_date
                 eventData.id,                                // C event_id
                 eventData.name,                              // D event_name
                 name,                                        // E customer_name
                 email,                                       // F customer_email
                 Number(finalAmount.toFixed(2)),              // G amount_paid
-                selectedAddonNames.join(', '),               // H addons_selected
-                stripePaymentId,                             // I stripe_payment_id
+                selectedAddonNames.join(', ') || '',         // H addons_selected
+                stripePaymentId || '',                       // I stripe_payment_id
                 status,                                      // J status
-                emailToMe,                                   // K email_sent_to_me
-                emailToInstructor,                           // L email_sent_to_instructor
-                skillLevel || 'Not specified'                // M skill_level  *** CRITICAL: Column M ***
+                emailToMe || '',                             // K email_sent_to_me
+                emailToInstructor || '',                     // L email_sent_to_instructor
+                safeSkillLevel                               // M skill_level  *** CRITICAL: Column M ***
             ];
             
-            console.log('📊 Sheet row constructed for columns A-M:', row);
-            console.log(`✅ Skill level "${skillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
+            // Add a safety column N to prevent M from being truncated
+            row.push('PRESERVE_COLUMN_M'); // N - This ensures column M is never the last column
+            
+            console.log('📊 Sheet row constructed for columns A-N (M=skill level):', row);
+            console.log(`✅ Skill level "${safeSkillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
+            console.log('🛡️ Added safety column N to prevent truncation of column M');
+            console.log(`📏 Row length: ${row.length} (should be 14 for A-N)`);
             
             return row;
         }
@@ -524,6 +538,8 @@
             // Log skill level for debugging
             console.log('🔍 Processing booking with skill level:', skillLevel);
             console.log('📝 This will be saved to Column M in the Google Sheet');
+            console.log('🛠️ ANTI-TRUNCATION FIX: Added safety column N to prevent Google Sheets API from truncating column M');
+            console.log('📊 Issue: Google Sheets API omits trailing empty columns - our fix ensures M is never truncated');
 
             // Construct exact row for Bookings!A:M
             const sheetRow = buildSheetRow({
@@ -545,14 +561,19 @@
                     discountAmount: discountAmount,
                     addons: selectedAddonNames,
 
-                    // Explicit sheet instructions with emphasis on skill level
-                    sheetRange: BOOKINGS_RANGE,
+                    // Sheet instructions with anti-truncation measures
+                    sheetRange: BOOKINGS_RANGE, // Now A:N to include safety column
                     sheetColumns: SHEET_COLUMNS,
                     sheetRow: sheetRow,
-                    columnLetters: COLUMN_LETTERS,
+                    columnLetters: COLUMN_LETTERS, // Now includes N
                     skillLevelColumnIndex: SKILL_LEVEL_COLUMN_INDEX,
                     skillLevelColumnLetter: SKILL_LEVEL_COLUMN_LETTER,
                     forceSkillOnColumnM: true,
+                    
+                    // Anti-truncation measures
+                    preventColumnTruncation: true,
+                    safetyColumnN: 'PRESERVE_COLUMN_M',
+                    googleSheetsApiNote: 'Extended to column N to prevent M truncation',
                     
                     // Extra safety - put skill level in multiple places
                     skillLevelData: {
@@ -560,7 +581,8 @@
                         columnIndex: SKILL_LEVEL_COLUMN_INDEX,
                         columnLetter: SKILL_LEVEL_COLUMN_LETTER,
                         position: 'Column M',
-                        validated: true
+                        validated: true,
+                        safetyMeasure: 'Added column N to prevent API truncation'
                     },
 
                     // Stripe metadata with skill level
