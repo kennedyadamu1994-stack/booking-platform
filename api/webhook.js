@@ -1,5 +1,5 @@
-// /api/webhook.js - Handle post-payment updates
-export default async function handler(req, res) {
+// api/webhook.js - Handle post-payment updates
+module.exports = async (req, res) => {
     console.log('Webhook called with method:', req.method);
     
     // Set CORS headers
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
             details: error.message 
         });
     }
-}
+};
 
 // Function to update booking status in Google Sheets
 async function updateBookingStatus(paymentIntentId, newStatus) {
