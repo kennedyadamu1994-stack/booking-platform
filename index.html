@@ -107,8 +107,8 @@
                 <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
             </div>
             <div class="form-group">
-                <label class="form-label" for="skillLevel">Skill Level *</label>
-                <select id="skillLevel" class="form-input" required>
+                <label class="form-label" for="skill_level">Skill Level *</label>
+                <select id="skill_level" class="form-input" required>
                     <option value="" selected disabled>Select level</option>
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -417,7 +417,7 @@
 
             // Exact row for your sheet and a key-value object for safety
             const sheetRow = buildSheetRow({
-                name, email, skillLevel, selectedAddonNames, finalAmount,
+                name, email, skill_level, selectedAddonNames, finalAmount,
                 status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
             });
 
