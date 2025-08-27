@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Checkout</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
@@ -155,7 +155,7 @@
         const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
         const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
 
-        // Hard-mapped columns (A→M) for Bookings sheet
+        // Exact Bookings sheet columns A–M
         const SHEET_COLUMNS = [
             'booking_id',               // A
             'booking_date',             // B
@@ -197,10 +197,7 @@
 
                 let eventRow = null;
                 for (let i = 1; i < rows.length; i++) {
-                    if (rows[i][0] === eventId && rows[i][17] === 'yes') {
-                        eventRow = rows[i];
-                        break;
-                    }
+                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { eventRow = rows[i]; break; }
                 }
                 if (!eventRow) { showError('Event not found or no longer available.'); return; }
 
@@ -375,7 +372,7 @@
         }
 
         // Build a row that matches columns A–M exactly
-        function buildSheetRow({ name, email, skillLevel, selectedAddonNames, totalAmount, discountAmount, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
+        function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
             return [
                 bookingId,                                   // A booking_id
                 new Date().toISOString(),                    // B booking_date
@@ -418,19 +415,34 @@
             const discountAmount = calculateDiscount(totalAmount);
             const finalAmount = totalAmount - discountAmount;
 
-            // Construct the exact row for your sheet
+            // Exact row for your sheet and a key-value object for safety
             const sheetRow = buildSheetRow({
-                name, email, skillLevel, selectedAddonNames,
-                totalAmount, discountAmount, finalAmount,
+                name, email, skillLevel, selectedAddonNames, finalAmount,
                 status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
             });
+
+            const bookingData = {
+                booking_id: '',                                 // server can fill
+                booking_date: new Date().toISOString(),
+                event_id: eventData.id,
+                event_name: eventData.name,
+                customer_name: name,
+                customer_email: email,
+                amount_paid: Number(finalAmount.toFixed(2)),
+                addons_selected: selectedAddonNames.join(', '),
+                stripe_payment_id: '',                          // server fills after checkout
+                status: 'pending',
+                email_sent_to_me: '',
+                email_sent_to_instructor: '',
+                skill_level: skillLevel
+            };
 
             try{
                 const response = await fetch('/api/create-checkout',{
                     method:'POST',
                     headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({
-                        // existing fields (keep for backward compatibility)
+                        // keep existing fields
                         eventId: eventData.id,
                         eventName: eventData.name,
                         customerName: name,
@@ -442,9 +454,21 @@
                         discountAmount: discountAmount,
                         addons: selectedAddonNames,
 
-                        // NEW: explicit ordering for your Bookings sheet A–M
+                        // new: explicit ordering and key map for the sheet
                         sheetColumns: SHEET_COLUMNS,
-                        sheetRow: sheetRow
+                        sheetRow: sheetRow,
+                        bookingData: bookingData,
+
+                        // optional: metadata for Stripe session/webhook to carry through
+                        stripeMetadata: {
+                            event_id: eventData.id,
+                            event_name: eventData.name,
+                            customer_name: name,
+                            customer_email: email,
+                            skill_level: skillLevel,
+                            addons_selected: selectedAddonNames.join(', '),
+                            amount_paid: Number(finalAmount.toFixed(2))
+                        }
                     })
                 });
 
