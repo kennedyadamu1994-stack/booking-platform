@@ -1,4 +1,4 @@
-// api/webhook.js - Handle post-payment updates
+// api/webhook.js - Handle post-payment updates (Fixed ID matching)
 module.exports = async (req, res) => {
     console.log('Webhook called with method:', req.method);
     
@@ -42,12 +42,13 @@ module.exports = async (req, res) => {
             }
         }
 
-        // Update the booking status in Google Sheets
-        await updateBookingStatus(paymentIntentId, 'completed');
+        // Update the booking status in Google Sheets (try both session ID and payment intent ID)
+        await updateBookingStatus(sessionId, paymentIntentId, 'completed');
 
         res.status(200).json({ 
             success: true, 
             message: 'Booking updated successfully',
+            sessionId: sessionId,
             paymentIntentId: paymentIntentId 
         });
 
@@ -60,9 +61,11 @@ module.exports = async (req, res) => {
     }
 };
 
-// Function to update booking status in Google Sheets
-async function updateBookingStatus(paymentIntentId, newStatus) {
-    console.log('Updating booking status for payment intent:', paymentIntentId);
+// Function to update booking status in Google Sheets (improved matching)
+async function updateBookingStatus(sessionId, paymentIntentId, newStatus) {
+    console.log('Updating booking status...');
+    console.log('Session ID:', sessionId);
+    console.log('Payment Intent ID:', paymentIntentId);
     
     // Import googleapis
     const { google } = require('googleapis');
@@ -82,7 +85,7 @@ async function updateBookingStatus(paymentIntentId, newStatus) {
     // Read all booking data from A:N (includes skill level in column M)
     const response = await sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
-        range: 'Bookings!A:N', // Use A:N range to include skill level column
+        range: 'Bookings!A:N',
     });
 
     const rows = response.data.values;
@@ -90,7 +93,9 @@ async function updateBookingStatus(paymentIntentId, newStatus) {
         throw new Error('No data found in Bookings sheet');
     }
 
-    // Find the row with matching payment intent
+    console.log(`Found ${rows.length - 1} booking rows to search`);
+
+    // Find the row with matching payment ID (try both session ID and payment intent ID)
     const headers = rows[0];
     const stripePaymentIdIndex = headers.indexOf('stripe_payment_id');
     const statusIndex = headers.indexOf('status');
@@ -99,20 +104,36 @@ async function updateBookingStatus(paymentIntentId, newStatus) {
         throw new Error('Required columns not found in sheet');
     }
 
-    // Find the matching row
+    console.log('Looking for booking with stripe_payment_id in column:', stripePaymentIdIndex);
+
+    // Find the matching row - try both session ID and payment intent ID
     let rowIndex = -1;
+    let matchedId = null;
+    
     for (let i = 1; i < rows.length; i++) {
-        if (rows[i][stripePaymentIdIndex] === paymentIntentId) {
+        const rowStripeId = rows[i][stripePaymentIdIndex];
+        console.log(`Row ${i}: stripe_payment_id = "${rowStripeId}"`);
+        
+        if (rowStripeId === sessionId || rowStripeId === paymentIntentId) {
             rowIndex = i + 1; // Convert to 1-based index for Sheets API
+            matchedId = rowStripeId;
+            console.log(`✅ Found match at row ${rowIndex} with ID: ${matchedId}`);
             break;
         }
     }
 
     if (rowIndex === -1) {
-        throw new Error(`Booking not found for payment intent: ${paymentIntentId}`);
+        console.error('❌ No booking found with either ID');
+        console.error('Searched for session ID:', sessionId);
+        console.error('Searched for payment intent ID:', paymentIntentId);
+        console.error('Available stripe_payment_ids in sheet:');
+        for (let i = 1; i < rows.length; i++) {
+            console.error(`  Row ${i}: "${rows[i][stripePaymentIdIndex]}"`);
+        }
+        throw new Error(`Booking not found for session ID: ${sessionId} or payment intent: ${paymentIntentId}`);
     }
 
-    console.log(`Found booking at row ${rowIndex}, updating status to: ${newStatus}`);
+    console.log(`Updating booking status to "${newStatus}" for row ${rowIndex}`);
 
     // Update the status column (J)
     const statusColumnLetter = 'J';
@@ -127,10 +148,14 @@ async function updateBookingStatus(paymentIntentId, newStatus) {
         }
     });
 
-    console.log('Successfully updated booking status');
+    console.log('✅ Successfully updated booking status');
     
     // Log the skill level from column M for verification
     if (rows[rowIndex - 1] && rows[rowIndex - 1][12]) {
-        console.log('Confirmed skill level in column M:', rows[rowIndex - 1][12]);
+        console.log('✅ Confirmed skill level in column M:', rows[rowIndex - 1][12]);
+    } else {
+        console.log('⚠️ No skill level found in column M');
     }
+    
+    console.log('Booking update completed successfully');
 }
