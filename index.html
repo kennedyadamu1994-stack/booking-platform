@@ -553,15 +553,12 @@
         </div>
     </div>
 
-    <!-- Payment Section -->
-    <div class="payment-section" id="paymentSection" style="display: none;">
-        <div class="payment-method">
-            <div class="payment-current">
-                <div class="payment-logo">Pay</div>
-                <span class="payment-name">Apple Pay</span>
-            </div>
-            <!-- Removed the change link -->
-        </div>
+<!-- Payment Section -->
+<div class="payment-section" id="paymentSection" style="display: none;">
+    <button id="payButton" class="pay-button" onclick="processBooking()">
+        Complete Payment
+    </button>
+</div>
         
         <button id="payButton" class="pay-button" onclick="processBooking()">
             Complete Payment
