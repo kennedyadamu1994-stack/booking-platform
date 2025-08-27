@@ -154,28 +154,28 @@
         // ===== Config =====
         const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
         const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
-        const BOOKINGS_SHEET_NAME = 'Bookings'; // <- change if your bookings tab is named differently
+
+        // Hard-mapped columns (A→M) for Bookings sheet
+        const SHEET_COLUMNS = [
+            'booking_id',               // A
+            'booking_date',             // B
+            'event_id',                 // C
+            'event_name',               // D
+            'customer_name',            // E
+            'customer_email',           // F
+            'amount_paid',              // G
+            'addons_selected',          // H
+            'stripe_payment_id',        // I
+            'status',                   // J
+            'email_sent_to_me',         // K
+            'email_sent_to_instructor', // L
+            'skill_level'               // M
+        ];
 
         // ===== State =====
         let eventData = null;
         let selectedAddons = [];
         let appliedDiscount = null;
-
-        // ===== Utils for dynamic column mapping =====
-        function normaliseHeader(h){
-            return String(h||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
-        }
-
-        async function getBookingsHeaderMap(){
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(BOOKINGS_SHEET_NAME)}!1:1?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
-            const res = await fetch(url);
-            if(!res.ok) throw new Error('Failed to load bookings headers');
-            const data = await res.json();
-            const headers = (data.values && data.values[0]) ? data.values[0] : [];
-            const map = {};
-            headers.forEach((h,i)=>{ map[normaliseHeader(h)] = { index:i, header:h }; });
-            return { headers, map };
-        }
 
         // ===== Boot =====
         const urlParams = new URLSearchParams(window.location.search);
@@ -374,7 +374,26 @@
             if (payButton && !payButton.disabled) payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
         }
 
-        // ===== Booking submit (with dynamic column linking) =====
+        // Build a row that matches columns A–M exactly
+        function buildSheetRow({ name, email, skillLevel, selectedAddonNames, totalAmount, discountAmount, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
+            return [
+                bookingId,                                   // A booking_id
+                new Date().toISOString(),                    // B booking_date
+                eventData.id,                                // C event_id
+                eventData.name,                              // D event_name
+                name,                                        // E customer_name
+                email,                                       // F customer_email
+                Number(finalAmount.toFixed(2)),              // G amount_paid
+                selectedAddonNames.join(', '),               // H addons_selected
+                stripePaymentId,                             // I stripe_payment_id
+                status,                                      // J status
+                emailToMe,                                   // K email_sent_to_me
+                emailToInstructor,                           // L email_sent_to_instructor
+                skillLevel                                   // M skill_level
+            ];
+        }
+
+        // ===== Booking submit =====
         async function processBooking(){
             const name = document.getElementById('customerName').value.trim();
             const email = document.getElementById('customerEmail').value.trim();
@@ -399,48 +418,19 @@
             const discountAmount = calculateDiscount(totalAmount);
             const finalAmount = totalAmount - discountAmount;
 
-            // Build a key-value object of booking fields we know about
-            const bookingKV = {
-                event_id: eventData.id,
-                event_name: eventData.name,
-                event_date: eventData.date,
-                event_time: eventData.time,
-                event_location: eventData.location,
-                customer_name: name,
-                customer_email: email,
-                skill_level: skillLevel,
-                addons: selectedAddonNames.join(', '),
-                discount_code: appliedDiscount ? appliedDiscount.code : '',
-                discount_amount: Number(discountAmount.toFixed(2)),
-                original_amount: Number(totalAmount.toFixed(2)),
-                amount: Number(finalAmount.toFixed(2)),
-            };
-
-            // Try to align to the Bookings sheet dynamically
-            let orderedRow = null;
-            let headerMap = null;
-            let bookingHeaders = null;
-            try {
-                const { headers, map } = await getBookingsHeaderMap();
-                bookingHeaders = headers;
-                headerMap = Object.fromEntries(Object.entries(map).map(([k,v]) => [k, v.index]));
-                orderedRow = Array(headers.length).fill('');
-                // Place values by header name if present
-                Object.entries(bookingKV).forEach(([key, val]) => {
-                    const entry = map[key]; // key already normalised
-                    if (entry) orderedRow[entry.index] = val;
-                });
-            } catch(e){
-                // If header fetch fails, we still proceed with default payload
-                console.warn('Header mapping skipped:', e.message);
-            }
+            // Construct the exact row for your sheet
+            const sheetRow = buildSheetRow({
+                name, email, skillLevel, selectedAddonNames,
+                totalAmount, discountAmount, finalAmount,
+                status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
+            });
 
             try{
                 const response = await fetch('/api/create-checkout',{
                     method:'POST',
                     headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({
-                        // existing fields (backward compatible)
+                        // existing fields (keep for backward compatibility)
                         eventId: eventData.id,
                         eventName: eventData.name,
                         customerName: name,
@@ -452,11 +442,9 @@
                         discountAmount: discountAmount,
                         addons: selectedAddonNames,
 
-                        // NEW: dynamic column aids for your Apps Script/backend
-                        bookingKV,               // object keyed by header names (normalised)
-                        bookingHeaders,          // actual header row values
-                        headerMap,               // { normalisedHeader: index }
-                        orderedRow               // array aligned to header order (ready to write)
+                        // NEW: explicit ordering for your Bookings sheet A–M
+                        sheetColumns: SHEET_COLUMNS,
+                        sheetRow: sheetRow
                     })
                 });
 
