@@ -1,4 +1,4 @@
-// api/webhook.js - Fixed to update spots and keep status empty for emails
+// api/webhook.js - Fixed to update status to "Confirmed" after payment
 module.exports = async (req, res) => {
     console.log('Webhook called with method:', req.method);
     
@@ -42,12 +42,12 @@ module.exports = async (req, res) => {
             }
         }
 
-        // Update the booking in Google Sheets AND update event spots
+        // Update the booking status to "Confirmed" and reduce event spots
         const { eventId } = await updateBookingAndSpots(sessionId, paymentIntentId);
 
         res.status(200).json({ 
             success: true, 
-            message: 'Booking updated successfully and spots reduced',
+            message: 'Booking confirmed successfully and spots reduced',
             sessionId: sessionId,
             paymentIntentId: paymentIntentId,
             eventId: eventId
@@ -62,9 +62,9 @@ module.exports = async (req, res) => {
     }
 };
 
-// Updated function that handles both booking update AND spots reduction
+// Updated function that handles both booking confirmation AND spots reduction
 async function updateBookingAndSpots(sessionId, paymentIntentId) {
-    console.log('Updating booking and reducing event spots...');
+    console.log('Updating booking to Confirmed and reducing event spots...');
     console.log('Session ID:', sessionId);
     console.log('Payment Intent ID:', paymentIntentId);
     
@@ -124,19 +124,24 @@ async function updateBookingAndSpots(sessionId, paymentIntentId) {
         throw new Error(`Booking not found for session ID: ${sessionId} or payment intent: ${paymentIntentId}`);
     }
 
-    // IMPORTANT: Keep status EMPTY so email system can find it
-    // The email system will set it to "Confirmed" after sending email
-    console.log('Keeping booking status empty for email system to process');
+    // CRITICAL FIX: Update status to "Confirmed" so email system can detect it
+    console.log('Setting booking status to "Confirmed" - this will trigger the email system');
+    
+    await sheets.spreadsheets.values.update({
+        spreadsheetId: spreadsheetId,
+        range: `Bookings!${getColumnLetter(statusIndex + 1)}${rowIndex}`,
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+            values: [['Confirmed']]
+        }
+    });
 
-    // Update the booking - keep status empty but mark as processed somehow
-    // We'll add a timestamp to show it was processed
-    const processedTime = new Date().toISOString();
-    console.log(`Marking booking as processed at: ${processedTime}`);
-
+    console.log('✅ Booking status updated to "Confirmed"');
+    
     // Now reduce the event spots
     await reduceEventSpots(sheets, spreadsheetId, eventId);
 
-    console.log('✅ Booking processed and event spots updated');
+    console.log('✅ Booking confirmed and event spots updated');
     
     return { eventId };
 }
@@ -187,4 +192,15 @@ async function reduceEventSpots(sheets, spreadsheetId, eventId) {
     });
 
     console.log(`✅ Successfully reduced spots for event ${eventId} to ${newSpots}`);
+}
+
+// Helper function to convert column number to letter (A, B, C, etc.)
+function getColumnLetter(columnNumber) {
+    let columnLetter = '';
+    while (columnNumber > 0) {
+        columnNumber--;
+        columnLetter = String.fromCharCode(65 + (columnNumber % 26)) + columnLetter;
+        columnNumber = Math.floor(columnNumber / 26);
+    }
+    return columnLetter;
 }
