@@ -1,4 +1,4 @@
-// api/webhook.js - Fixed to update status to "Confirmed" after payment
+// api/webhook.js - Complete solution: Save booking AFTER payment with event details
 module.exports = async (req, res) => {
     console.log('Webhook called with method:', req.method);
     
@@ -24,17 +24,20 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Session ID required' });
         }
 
-        // Get payment intent from Stripe checkout session
+        // Get payment details and booking data from Stripe
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
         
         let paymentIntentId = sessionId;
+        let checkoutSession = null;
         
         if (sessionId.startsWith('cs_test_') || sessionId.startsWith('cs_live_')) {
-            console.log('Converting checkout session to payment intent...');
+            console.log('Retrieving checkout session and payment intent...');
             
             try {
-                const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
-                paymentIntentId = checkoutSession.payment_intent;
+                checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
+                    expand: ['payment_intent']
+                });
+                paymentIntentId = checkoutSession.payment_intent.id;
                 console.log('Payment intent ID:', paymentIntentId);
             } catch (stripeError) {
                 console.error('Error retrieving checkout session:', stripeError);
@@ -42,12 +45,27 @@ module.exports = async (req, res) => {
             }
         }
 
-        // Update the booking status to "Confirmed" and reduce event spots
-        const { eventId } = await updateBookingAndSpots(sessionId, paymentIntentId);
+        // Extract booking data from Stripe metadata
+        const metadata = checkoutSession.metadata;
+        const bookingData = {
+            eventId: metadata.eventId,
+            eventName: metadata.eventName,
+            customerName: metadata.customerName,
+            customerEmail: metadata.customerEmail,
+            skillLevel: metadata.skillLevel,
+            addons: metadata.addons === 'None' ? '' : metadata.addons,
+            amount: parseFloat(metadata.amount),
+            paymentIntentId: paymentIntentId
+        };
+
+        console.log('Booking data from Stripe metadata:', bookingData);
+
+        // NOW save the booking to Google Sheets with event details
+        const { eventId } = await saveCompleteBookingAfterPayment(bookingData);
 
         res.status(200).json({ 
             success: true, 
-            message: 'Booking confirmed successfully and spots reduced',
+            message: 'Booking saved successfully after payment confirmation',
             sessionId: sessionId,
             paymentIntentId: paymentIntentId,
             eventId: eventId
@@ -62,11 +80,9 @@ module.exports = async (req, res) => {
     }
 };
 
-// Updated function that handles both booking confirmation AND spots reduction
-async function updateBookingAndSpots(sessionId, paymentIntentId) {
-    console.log('Updating booking to Confirmed and reducing event spots...');
-    console.log('Session ID:', sessionId);
-    console.log('Payment Intent ID:', paymentIntentId);
+// Complete function that saves booking AFTER payment with event details
+async function saveCompleteBookingAfterPayment(bookingData) {
+    console.log('Saving complete booking after successful payment...');
     
     // Import googleapis
     const { google } = require('googleapis');
@@ -83,77 +99,11 @@ async function updateBookingAndSpots(sessionId, paymentIntentId) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Read all booking data from A:N
-    const bookingResponse = await sheets.spreadsheets.values.get({
-        spreadsheetId: spreadsheetId,
-        range: 'Bookings!A:N',
-    });
-
-    const bookingRows = bookingResponse.data.values;
-    if (!bookingRows || bookingRows.length === 0) {
-        throw new Error('No data found in Bookings sheet');
-    }
-
-    console.log(`Found ${bookingRows.length - 1} booking rows to search`);
-
-    // Find the matching booking row
-    const headers = bookingRows[0];
-    const stripePaymentIdIndex = headers.indexOf('stripe_payment_id');
-    const statusIndex = headers.indexOf('status');
-    const eventIdIndex = headers.indexOf('event_id');
-    
-    if (stripePaymentIdIndex === -1 || statusIndex === -1 || eventIdIndex === -1) {
-        throw new Error('Required columns not found in Bookings sheet');
-    }
-
-    let rowIndex = -1;
-    let eventId = null;
-    
-    for (let i = 1; i < bookingRows.length; i++) {
-        const rowStripeId = bookingRows[i][stripePaymentIdIndex];
-        
-        if (rowStripeId === sessionId || rowStripeId === paymentIntentId) {
-            rowIndex = i + 1; // Convert to 1-based index for Sheets API
-            eventId = bookingRows[i][eventIdIndex];
-            console.log(`✅ Found booking at row ${rowIndex} for event: ${eventId}`);
-            break;
-        }
-    }
-
-    if (rowIndex === -1) {
-        throw new Error(`Booking not found for session ID: ${sessionId} or payment intent: ${paymentIntentId}`);
-    }
-
-    // CRITICAL FIX: Update status to "Confirmed" so email system can detect it
-    console.log('Setting booking status to "Confirmed" - this will trigger the email system');
-    
-    await sheets.spreadsheets.values.update({
-        spreadsheetId: spreadsheetId,
-        range: `Bookings!${getColumnLetter(statusIndex + 1)}${rowIndex}`,
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-            values: [['Confirmed']]
-        }
-    });
-
-    console.log('✅ Booking status updated to "Confirmed"');
-    
-    // Now reduce the event spots
-    await reduceEventSpots(sheets, spreadsheetId, eventId);
-
-    console.log('✅ Booking confirmed and event spots updated');
-    
-    return { eventId };
-}
-
-// Function to reduce event spots
-async function reduceEventSpots(sheets, spreadsheetId, eventId) {
-    console.log(`Reducing spots for event: ${eventId}`);
-    
-    // Read Events sheet
+    // STEP 1: Get event details from Events sheet
+    console.log('Fetching event details from Events sheet...');
     const eventsResponse = await sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
-        range: 'Events!A:J',
+        range: 'Events!A:R', // Full range to get all event data
     });
 
     const eventRows = eventsResponse.data.values;
@@ -161,46 +111,98 @@ async function reduceEventSpots(sheets, spreadsheetId, eventId) {
         throw new Error('No data found in Events sheet');
     }
 
-    // Find the event row (assuming event_id is in column A, spots_remaining is in column J)
-    let eventRowIndex = -1;
-    
+    // Find the event by event_id (column A)
+    let eventDetails = null;
     for (let i = 1; i < eventRows.length; i++) {
-        if (eventRows[i][0] === eventId) {
-            eventRowIndex = i + 1; // Convert to 1-based index
+        if (eventRows[i][0] === bookingData.eventId) {
+            eventDetails = {
+                id: eventRows[i][0],          // A: event_id
+                name: eventRows[i][1],        // B: event_name
+                description: eventRows[i][2], // C: description
+                date: eventRows[i][3],        // D: date
+                time: eventRows[i][4],        // E: time
+                location: eventRows[i][5],    // F: location
+                totalSpots: eventRows[i][8],  // I: total_spots
+                spotsRemaining: eventRows[i][9] // J: spots_remaining
+            };
             break;
         }
     }
 
-    if (eventRowIndex === -1) {
-        throw new Error(`Event not found: ${eventId}`);
+    if (!eventDetails) {
+        throw new Error(`Event not found: ${bookingData.eventId}`);
     }
 
-    // Get current spots remaining (column J = index 9)
-    const currentSpots = eventRows[eventRowIndex - 1][9]; // Back to 0-based for array
-    const newSpots = Math.max(0, (parseInt(currentSpots) || 0) - 1);
+    console.log('Event details found:', eventDetails);
+
+    // STEP 2: Create complete booking row with event details
+    const bookingId = `BK${Date.now()}`;
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    console.log(`Event ${eventId}: ${currentSpots} spots → ${newSpots} spots`);
+    // Build comprehensive booking row (A through N)
+    const bookingRow = [
+        bookingId,                          // A: booking_id
+        currentDate,                        // B: booking_date
+        bookingData.eventId,                // C: event_id
+        bookingData.eventName,              // D: event_name
+        bookingData.customerName,           // E: customer_name
+        bookingData.customerEmail,          // F: customer_email
+        Number(bookingData.amount.toFixed(2)), // G: amount_paid
+        bookingData.addons || '',           // H: addons_selected
+        bookingData.paymentIntentId,        // I: stripe_payment_id
+        'Confirmed',                        // J: status - CONFIRMED after payment!
+        '',                                 // K: email_sent
+        '',                                 // L: email_sent_to_instructor (if exists)
+        bookingData.skillLevel || '',       // M: skill_level
+        eventDetails.date || '',            // N: event_date
+        eventDetails.time || '',            // O: event_time  
+        eventDetails.location || ''         // P: event_location
+    ];
 
-    // Update spots remaining in column J
-    await sheets.spreadsheets.values.update({
+    console.log('Complete booking row to save:', bookingRow);
+
+    // STEP 3: Save to Bookings sheet (extend range to include event details)
+    const appendRequest = {
         spreadsheetId: spreadsheetId,
-        range: `Events!J${eventRowIndex}`,
+        range: 'Bookings!A:P', // Extended range to include event details
         valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
         resource: {
-            values: [[newSpots]]
+            values: [bookingRow]
         }
-    });
+    };
+    
+    console.log('Saving booking to Google Sheets...');
+    await sheets.spreadsheets.values.append(appendRequest);
+    
+    console.log('✅ Booking saved with status "Confirmed" - will trigger email system');
 
-    console.log(`✅ Successfully reduced spots for event ${eventId} to ${newSpots}`);
-}
-
-// Helper function to convert column number to letter (A, B, C, etc.)
-function getColumnLetter(columnNumber) {
-    let columnLetter = '';
-    while (columnNumber > 0) {
-        columnNumber--;
-        columnLetter = String.fromCharCode(65 + (columnNumber % 26)) + columnLetter;
-        columnNumber = Math.floor(columnNumber / 26);
+    // STEP 4: Reduce event spots
+    const newSpots = Math.max(0, (parseInt(eventDetails.spotsRemaining) || 0) - 1);
+    
+    // Find the event row index again to update spots
+    let eventRowIndex = -1;
+    for (let i = 1; i < eventRows.length; i++) {
+        if (eventRows[i][0] === bookingData.eventId) {
+            eventRowIndex = i + 1; // 1-based index
+            break;
+        }
     }
-    return columnLetter;
+
+    if (eventRowIndex > 0) {
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: spreadsheetId,
+            range: `Events!J${eventRowIndex}`, // Column J = spots_remaining
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+                values: [[newSpots]]
+            }
+        });
+        
+        console.log(`✅ Reduced event spots to ${newSpots}`);
+    }
+    
+    console.log('✅ Complete booking process finished');
+    
+    return { eventId: bookingData.eventId };
 }
