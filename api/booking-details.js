@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
         const [bookingResponse, eventsResponse] = await Promise.all([
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Bookings!A:P',
+                range: 'Bookings!A:Q',
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
