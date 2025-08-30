@@ -618,10 +618,12 @@
             }
         }
 
-        // ===== Misc =====
+        // ===== FIXED DATE FORMATTING =====
         function formatDate(dateStr){
             const parts = dateStr.split('/');
-            const date = new Date(parts[2], parts[1]-1, parts[0]);
+            // FIXED: Interpret as MM/DD/YYYY format instead of DD/MM/YYYY
+            // parts[0] = month, parts[1] = day, parts[2] = year
+            const date = new Date(parts[2], parts[0]-1, parts[1]);
             const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
             return date.toLocaleDateString('en-GB', opts);
         }
