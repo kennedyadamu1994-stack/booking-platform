@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Who's Coming?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: #1c1c1e;
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .header .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .header .help-btn {
+            background: none;
+            border: 1px solid #48484a;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .community-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f7;
+        }
+        
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        }
+        
+        .event-card {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .event-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        
+        .event-meta-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            color: #8e8e93;
+            font-size: 16px;
+        }
+        
+        .event-meta-item span:first-child {
+            margin-right: 8px;
+        }
+        
+        .excitement-banner {
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            border-radius: 12px;
+        }
+        
+        .excitement-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .excitement-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .community-stats {
+            padding: 20px;
+        }
+        
+        .community-stats h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .community-stat {
+            text-align: center;
+            padding: 16px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #007aff;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .attendees-preview {
+            padding: 20px;
+        }
+        
+        .attendees-preview h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .attendees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .attendee-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 0 auto;
+        }
+        
+        .attendee-name {
+            text-align: center;
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 6px;
+        }
+        
+        .skill-distribution {
+            padding: 20px;
+        }
+        
+        .skill-distribution h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .skill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f7;
+        }
+        
+        .skill-item:last-child {
+            border-bottom: none;
+        }
+        
+        .skill-name {
+            font-size: 14px;
+            color: #1c1c1e;
+        }
+        
+        .skill-bar {
+            flex: 1;
+            height: 6px;
+            background: #f2f2f7;
+            border-radius: 3px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+        
+        .skill-fill {
+            height: 100%;
+            background: #007aff;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .skill-count {
+            font-size: 12px;
+            color: #8e8e93;
+            min-width: 20px;
+            text-align: right;
+        }
+        
+        .popular-addons {
+            padding: 20px;
+        }
+        
+        .popular-addons h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .addon-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f7;
+        }
+        
+        .addon-item:last-child {
+            border-bottom: none;
+        }
+        
+        .addon-name {
+            font-size: 14px;
+            color: #1c1c1e;
+        }
+        
+        .addon-popularity {
+            background: #007aff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .preparation-section {
+            padding: 20px;
+        }
+        
+        .preparation-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .prep-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .prep-icon {
+            font-size: 16px;
+            margin-right: 10px;
+            margin-top: 2px;
+        }
+        
+        .prep-text {
+            font-size: 14px;
+            color: #1c1c1e;
+            line-height: 1.4;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8e8e93;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #ffeaea;
+            color: #ff3b30;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8e8e93;
+        }
+        
+        .empty-state h3 {
+            font-size: 18px;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .actions-section {
+            padding: 0 20px 20px;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .action-btn.secondary {
+            background: #8e8e93;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #6d6d70;
+        }
+        
+        .countdown-section {
+            background: linear-gradient(135deg, #ff9500, #ffad33);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            border-radius: 12px;
+        }
+        
+        .countdown-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .countdown-time {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .countdown-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .community-container {
+                padding: 15px;
+            }
+            
+            .attendees-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+                gap: 8px;
+            }
+            
+            .attendee-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 16px;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="close-btn" onclick="window.history.back()">×</button>
+        <h1>Who's Coming?</h1>
+        <button class="help-btn">?</button>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading community info...</p>
+    </div>
+    
+    <div id="error" class="error-message" style="display: none;"></div>
+    
+    <div class="community-container" id="content" style="display: none;">
+        <!-- Excitement Banner -->
+        <div class="excitement-banner">
+            <div class="excitement-title">Get Excited!</div>
+            <div class="excitement-subtitle">See who's joining you for this amazing event</div>
+        </div>
+
+        <!-- Event Details Card -->
+        <div class="card event-card">
+            <div class="event-title" id="eventTitle">Event Name</div>
+            <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
+            <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
+        </div>
+        
+        <!-- Countdown Card -->
+        <div class="countdown-section" id="countdownSection" style="display: none;">
+            <div class="countdown-title">Event starts in</div>
+            <div class="countdown-time" id="countdownTime">--</div>
+            <div class="countdown-label" id="countdownLabel">days</div>
+        </div>
+        
+        <!-- Community Stats Card -->
+        <div class="card community-stats">
+            <h3>Community Overview</h3>
+            <div class="stats-grid">
+                <div class="community-stat">
+                    <div class="stat-number" id="totalAttendees">0</div>
+                    <div class="stat-label">People Joining</div>
+                </div>
+                <div class="community-stat">
+                    <div class="stat-number" id="spotsLeft">0</div>
+                    <div class="stat-label">Spots Left</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendees Preview Card -->
+        <div class="card attendees-preview">
+            <h3>Meet Your Fellow Attendees</h3>
+            <div id="attendeesGrid">
+                <div class="empty-state">
+                    <h3>Be the first!</h3>
+                    <p>You could be the first person to join this event</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Skill Distribution Card -->
+        <div class="card skill-distribution" id="skillSection" style="display: none;">
+            <h3>Group Skill Levels</h3>
+            <div id="skillsList"></div>
+        </div>
+        
+        <!-- Popular Add-ons Card -->
+        <div class="card popular-addons" id="addonsSection" style="display: none;">
+            <h3>Popular Add-ons</h3>
+            <div id="popularAddonsList"></div>
+        </div>
+        
+        <!-- Event Preparation Card -->
+        <div class="card preparation-section">
+            <h3>What to Expect</h3>
+            <div class="prep-item">
+                <span class="prep-icon">🎯</span>
+                <span class="prep-text">Come ready to have fun and meet new people!</span>
+            </div>
+            <div class="prep-item">
+                <span class="prep-icon">👕</span>
+                <span class="prep-text">Wear comfortable clothing suitable for the activity</span>
+            </div>
+            <div class="prep-item">
+                <span class="prep-icon">⏰</span>
+                <span class="prep-text">Arrive 10-15 minutes early to get settled</span>
+            </div>
+            <div class="prep-item">
+                <span class="prep-icon">💧</span>
+                <span class="prep-text">Bring water and a positive attitude</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="actions-section" id="actionsSection" style="display: none;">
+        <div class="actions-grid">
+            <a href="mailto:thenbrh@gmail.com" class="action-btn">📧 Contact Organizer</a>
+            <button class="action-btn secondary" onclick="shareEvent()">📱 Share Event</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
+        const API_KEY = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
+        
+        // Global variables
+        let eventData = null;
+        let bookingsData = [];
+        
+        // Get event ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        
+        // Initialize
+        if (!eventId) {
+            showError('No event specified. Please provide a valid event ID.');
+        } else {
+            loadEventData();
+        }
+        
+        async function loadEventData() {
+            try {
+                // Load event details and bookings in parallel
+                const [eventResponse, bookingsResponse] = await Promise.all([
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
+                ]);
+                
+                if (!eventResponse.ok || !bookingsResponse.ok) {
+                    throw new Error('Failed to load data');
+                }
+                
+                const eventData = await eventResponse.json();
+                const bookingsData = await bookingsResponse.json();
+                
+                // Process event data
+                const eventRow = findEventById(eventData.values, eventId);
+                if (!eventRow) {
+                    showError('Event not found.');
+                    return;
+                }
+                
+                // Process bookings data (confirmed only)
+                const eventBookings = filterBookingsByEvent(bookingsData.values, eventId);
+                
+                displayEventInfo(eventRow);
+                displayCommunityStats(eventRow, eventBookings);
+                displayAttendees(eventBookings);
+                displaySkillDistribution(eventBookings);
+                displayPopularAddons(eventBookings);
+                displayCountdown(eventRow.date);
+                
+                // Show content and actions, hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('actionsSection').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showError('Unable to load community information. Please try again later.');
+            }
+        }
+        
+        function findEventById(rows, eventId) {
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i][0] === eventId) {
+                    return {
+                        id: rows[i][0],
+                        name: rows[i][1],
+                        description: rows[i][2],
+                        date: rows[i][3],
+                        time: rows[i][4],
+                        location: rows[i][5],
+                        basePrice: parseFloat(rows[i][6]) || 0,
+                        transactionFee: parseFloat(rows[i][7]) || 0,
+                        totalSpots: parseInt(rows[i][8]) || 0,
+                        spotsRemaining: parseInt(rows[i][9]) || 0,
+                        addons: [
+                            { name: rows[i][11], price: parseFloat(rows[i][12]) || 0 },
+                            { name: rows[i][13], price: parseFloat(rows[i][14]) || 0 },
+                            { name: rows[i][15], price: parseFloat(rows[i][16]) || 0 }
+                        ].filter(addon => addon.name)
+                    };
+                }
+            }
+            return null;
+        }
+        
+        function filterBookingsByEvent(rows, eventId) {
+            const bookings = [];
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i][2] === eventId && rows[i][9] === 'Confirmed') {
+                    bookings.push({
+                        customerName: rows[i][4],
+                        addonsSelected: rows[i][7] || 'None',
+                        skillLevel: rows[i][12] || 'Not specified'  // Column M
+                    });
+                }
+            }
+            return bookings;
+        }
+        
+        function displayEventInfo(event) {
+            document.getElementById('eventTitle').textContent = event.name;
+            document.getElementById('eventLocation').textContent = event.location;
+            document.getElementById('eventDateTime').textContent = `${formatDate(event.date)} at ${event.time}`;
+        }
+        
+        function displayCommunityStats(event, bookings) {
+            const totalAttendees = bookings.length;
+            const spotsLeft = event.spotsRemaining;
+            
+            document.getElementById('totalAttendees').textContent = totalAttendees;
+            document.getElementById('spotsLeft').textContent = spotsLeft;
+        }
+        
+        function displayAttendees(bookings) {
+            const container = document.getElementById('attendeesGrid');
+            
+            if (bookings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Be the first!</h3>
+                        <p>You could be the first person to join this event</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create attendee avatars (first names only for privacy)
+            let attendeesHTML = '<div class="attendees-grid">';
+            
+            bookings.slice(0, 12).forEach(booking => {  // Show max 12 attendees
+                const firstName = booking.customerName.split(' ')[0];
+                const initials = booking.customerName
+                    .split(' ')
+                    .map(name => name.charAt(0).toUpperCase())
+                    .join('')
+                    .substring(0, 2);
+                
+                attendeesHTML += `
+                    <div>
+                        <div class="attendee-avatar">${initials}</div>
+                        <div class="attendee-name">${firstName}</div>
+                    </div>
+                `;
+            });
+            
+            if (bookings.length > 12) {
+                attendeesHTML += `
+                    <div>
+                        <div class="attendee-avatar">+${bookings.length - 12}</div>
+                        <div class="attendee-name">more</div>
+                    </div>
+                `;
+            }
+            
+            attendeesHTML += '</div>';
+            container.innerHTML = attendeesHTML;
+        }
+        
+        function displaySkillDistribution(bookings) {
+            const skillCounts = {};
+            const totalBookings = bookings.length;
+            
+            if (totalBookings === 0) return;
+            
+            // Count skill levels
+            bookings.forEach(booking => {
+                const skill = booking.skillLevel || 'Not specified';
+                skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+            });
+            
+            const skillKeys = Object.keys(skillCounts);
+            if (skillKeys.length > 0) {
+                document.getElementById('skillSection').style.display = 'block';
+                
+                let skillHTML = '';
+                skillKeys.sort().forEach(skill => {
+                    const count = skillCounts[skill];
+                    const percentage = Math.round((count / totalBookings) * 100);
+                    
+                    skillHTML += `
+                        <div class="skill-item">
+                            <span class="skill-name">${skill}</span>
+                            <div class="skill-bar">
+                                <div class="skill-fill" style="width: ${percentage}%"></div>
+                            </div>
+                            <span class="skill-count">${count}</span>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('skillsList').innerHTML = skillHTML;
+            }
+        }
+        
+        function displayPopularAddons(bookings) {
+            const addonCounts = {};
+            
+            bookings.forEach(booking => {
+                if (booking.addonsSelected && booking.addonsSelected !== 'None') {
+                    const addons = booking.addonsSelected.split(', ');
+                    addons.forEach(addon => {
+                        addonCounts[addon] = (addonCounts[addon] || 0) + 1;
+                    });
+                }
+            });
+            
+            const addonKeys = Object.keys(addonCounts);
+            if (addonKeys.length > 0) {
+                document.getElementById('addonsSection').style.display = 'block';
+                
+                let addonHTML = '';
+                addonKeys
+                    .sort((a, b) => addonCounts[b] - addonCounts[a])  // Sort by popularity
+                    .forEach(addon => {
+                        const count = addonCounts[addon];
+                        const label = count === 1 ? '1 person' : `${count} people`;
+                        
+                        addonHTML += `
+                            <div class="addon-item">
+                                <span class="addon-name">${addon}</span>
+                                <span class="addon-popularity">${label}</span>
+                            </div>
+                        `;
+                    });
+                
+                document.getElementById('popularAddonsList').innerHTML = addonHTML;
+            }
+        }
+        
+        function displayCountdown(eventDateStr) {
+            try {
+                const parts = eventDateStr.split('/');
+                const eventDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                const now = new Date();
+                const timeDiff = eventDate.getTime() - now.getTime();
+                
+                if (timeDiff > 0) {
+                    const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                    
+                    if (days <= 30) {  // Show countdown if event is within 30 days
+                        document.getElementById('countdownSection').style.display = 'block';
+                        document.getElementById('countdownTime').textContent = days;
+                        document.getElementById('countdownLabel').textContent = days === 1 ? 'day' : 'days';
+                    }
+                }
+            } catch (error) {
+                console.log('Could not calculate countdown:', error);
+            }
+        }
+        
+        function formatDate(dateStr) {
+            try {
+                const parts = dateStr.split('/');
+                const date = new Date(parts[2], parts[0] - 1, parts[1]);
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                };
+                return date.toLocaleDateString('en-GB', options);
+            } catch (error) {
+                return dateStr;
+            }
+        }
+        
+        function shareEvent() {
+            const eventTitle = document.getElementById('eventTitle').textContent;
+            const eventDate = document.getElementById('eventDateTime').textContent;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Join me at ${eventTitle}`,
+                    text: `I'm going to ${eventTitle} on ${eventDate}. Want to join?`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback - copy to clipboard
+                const shareText = `Join me at ${eventTitle} on ${eventDate}! ${window.location.href}`;
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Event link copied to clipboard!');
+                });
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = message;
+        }
+    </script>
+</body>
+</html>
