@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Event Attendees</title>
     <style>
         * {
@@ -13,165 +13,263 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f8f9fa;
+            background: #f5f5f7;
             min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
+            background: #1c1c1e;
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
             text-align: center;
+            flex: 1;
+        }
+        
+        .header .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .header .help-btn {
+            background: none;
+            border: 1px solid #48484a;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .attendees-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f7;
+        }
+        
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        }
+        
+        .event-card {
+            padding: 20px;
         }
         
         .event-title {
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+            line-height: 1.3;
         }
         
-        .event-meta {
+        .event-meta-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            color: #8e8e93;
+            font-size: 14px;
+        }
+        
+        .event-meta-item span:first-child {
+            margin-right: 8px;
+        }
+        
+        .stats-section {
+            padding: 20px;
+        }
+        
+        .stats-section h3 {
             font-size: 16px;
-            opacity: 0.9;
-            line-height: 1.5;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
         }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 30px;
-            background: #f8f9fa;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
         }
         
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
+        .stat-item {
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 16px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
         
         .stat-number {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
+            color: #007aff;
+            margin-bottom: 4px;
         }
         
         .stat-label {
-            font-size: 14px;
-            color: #6c757d;
+            font-size: 12px;
+            color: #8e8e93;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         
-        .content {
-            padding: 30px;
+        .attendees-section {
+            padding: 20px;
         }
         
-        .section-title {
-            font-size: 20px;
+        .attendees-section h3 {
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 20px;
-            color: #212529;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+        }
+        
+        .attendee-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            padding: 16px 0;
+            border-bottom: 1px solid #f2f2f7;
         }
         
-        .attendees-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .attendees-table th {
-            background: #667eea;
-            color: white;
-            padding: 15px 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .attendees-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 14px;
-        }
-        
-        .attendees-table tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .attendees-table tr:last-child td {
+        .attendee-item:last-child {
             border-bottom: none;
         }
         
-        .booking-ref {
-            font-family: 'Courier New', monospace;
-            background: #f8f9fa;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        
-        .amount-paid {
+        .attendee-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: 600;
-            color: #28a745;
+            font-size: 16px;
+            margin-right: 12px;
         }
         
-        .addon-summary {
-            background: #f8f9fa;
+        .attendee-details {
+            flex: 1;
+        }
+        
+        .attendee-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 2px;
+        }
+        
+        .attendee-email {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-bottom: 4px;
+        }
+        
+        .attendee-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-tag {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #f2f2f7;
+            color: #8e8e93;
+        }
+        
+        .meta-tag.booking-ref {
+            background: #e8f4fd;
+            color: #007aff;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .meta-tag.amount {
+            background: #e8f5e8;
+            color: #30d158;
+            font-weight: 600;
+        }
+        
+        .meta-tag.addon {
+            background: #fff4e5;
+            color: #ff9500;
+        }
+        
+        .addons-summary-section {
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
         }
         
-        .addon-item {
+        .addons-summary-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 15px;
+        }
+        
+        .addon-summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f7;
         }
         
-        .addon-item:last-child {
+        .addon-summary-item:last-child {
             border-bottom: none;
+        }
+        
+        .addon-name {
+            font-size: 14px;
+            color: #1c1c1e;
         }
         
         .addon-count {
-            background: #667eea;
+            background: #007aff;
             color: white;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
+            min-width: 24px;
+            text-align: center;
         }
         
         .loading {
             text-align: center;
-            padding: 60px;
-            color: #6c757d;
+            padding: 60px 20px;
+            color: #8e8e93;
         }
         
         .loading-spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #007aff;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -185,62 +283,69 @@
         }
         
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
+            background: #ffeaea;
+            color: #ff3b30;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin: 20px;
             text-align: center;
         }
         
         .empty-state {
             text-align: center;
-            padding: 40px;
-            color: #6c757d;
+            padding: 40px 20px;
+            color: #8e8e93;
         }
         
         .empty-state h3 {
-            margin-bottom: 10px;
-            color: #495057;
+            font-size: 18px;
+            color: #1c1c1e;
+            margin-bottom: 8px;
         }
         
-        .actions {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-            text-align: center;
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.4;
         }
         
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 0 10px;
+        .actions-section {
+            padding: 0 20px 20px;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #007aff;
+            color: white;
             border: none;
-            border-radius: 6px;
-            font-weight: 600;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
         
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5a67d8;
+        .action-btn:hover {
+            background: #0056b3;
             transform: translateY(-1px);
         }
         
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
+        .action-btn.secondary {
+            background: #8e8e93;
         }
         
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-1px);
+        .action-btn.secondary:hover {
+            background: #6d6d70;
         }
         
         /* Print styles */
@@ -249,11 +354,16 @@
                 background: white;
             }
             
-            .actions {
+            .actions-section {
                 display: none;
             }
             
-            .container {
+            .header {
+                background: #000;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .card {
                 box-shadow: none;
                 border: 1px solid #ddd;
             }
@@ -261,98 +371,111 @@
         
         /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            .header {
-                padding: 20px;
-            }
-            
-            .event-title {
-                font-size: 24px;
+            .attendees-container {
+                padding: 15px;
             }
             
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                padding: 20px;
-                gap: 15px;
+                grid-template-columns: 1fr;
             }
             
-            .content {
-                padding: 20px;
+            .attendee-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
             }
             
-            .attendees-table {
-                font-size: 12px;
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .attendees-container {
+                padding: 10px;
             }
             
-            .attendees-table th,
-            .attendees-table td {
-                padding: 8px 6px;
+            .attendee-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .attendee-avatar {
+                align-self: flex-start;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <p>Loading attendee information...</p>
+    <div class="header">
+        <button class="close-btn" onclick="window.history.back()">×</button>
+        <h1>Event Attendees</h1>
+        <button class="help-btn">?</button>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading attendee information...</p>
+    </div>
+    
+    <div id="error" class="error-message" style="display: none;"></div>
+    
+    <div class="attendees-container" id="content" style="display: none;">
+        <!-- Event Details Card -->
+        <div class="card event-card">
+            <div class="event-title" id="eventTitle">Event Name</div>
+            <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
+            <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
         </div>
         
-        <div id="error" class="error-message" style="display: none;"></div>
-        
-        <div id="content" style="display: none;">
-            <div class="header">
-                <h1 class="event-title" id="eventTitle">Event Name</h1>
-                <div class="event-meta" id="eventMeta">
-                    <div id="eventDate">Date</div>
-                    <div id="eventDetails">Time • Location</div>
-                </div>
-            </div>
-            
+        <!-- Stats Card -->
+        <div class="card stats-section">
+            <h3>Event Overview</h3>
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-number" id="totalBookings">0</div>
                     <div class="stat-label">Total Bookings</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-number" id="spotsRemaining">0</div>
                     <div class="stat-label">Spots Remaining</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-number" id="totalRevenue">£0</div>
                     <div class="stat-label">Total Revenue</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-number" id="totalAddons">0</div>
                     <div class="stat-label">Add-ons Sold</div>
                 </div>
             </div>
-            
-            <div class="content">
-                <h2 class="section-title">👥 Attendee List</h2>
-                
-                <div id="attendeesList">
-                    <div class="empty-state">
-                        <h3>No bookings yet</h3>
-                        <p>Bookings will appear here once people start registering for this event.</p>
-                    </div>
-                </div>
-                
-                <div id="addonSummary" style="display: none;">
-                    <h2 class="section-title">🎯 Add-ons Summary</h2>
-                    <div class="addon-summary" id="addonsList"></div>
+        </div>
+        
+        <!-- Attendees List Card -->
+        <div class="card attendees-section">
+            <h3>Attendee List</h3>
+            <div id="attendeesList">
+                <div class="empty-state">
+                    <h3>No bookings yet</h3>
+                    <p>Bookings will appear here once people start registering for this event.</p>
                 </div>
             </div>
-            
-            <div class="actions">
-                <button class="btn btn-primary" onclick="window.print()">🖨️ Print List</button>
-                <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
-                <a href="https://www.thenbrh.co.uk/" class="btn btn-secondary">🏠 Home</a>
-            </div>
+        </div>
+        
+        <!-- Add-ons Summary Card -->
+        <div class="card addons-summary-section" id="addonSummary" style="display: none;">
+            <h3>Add-ons Summary</h3>
+            <div id="addonsList"></div>
+        </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="actions-section" id="actionsSection" style="display: none;">
+        <div class="actions-grid">
+            <button class="action-btn" onclick="window.print()">🖨️ Print</button>
+            <button class="action-btn secondary" onclick="refreshData()">🔄 Refresh</button>
+            <a href="https://www.thenbrh.co.uk/" class="action-btn secondary">🏠 Home</a>
         </div>
     </div>
 
@@ -405,9 +528,10 @@
                 displayBookings(eventBookings);
                 displayStats(eventRow, eventBookings);
                 
-                // Show content, hide loading
+                // Show content and actions, hide loading
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
+                document.getElementById('actionsSection').style.display = 'block';
                 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -464,8 +588,8 @@
         
         function displayEventInfo(event) {
             document.getElementById('eventTitle').textContent = event.name;
-            document.getElementById('eventDate').textContent = formatDate(event.date);
-            document.getElementById('eventDetails').textContent = `${event.time} • ${event.location}`;
+            document.getElementById('eventLocation').textContent = event.location;
+            document.getElementById('eventDateTime').textContent = `${formatDate(event.date)} at ${event.time}`;
         }
         
         function displayBookings(bookings) {
@@ -481,41 +605,40 @@
                 return;
             }
             
-            // Create table
-            let tableHTML = `
-                <table class="attendees-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Booking Ref</th>
-                            <th>Amount Paid</th>
-                            <th>Add-ons</th>
-                            <th>Booking Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            // Create attendee items
+            let attendeesHTML = '';
             
             bookings.forEach(booking => {
-                tableHTML += `
-                    <tr>
-                        <td><strong>${booking.customerName}</strong></td>
-                        <td>${booking.customerEmail}</td>
-                        <td><span class="booking-ref">${booking.bookingId}</span></td>
-                        <td><span class="amount-paid">£${booking.amountPaid.toFixed(2)}</span></td>
-                        <td>${booking.addonsSelected}</td>
-                        <td>${booking.bookingDate}</td>
-                    </tr>
+                const initials = booking.customerName
+                    .split(' ')
+                    .map(name => name.charAt(0).toUpperCase())
+                    .join('')
+                    .substring(0, 2);
+                
+                const metaTags = [
+                    `<span class="meta-tag booking-ref">${booking.bookingId}</span>`,
+                    `<span class="meta-tag amount">£${booking.amountPaid.toFixed(2)}</span>`
+                ];
+                
+                if (booking.addonsSelected && booking.addonsSelected !== 'None') {
+                    metaTags.push(`<span class="meta-tag addon">${booking.addonsSelected}</span>`);
+                }
+                
+                attendeesHTML += `
+                    <div class="attendee-item">
+                        <div class="attendee-avatar">${initials}</div>
+                        <div class="attendee-details">
+                            <div class="attendee-name">${booking.customerName}</div>
+                            <div class="attendee-email">${booking.customerEmail}</div>
+                            <div class="attendee-meta">
+                                ${metaTags.join('')}
+                            </div>
+                        </div>
+                    </div>
                 `;
             });
             
-            tableHTML += `
-                    </tbody>
-                </table>
-            `;
-            
-            container.innerHTML = tableHTML;
+            container.innerHTML = attendeesHTML;
             
             // Display add-on summary
             displayAddonSummary(bookings);
@@ -540,8 +663,8 @@
                 let addonHTML = '';
                 addonKeys.forEach(addon => {
                     addonHTML += `
-                        <div class="addon-item">
-                            <span>${addon}</span>
+                        <div class="addon-summary-item">
+                            <span class="addon-name">${addon}</span>
                             <span class="addon-count">${addonCounts[addon]}</span>
                         </div>
                     `;
@@ -582,6 +705,7 @@
         
         function refreshData() {
             document.getElementById('content').style.display = 'none';
+            document.getElementById('actionsSection').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
             loadEventData();
         }
