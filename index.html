@@ -19,9 +19,9 @@
         .event-title{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:8px;line-height:1.3}
         .event-meta-item{display:flex;align-items:center;margin-bottom:4px;color:#8e8e93;font-size:14px}
         .event-meta-item span{margin-right:8px}
-        .event-description{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
-        .description-title{font-size:14px;font-weight:600;color:#1c1c1e;margin-bottom:8px}
-        .description-text{font-size:14px;color:#8e8e93;line-height:1.6;white-space:pre-wrap}
+        .event-more-info{margin-top:12px}
+        .more-info-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#007aff;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500;transition:background .2s}
+        .more-info-link:hover{background:#0056b3}
         .ticket-info{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
         .ticket-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
         .ticket-quantity,.ticket-price{font-size:16px;font-weight:600;color:#1c1c1e}
@@ -95,10 +95,11 @@
                     <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
                     <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
                     
-                    <!-- Activity Description Section -->
-                    <div class="event-description" id="eventDescription" style="display:none;">
-                        <div class="description-title">About this activity</div>
-                        <div class="description-text" id="descriptionText"></div>
+                    <!-- More Info Link -->
+                    <div class="event-more-info" id="eventMoreInfo" style="display:none;">
+                        <a href="#" id="moreInfoLink" class="more-info-link" target="_blank" rel="noopener noreferrer">
+                            ℹ️ More Information
+                        </a>
                     </div>
                 </div>
             </div>
@@ -314,7 +315,7 @@
                 eventData = {
                     id: eventRow[0],
                     name: eventRow[1],
-                    description: eventRow[2],
+                    moreInfoUrl: eventRow[2],  // Column C is now more_info URL
                     date: eventRow[3],
                     time: eventRow[4],
                     location: eventRow[5],
@@ -346,10 +347,19 @@
             document.getElementById('eventLocation').textContent = eventData.location;
             document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
 
-            // Display event description if it exists
-            if (eventData.description && eventData.description.trim() !== '') {
-                document.getElementById('eventDescription').style.display = 'block';
-                document.getElementById('descriptionText').textContent = eventData.description;
+            // Display more info link if it exists and is a valid URL
+            if (eventData.moreInfoUrl && eventData.moreInfoUrl.trim() !== '') {
+                const moreInfoLink = document.getElementById('moreInfoLink');
+                const moreInfoSection = document.getElementById('eventMoreInfo');
+                
+                // Ensure the URL has a protocol
+                let url = eventData.moreInfoUrl.trim();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                
+                moreInfoLink.href = url;
+                moreInfoSection.style.display = 'block';
             }
 
             document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
