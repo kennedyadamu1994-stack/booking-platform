@@ -19,6 +19,9 @@
         .event-title{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:8px;line-height:1.3}
         .event-meta-item{display:flex;align-items:center;margin-bottom:4px;color:#8e8e93;font-size:14px}
         .event-meta-item span{margin-right:8px}
+        .event-description{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
+        .description-title{font-size:14px;font-weight:600;color:#1c1c1e;margin-bottom:8px}
+        .description-text{font-size:14px;color:#8e8e93;line-height:1.6;white-space:pre-wrap}
         .ticket-info{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
         .ticket-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
         .ticket-quantity,.ticket-price{font-size:16px;font-weight:600;color:#1c1c1e}
@@ -91,6 +94,12 @@
                     <div class="event-title" id="eventTitle">Event Name</div>
                     <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
                     <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
+                    
+                    <!-- Activity Description Section -->
+                    <div class="event-description" id="eventDescription" style="display:none;">
+                        <div class="description-title">About this activity</div>
+                        <div class="description-text" id="descriptionText"></div>
+                    </div>
                 </div>
             </div>
             <div class="ticket-info">
@@ -336,6 +345,12 @@
             document.getElementById('eventTitle').textContent = eventData.name;
             document.getElementById('eventLocation').textContent = eventData.location;
             document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
+
+            // Display event description if it exists
+            if (eventData.description && eventData.description.trim() !== '') {
+                document.getElementById('eventDescription').style.display = 'block';
+                document.getElementById('descriptionText').textContent = eventData.description;
+            }
 
             document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
             document.getElementById('bookingFeeAmount').textContent = eventData.transactionFee.toFixed(2);
