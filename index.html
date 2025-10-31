@@ -40,12 +40,13 @@
         .attendees-header h3{font-size:16px;font-weight:600;color:#1c1c1e;margin:0}
         .attendees-count{font-size:14px;color:#007aff;font-weight:600}
         .attendees-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:12px;margin-bottom:15px}
+        .attendees-grid.empty{display:block}
         .attendee-item{text-align:center}
         .attendee-avatar{width:60px;height:60px;background:linear-gradient(135deg,#007aff,#5ac8fa);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:18px;margin:0 auto 6px}
         .attendee-name{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .attendees-empty{text-align:center;padding:20px;color:#8e8e93}
+        .attendees-empty{text-align:center;padding:30px 20px;color:#8e8e93;max-width:100%;width:100%}
         .attendees-empty-icon{font-size:40px;margin-bottom:10px}
-        .attendees-empty-text{font-size:14px;line-height:1.4}
+        .attendees-empty-text{font-size:14px;line-height:1.6;max-width:300px;margin:0 auto}
         .skill-distribution{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
         .skill-bar-container{display:flex;align-items:center;gap:10px}
         .skill-label{font-size:12px;color:#8e8e93;min-width:80px}
@@ -356,16 +357,20 @@
             
             if (attendeesData.length === 0) {
                 // Show empty state
+                grid.classList.add('empty');
                 grid.innerHTML = `
                     <div class="attendees-empty">
                         <div class="attendees-empty-icon">👋</div>
-                        <div class="attendees-empty-text">Be the first to join!<br>No one has booked yet.</div>
+                        <div class="attendees-empty-text">Be the first to join! No one has booked yet.</div>
                     </div>
                 `;
                 count.textContent = 'Be the first!';
                 card.style.display = 'block';
                 return;
             }
+            
+            // Remove empty class if it was previously set
+            grid.classList.remove('empty');
 
             // Show attendee count
             const attendeeText = attendeesData.length === 1 ? '1 person attending' : `${attendeesData.length} people attending`;
