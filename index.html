@@ -33,6 +33,31 @@
         .spots-available{background:#e8f5e8;color:#30a330}
         .spots-low{background:#fff4e5;color:#ff9500}
         .spots-out{background:#ffeaea;color:#ff3b30}
+        
+        /* Attendees Preview Card Styles */
+        .attendees-preview-card{padding:20px}
+        .attendees-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+        .attendees-header h3{font-size:16px;font-weight:600;color:#1c1c1e;margin:0}
+        .attendees-count{font-size:14px;color:#007aff;font-weight:600}
+        .attendees-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:12px;margin-bottom:15px}
+        .attendee-item{text-align:center}
+        .attendee-avatar{width:60px;height:60px;background:linear-gradient(135deg,#007aff,#5ac8fa);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:18px;margin:0 auto 6px}
+        .attendee-name{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .attendees-empty{text-align:center;padding:20px;color:#8e8e93}
+        .attendees-empty-icon{font-size:40px;margin-bottom:10px}
+        .attendees-empty-text{font-size:14px;line-height:1.4}
+        .skill-distribution{margin-top:15px;padding-top:15px;border-top:1px solid #f2f2f7}
+        .skill-bar-container{display:flex;align-items:center;gap:10px}
+        .skill-label{font-size:12px;color:#8e8e93;min-width:80px}
+        #skillBars{flex:1;display:flex;gap:4px;flex-wrap:wrap}
+        .skill-tag{display:inline-block;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:500;white-space:nowrap}
+        .skill-beginner{background:#e8f4fd;color:#007aff}
+        .skill-intermediate{background:#fff4e5;color:#ff9500}
+        .skill-advanced{background:#ffe8f5;color:#ff006e}
+        .skill-advanced-plus{background:#e8f5e8;color:#30a330}
+        .view-all-link{display:block;text-align:center;color:#007aff;font-size:14px;font-weight:500;text-decoration:none;padding:10px;margin-top:10px;border-top:1px solid #f2f2f7;transition:opacity .2s}
+        .view-all-link:hover{opacity:0.7}
+        
         .customer-card{padding:20px}
         .customer-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
         .form-group{margin-bottom:15px}
@@ -73,14 +98,14 @@
         .loading-spinner{border:3px solid #f3f3f3;border-top:3px solid #007aff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 20px}
         @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
         .error-message{background:#ffeaea;color:#ff3b30;padding:20px;border-radius:12px;margin:20px;text-align:center}
-        @media (max-width:640px){.booking-container{padding:15px}.event-image{height:200px}}
+        @media (max-width:640px){.booking-container{padding:15px}.event-image{height:200px}.attendees-grid{grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:8px}.attendee-avatar{width:50px;height:50px;font-size:16px}}
     </style>
 </head>
 <body>
     <div class="header">
-        <button class="close-btn"></button>
+        <button class="close-btn">×</button>
         <h1>Checkout</h1>
-        <button class="help-btn"></button>
+        <button class="help-btn">?</button>
     </div>
 
     <div id="loading" class="loading">
@@ -92,7 +117,6 @@
     <div class="booking-container" id="bookingForm" style="display:none;">
         <!-- Event Details Card -->
         <div class="card event-card">
-            <!-- Event Image -->
             <img id="eventImage" class="event-image loading" alt="Event image" style="display:none;">
             
             <div class="event-content">
@@ -101,7 +125,6 @@
                     <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
                     <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
                     
-                    <!-- More Info Link -->
                     <div class="event-more-info" id="eventMoreInfo" style="display:none;">
                         <a href="#" id="moreInfoLink" class="more-info-link" target="_blank" rel="noopener noreferrer">
                             Click here for more info
@@ -114,6 +137,31 @@
                 <div class="booking-fee"><span>1x Booking fees: £<span id="bookingFeeAmount">0.00</span></span></div>
                 <div class="spots-indicator" id="spotsIndicator"><span id="spotsText">Checking availability...</span></div>
             </div>
+        </div>
+
+        <!-- Attendees Preview Card (NEW!) -->
+        <div class="card attendees-preview-card" id="attendeesPreviewCard" style="display:none;">
+            <div class="attendees-header">
+                <h3>Who's Coming?</h3>
+                <div class="attendees-count" id="attendeesCount">0 people attending</div>
+            </div>
+            
+            <div id="attendeesContent">
+                <div class="attendees-grid" id="attendeesGrid">
+                    <!-- Attendees will be populated here -->
+                </div>
+                
+                <div class="skill-distribution" id="skillDistribution" style="display:none;">
+                    <div class="skill-bar-container">
+                        <div class="skill-label">Skill Levels:</div>
+                        <div id="skillBars"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="attendees-public.html" id="viewAllAttendeesLink" class="view-all-link" style="display:none;" target="_blank">
+                View full community info →
+            </a>
         </div>
 
         <!-- Customer Information -->
@@ -139,7 +187,6 @@
                 <div class="skill-level-info">Your skill level helps us provide the best experience for you</div>
             </div>
             
-            <!-- Debug section -->
             <button type="button" class="debug-toggle" onclick="toggleDebug()" style="display:none;">Show Debug Info</button>
             <div id="debugInfo" class="debug-info">
                 <strong>Skill Level Tracking Debug:</strong><br>
@@ -190,37 +237,26 @@
     <script>
         // ===== Config =====
         const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
+        const API_KEY = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
         const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
 
-        // Exact Bookings sheet columns A–N (INCLUDES ANTI-TRUNCATION COLUMN)
         const SHEET_COLUMNS = [
-            'booking_id',               // A
-            'booking_date',             // B
-            'event_id',                 // C
-            'event_name',               // D
-            'customer_name',            // E
-            'customer_email',           // F
-            'amount_paid',              // G
-            'addons_selected',          // H
-            'stripe_payment_id',        // I
-            'status',                   // J
-            'email_sent_to_me',         // K
-            'email_sent_to_instructor', // L
-            'skill_level',              // M *** SKILL LEVEL GOES HERE ***
-            'preserve_column'           // N *** SAFETY COLUMN TO PREVENT M TRUNCATION ***
+            'booking_id','booking_date','event_id','event_name','customer_name','customer_email',
+            'amount_paid','addons_selected','stripe_payment_id','status','email_sent_to_me',
+            'email_sent_to_instructor','skill_level','preserve_column'
         ];
         
-        // Handy hints for the backend (belt & braces)
         const COLUMN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
-        const SKILL_LEVEL_COLUMN_INDEX = 12; // zero-based => column M
+        const SKILL_LEVEL_COLUMN_INDEX = 12;
         const SKILL_LEVEL_COLUMN_LETTER = 'M';
-        const BOOKINGS_RANGE = 'Bookings!A:V'; // FIXED: Now includes safety column N
+        const BOOKINGS_RANGE = 'Bookings!A:V';
 
         // ===== State =====
         let eventData = null;
         let selectedAddons = [];
         let appliedDiscount = null;
         let currentSkillLevel = '';
+        let attendeesData = [];
 
         // ===== Boot =====
         const urlParams = new URLSearchParams(window.location.search);
@@ -231,22 +267,202 @@
             loadEventData();
         }
 
+        // ===== Load Event and Attendees Data =====
+        async function loadEventData() {
+            try {
+                // Load both event and bookings data in parallel
+                const [eventResponse, bookingsResponse] = await Promise.all([
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:V?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
+                ]);
+
+                if (!eventResponse.ok) throw new Error('Failed to load event data');
+                const eventDataResponse = await eventResponse.json();
+                const rows = eventDataResponse.values;
+
+                let eventRow = null;
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { 
+                        eventRow = rows[i]; 
+                        break; 
+                    }
+                }
+                if (!eventRow) { 
+                    showError('Event not found or no longer available.'); 
+                    return; 
+                }
+
+                eventData = {
+                    id: eventRow[0],
+                    name: eventRow[1],
+                    moreInfoUrl: eventRow[2],
+                    date: eventRow[3],
+                    time: eventRow[4],
+                    location: eventRow[5],
+                    basePrice: parseFloat(eventRow[6]) || 0,
+                    transactionFee: parseFloat(eventRow[7]) || 0,
+                    totalSpots: parseInt(eventRow[8]) || 0,
+                    spotsRemaining: parseInt(eventRow[9]) || 0,
+                    imageUrl: eventRow[21] || '',
+                    addons: []
+                };
+
+                if (eventRow[11] && eventRow[12]) eventData.addons.push({ name: eventRow[11], price: parseFloat(eventRow[12]) });
+                if (eventRow[13] && eventRow[14]) eventData.addons.push({ name: eventRow[13], price: parseFloat(eventRow[14]) });
+                if (eventRow[15] && eventRow[16]) eventData.addons.push({ name: eventRow[15], price: parseFloat(eventRow[16]) });
+
+                // Process bookings data if available
+                if (bookingsResponse.ok) {
+                    const bookingsData = await bookingsResponse.json();
+                    attendeesData = processAttendeesData(bookingsData.values);
+                }
+
+                displayEvent();
+                displayAttendees();
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Unable to load event details. Please try again later.');
+            }
+        }
+
+        // ===== Process Attendees Data =====
+        function processAttendeesData(bookingsRows) {
+            const attendees = [];
+            
+            if (!bookingsRows || bookingsRows.length < 2) return attendees;
+            
+            for (let i = 1; i < bookingsRows.length; i++) {
+                const row = bookingsRows[i];
+                // Check if this booking is for our event and is confirmed
+                if (row[2] === eventId && row[9] === 'Confirmed') {
+                    attendees.push({
+                        customerName: row[4] || 'Guest',
+                        skillLevel: row[12] || 'Not specified',
+                        addonsSelected: row[7] || 'None'
+                    });
+                }
+            }
+            
+            return attendees;
+        }
+
+        // ===== Display Attendees =====
+        function displayAttendees() {
+            const card = document.getElementById('attendeesPreviewCard');
+            const grid = document.getElementById('attendeesGrid');
+            const count = document.getElementById('attendeesCount');
+            const skillDistribution = document.getElementById('skillDistribution');
+            const viewAllLink = document.getElementById('viewAllAttendeesLink');
+            
+            if (attendeesData.length === 0) {
+                // Show empty state
+                grid.innerHTML = `
+                    <div class="attendees-empty">
+                        <div class="attendees-empty-icon">👋</div>
+                        <div class="attendees-empty-text">Be the first to join!<br>No one has booked yet.</div>
+                    </div>
+                `;
+                count.textContent = 'Be the first!';
+                card.style.display = 'block';
+                return;
+            }
+
+            // Show attendee count
+            const attendeeText = attendeesData.length === 1 ? '1 person attending' : `${attendeesData.length} people attending`;
+            count.textContent = attendeeText;
+
+            // Display up to 8 attendees
+            const displayCount = Math.min(attendeesData.length, 8);
+            let gridHTML = '';
+
+            for (let i = 0; i < displayCount; i++) {
+                const attendee = attendeesData[i];
+                const firstName = attendee.customerName.split(' ')[0];
+                const initials = attendee.customerName
+                    .split(' ')
+                    .map(name => name.charAt(0).toUpperCase())
+                    .join('')
+                    .substring(0, 2);
+
+                gridHTML += `
+                    <div class="attendee-item">
+                        <div class="attendee-avatar">${initials}</div>
+                        <div class="attendee-name">${firstName}</div>
+                    </div>
+                `;
+            }
+
+            // Add "more" indicator if there are additional attendees
+            if (attendeesData.length > 8) {
+                gridHTML += `
+                    <div class="attendee-item">
+                        <div class="attendee-avatar">+${attendeesData.length - 8}</div>
+                        <div class="attendee-name">more</div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = gridHTML;
+
+            // Display skill level distribution
+            displaySkillDistribution();
+
+            // Update view all link
+            viewAllLink.href = `attendees-public.html?event=${eventId}`;
+            viewAllLink.style.display = 'block';
+
+            // Show the card
+            card.style.display = 'block';
+        }
+
+        // ===== Display Skill Distribution =====
+        function displaySkillDistribution() {
+            const skillCounts = {};
+            attendeesData.forEach(attendee => {
+                const skill = attendee.skillLevel || 'Not specified';
+                skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+            });
+
+            const skillKeys = Object.keys(skillCounts);
+            if (skillKeys.length === 0) return;
+
+            const skillBars = document.getElementById('skillBars');
+            const skillDistribution = document.getElementById('skillDistribution');
+            
+            let skillHTML = '';
+            
+            // Map skills to CSS classes
+            const skillClasses = {
+                'Beginner': 'skill-beginner',
+                'Intermediate': 'skill-intermediate',
+                'Advanced': 'skill-advanced',
+                'Advanced+': 'skill-advanced-plus',
+                'Not specified': 'skill-beginner'
+            };
+
+            skillKeys.sort().forEach(skill => {
+                const count = skillCounts[skill];
+                const cssClass = skillClasses[skill] || 'skill-beginner';
+                skillHTML += `<span class="skill-tag ${cssClass}">${skill} (${count})</span>`;
+            });
+
+            skillBars.innerHTML = skillHTML;
+            skillDistribution.style.display = 'block';
+        }
+
         // ===== Skill Level Functions =====
         function onSkillLevelChange() {
             const skillSelect = document.getElementById('skillLevel');
             const selectedValue = skillSelect.value;
             currentSkillLevel = selectedValue;
             
-            // Visual feedback
             if (selectedValue) {
                 skillSelect.classList.add('valid');
             } else {
                 skillSelect.classList.remove('valid');
             }
             
-            // Update debug info
             updateDebugInfo();
-            
             console.log('Skill level selected:', selectedValue, '- Will be saved to column M');
         }
 
@@ -303,61 +519,18 @@
             }
         }
 
-        // ===== Data load =====
-        async function loadEventData() {
-            try {
-                const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:V?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
-                const response = await fetch(sheetUrl);
-                if (!response.ok) throw new Error('Failed to load event data');
-                const data = await response.json();
-                const rows = data.values;
-
-                let eventRow = null;
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { eventRow = rows[i]; break; }
-                }
-                if (!eventRow) { showError('Event not found or no longer available.'); return; }
-
-                eventData = {
-                    id: eventRow[0],
-                    name: eventRow[1],
-                    moreInfoUrl: eventRow[2],
-                    date: eventRow[3],
-                    time: eventRow[4],
-                    location: eventRow[5],
-                    basePrice: parseFloat(eventRow[6]) || 0,
-                    transactionFee: parseFloat(eventRow[7]) || 0,
-                    totalSpots: parseInt(eventRow[8]) || 0,
-                    spotsRemaining: parseInt(eventRow[9]) || 0,
-                    imageUrl: eventRow[21] || '', // Column V - IMAGE URL
-                    addons: []
-                };
-
-                if (eventRow[11] && eventRow[12]) eventData.addons.push({ name: eventRow[11], price: parseFloat(eventRow[12]) });
-                if (eventRow[13] && eventRow[14]) eventData.addons.push({ name: eventRow[13], price: parseFloat(eventRow[14]) });
-                if (eventRow[15] && eventRow[16]) eventData.addons.push({ name: eventRow[15], price: parseFloat(eventRow[16]) });
-
-                displayEvent();
-            } catch (error) {
-                console.error('Error:', error);
-                showError('Unable to load event details. Please try again later.');
-            }
-        }
-
         // ===== UI fill =====
         function displayEvent() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('bookingForm').style.display = 'block';
             document.getElementById('paymentSection').style.display = 'block';
 
-            // Display event image if available
             const eventImage = document.getElementById('eventImage');
             if (eventData.imageUrl && eventData.imageUrl.trim() !== '') {
                 eventImage.src = eventData.imageUrl;
                 eventImage.style.display = 'block';
                 eventImage.classList.remove('loading');
                 
-                // Handle image load errors
                 eventImage.onerror = function() {
                     console.error('Failed to load event image:', eventData.imageUrl);
                     eventImage.style.display = 'none';
@@ -368,12 +541,10 @@
             document.getElementById('eventLocation').textContent = eventData.location;
             document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
 
-            // Display more info link if it exists and is a valid URL
             if (eventData.moreInfoUrl && eventData.moreInfoUrl.trim() !== '') {
                 const moreInfoLink = document.getElementById('moreInfoLink');
                 const moreInfoSection = document.getElementById('eventMoreInfo');
                 
-                // Ensure the URL has a protocol
                 let url = eventData.moreInfoUrl.trim();
                 if (!url.startsWith('http://') && !url.startsWith('https://')) {
                     url = 'https://' + url;
@@ -438,7 +609,7 @@
 
             applyBtn.disabled = true; applyBtn.textContent = 'Checking...';
             try {
-                const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU`;
+                const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=${API_KEY}`;
                 const response = await fetch(discountUrl);
                 if (!response.ok) throw new Error('Unable to verify discount code');
                 const data = await response.json();
@@ -519,39 +690,24 @@
             if (payButton && !payButton.disabled) payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
         }
 
-        // Build a row matching A–N (with skill level at M, safety column at N)
         function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
-            // Ensure skill level is never empty (prevent truncation)
             const safeSkillLevel = skillLevel && skillLevel.trim() !== '' ? skillLevel : 'Not specified';
             
             const row = [
-                bookingId || '',                             // A booking_id
-                new Date().toISOString(),                    // B booking_date
-                eventData.id,                                // C event_id
-                eventData.name,                              // D event_name
-                name,                                        // E customer_name
-                email,                                       // F customer_email
-                Number(finalAmount.toFixed(2)),              // G amount_paid
-                selectedAddonNames.join(', ') || '',         // H addons_selected
-                stripePaymentId || '',                       // I stripe_payment_id
-                status,                                      // J status
-                emailToMe || '',                             // K email_sent_to_me
-                emailToInstructor || '',                     // L email_sent_to_instructor
-                safeSkillLevel,                              // M skill_level  *** CRITICAL: Column M ***
-                'PRESERVE_COLUMN_M'                          // N safety column (prevents M truncation)
+                bookingId || '', new Date().toISOString(), eventData.id, eventData.name,
+                name, email, Number(finalAmount.toFixed(2)),
+                selectedAddonNames.join(', ') || '', stripePaymentId || '', status,
+                emailToMe || '', emailToInstructor || '', safeSkillLevel, 'PRESERVE_COLUMN_M'
             ];
             
             console.log('Sheet row constructed for columns A-N (M=skill level):', row);
             console.log(`Skill level "${safeSkillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
-            console.log('Added safety column N to prevent truncation of column M');
-            console.log(`Row length: ${row.length} (should be 14 for A-N)`);
             
             return row;
         }
 
         // ===== Booking submit =====
         async function processBooking(){
-            // Enhanced validation with skill level emphasis
             const name = document.getElementById('customerName').value.trim();
             const email = document.getElementById('customerEmail').value.trim();
             const skillLevel = document.getElementById('skillLevel').value;
@@ -559,7 +715,6 @@
             if (!name){ alert('Please enter your name'); return; }
             if (!email || !email.includes('@')){ alert('Please enter a valid email address'); return; }
             
-            // Extra validation for skill level
             if (!validateSkillLevel()) {
                 return;
             }
@@ -580,11 +735,7 @@
             const finalAmount = totalAmount - discountAmount;
 
             console.log('Processing booking with skill level:', skillLevel);
-            console.log('This will be saved to Column M in the Google Sheet');
-            console.log('ANTI-TRUNCATION FIX: Added safety column N to prevent Google Sheets API from truncating column M');
-            console.log('Issue: Google Sheets API omits trailing empty columns - our fix ensures M is never truncated');
 
-            // Construct exact row for Bookings!A:V
             const sheetRow = buildSheetRow({
                 name, email, skillLevel, selectedAddonNames, finalAmount,
                 status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
@@ -592,43 +743,32 @@
 
             try{
                 const requestPayload = {
-                    // Core booking data
                     eventId: eventData.id,
                     eventName: eventData.name,
                     customerName: name,
                     customerEmail: email,
-                    skillLevel: skillLevel, // Top-level for easy access
+                    skillLevel: skillLevel,
                     amount: finalAmount,
                     originalAmount: totalAmount,
                     discountCode: appliedDiscount ? appliedDiscount.code : null,
                     discountAmount: discountAmount,
                     addons: selectedAddonNames,
-
-                    // Sheet instructions with anti-truncation measures
-                    sheetRange: BOOKINGS_RANGE, // Now A:V to include safety column
+                    sheetRange: BOOKINGS_RANGE,
                     sheetColumns: SHEET_COLUMNS,
                     sheetRow: sheetRow,
-                    columnLetters: COLUMN_LETTERS, // Now includes N
+                    columnLetters: COLUMN_LETTERS,
                     skillLevelColumnIndex: SKILL_LEVEL_COLUMN_INDEX,
                     skillLevelColumnLetter: SKILL_LEVEL_COLUMN_LETTER,
                     forceSkillOnColumnM: true,
-                    
-                    // Anti-truncation measures
                     preventColumnTruncation: true,
                     safetyColumnN: 'PRESERVE_COLUMN_M',
-                    googleSheetsApiNote: 'Extended to column N to prevent M truncation',
-                    
-                    // Extra safety - put skill level in multiple places
                     skillLevelData: {
                         value: skillLevel,
                         columnIndex: SKILL_LEVEL_COLUMN_INDEX,
                         columnLetter: SKILL_LEVEL_COLUMN_LETTER,
                         position: 'Column M',
-                        validated: true,
-                        safetyMeasure: 'Added column N to prevent API truncation'
+                        validated: true
                     },
-
-                    // Stripe metadata with skill level
                     stripeMetadata: {
                         event_id: eventData.id,
                         event_name: eventData.name,
@@ -636,12 +776,9 @@
                         customer_email: email,
                         skill_level: skillLevel,
                         addons_selected: selectedAddonNames.join(', '),
-                        amount_paid: Number(finalAmount.toFixed(2)),
-                        skill_level_column: 'M'
+                        amount_paid: Number(finalAmount.toFixed(2))
                     }
                 };
-
-                console.log('Sending booking request with payload:', requestPayload);
 
                 const response = await fetch('/api/create-checkout',{
                     method:'POST',
@@ -651,7 +788,7 @@
 
                 const data = await response.json();
                 if (data.url) {
-                    console.log('Checkout session created successfully with skill level:', skillLevel);
+                    console.log('Checkout session created successfully');
                     window.location.href = data.url;
                 } else {
                     throw new Error('Unable to create checkout session');
@@ -664,11 +801,8 @@
             }
         }
 
-        // ===== FIXED DATE FORMATTING =====
         function formatDate(dateStr){
             const parts = dateStr.split('/');
-            // FIXED: Interpret as MM/DD/YYYY format instead of DD/MM/YYYY
-            // parts[0] = month, parts[1] = day, parts[2] = year
             const date = new Date(parts[2], parts[0]-1, parts[1]);
             const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
             return date.toLocaleDateString('en-GB', opts);
@@ -689,7 +823,6 @@
                 });
             }
             
-            // Initialize debug info
             updateDebugInfo();
         });
     </script>
