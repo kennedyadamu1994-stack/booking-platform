@@ -35,10 +35,10 @@
         .more-info-link:hover{opacity:0.9}
         .club-link{display:block;width:100%;padding:10px 12px;background:#007aff;color:#fff;text-decoration:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px}
         .club-link:hover{opacity:0.9}
-        .share-button{display:block;width:100%;padding:10px 12px;background:#30a330;color:#fff;border:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px;cursor:pointer}
+        .share-button{display:block;width:100%;padding:10px 12px;background:#FF9DBB;color:#fff;border:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px;cursor:pointer}
         .share-button:hover{opacity:0.9}
         .share-button:active{transform:scale(0.98)}
-        .share-success{background:#e8f5e8;color:#30a330;padding:8px 12px;border-radius:6px;font-size:13px;text-align:center;margin-top:8px;animation:fadeIn 0.3s}
+        .share-success{background:#ffe8f5;color:#FF006E;padding:8px 12px;border-radius:6px;font-size:13px;text-align:center;margin-top:8px;animation:fadeIn 0.3s}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         .ticket-info{margin-top:15px;padding:20px;padding-top:15px;border-top:1px solid #f2f2f7}
         .ticket-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
@@ -335,6 +335,11 @@
                     return; 
                 }
 
+                console.log('Full event row data:', eventRow);
+                console.log('Row length:', eventRow.length);
+                console.log('Notes (Column AO, index 40):', eventRow[40]);
+                console.log('Club URL (Column AP, index 41):', eventRow[41]);
+                
                 eventData = {
                     id: eventRow[0],
                     name: eventRow[1],
@@ -351,6 +356,10 @@
                     clubUrl: eventRow[41] || '', // Column AP (index 41)
                     addons: []
                 };
+                
+                console.log('Loaded eventData:', eventData);
+                console.log('Notes value:', eventData.notes);
+                console.log('Club URL value:', eventData.clubUrl);
 
                 if (eventRow[11] && eventRow[12]) eventData.addons.push({ name: eventRow[11], price: parseFloat(eventRow[12]) });
                 if (eventRow[13] && eventRow[14]) eventData.addons.push({ name: eventRow[13], price: parseFloat(eventRow[14]) });
@@ -698,7 +707,9 @@
             }
 
             // Display "Club" button if URL is available (NEW!)
+            console.log('Checking club URL:', eventData.clubUrl);
             if (eventData.clubUrl && eventData.clubUrl.trim() !== '') {
+                console.log('Club URL found, displaying button');
                 const clubLink = document.getElementById('clubLink');
                 const clubLinkContainer = document.getElementById('clubLinkContainer');
                 
@@ -709,14 +720,22 @@
                 
                 clubLink.href = url;
                 clubLinkContainer.style.display = 'block';
+                console.log('Club button configured with URL:', url);
+            } else {
+                console.log('No club URL found, button hidden');
             }
 
             // Display notes section if available (NEW!)
+            console.log('Checking notes:', eventData.notes);
             if (eventData.notes && eventData.notes.trim() !== '') {
+                console.log('Notes found, displaying card');
                 const notesCard = document.getElementById('notesCard');
                 const notesContent = document.getElementById('notesContent');
                 notesContent.textContent = eventData.notes.trim();
                 notesCard.style.display = 'block';
+                console.log('Notes card displayed with content:', eventData.notes.trim());
+            } else {
+                console.log('No notes found, card hidden');
             }
 
             document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
