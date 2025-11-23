@@ -35,8 +35,8 @@
         .more-info-link:hover{opacity:0.9}
         .club-link{display:block;width:100%;padding:10px 12px;background:#007aff;color:#fff;text-decoration:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px}
         .club-link:hover{opacity:0.9}
-        .share-button{display:block;width:100%;padding:10px 12px;background:#FF9DBB;color:#fff;border:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px;cursor:pointer}
-        .share-button:hover{opacity:0.9}
+        .share-button{display:block;width:100%;padding:10px 12px;background:#fff;color:#1c1c1e;border:1px solid #d1d1d6;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:all .2s;margin-top:8px;cursor:pointer}
+        .share-button:hover{background:#f5f5f7}
         .share-button:active{transform:scale(0.98)}
         .share-success{background:#ffe8f5;color:#FF006E;padding:8px 12px;border-radius:6px;font-size:13px;text-align:center;margin-top:8px;animation:fadeIn 0.3s}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -313,9 +313,9 @@
         async function loadEventData() {
             try {
                 // Load both event and bookings data in parallel
-                // Updated range to A:AQ to include columns AO (notes) and AP (club URL)
+                // Updated range to A:Z to include columns X (notes) and Y (club URL)
                 const [eventResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:AQ?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:Z?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
 
@@ -337,8 +337,8 @@
 
                 console.log('Full event row data:', eventRow);
                 console.log('Row length:', eventRow.length);
-                console.log('Notes (Column AO, index 40):', eventRow[40]);
-                console.log('Club URL (Column AP, index 41):', eventRow[41]);
+                console.log('Notes (Column W, index 22):', eventRow[22]);
+                console.log('Club URL (Column X, index 23):', eventRow[23]);
                 
                 eventData = {
                     id: eventRow[0],
@@ -352,8 +352,8 @@
                     totalSpots: parseInt(eventRow[8]) || 0,
                     spotsRemaining: parseInt(eventRow[9]) || 0,
                     imageUrl: eventRow[21] || '',
-                    notes: eventRow[40] || '', // Column AO (index 40)
-                    clubUrl: eventRow[41] || '', // Column AP (index 41)
+                    notes: eventRow[22] || '', // Column W (index 22)
+                    clubUrl: eventRow[23] || '', // Column X (index 23)
                     addons: []
                 };
                 
