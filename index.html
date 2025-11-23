@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Checkout</title>
+    <!-- Open Graph tags for social sharing -->
+    <meta property="og:title" content="Book Your Session" id="ogTitle" />
+    <meta property="og:description" content="Join this exciting session - Book your spot now!" id="ogDescription" />
+    <meta property="og:image" content="" id="ogImage" />
+    <meta property="og:url" content="" id="ogUrl" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="" id="twitterImage" />
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;min-height:100vh}
@@ -25,6 +33,13 @@
         .event-more-info{margin-top:12px}
         .more-info-link{display:block;width:100%;padding:10px 12px;background:#FF006E;color:#fff;text-decoration:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s}
         .more-info-link:hover{opacity:0.9}
+        .club-link{display:block;width:100%;padding:10px 12px;background:#007aff;color:#fff;text-decoration:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px}
+        .club-link:hover{opacity:0.9}
+        .share-button{display:block;width:100%;padding:10px 12px;background:#30a330;color:#fff;border:none;border-radius:3px;font-size:14px;font-weight:500;text-align:center;transition:opacity .2s;margin-top:8px;cursor:pointer}
+        .share-button:hover{opacity:0.9}
+        .share-button:active{transform:scale(0.98)}
+        .share-success{background:#e8f5e8;color:#30a330;padding:8px 12px;border-radius:6px;font-size:13px;text-align:center;margin-top:8px;animation:fadeIn 0.3s}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         .ticket-info{margin-top:15px;padding:20px;padding-top:15px;border-top:1px solid #f2f2f7}
         .ticket-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
         .ticket-quantity,.ticket-price{font-size:16px;font-weight:600;color:#1c1c1e}
@@ -33,6 +48,11 @@
         .spots-available{background:#e8f5e8;color:#30a330}
         .spots-low{background:#fff4e5;color:#ff9500}
         .spots-out{background:#ffeaea;color:#ff3b30}
+        
+        /* Notes Card Styles */
+        .notes-card{padding:20px}
+        .notes-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .notes-content{font-size:14px;color:#1c1c1e;line-height:1.6;white-space:pre-wrap}
         
         /* Attendees Preview Card Styles */
         .attendees-preview-card{padding:20px}
@@ -131,6 +151,21 @@
                             Click here for more info
                         </a>
                     </div>
+                    
+                    <div class="event-more-info" id="clubLinkContainer" style="display:none;">
+                        <a href="#" id="clubLink" class="club-link" target="_blank" rel="noopener noreferrer">
+                            Visit Club Page
+                        </a>
+                    </div>
+                    
+                    <div class="event-more-info">
+                        <button id="shareButton" class="share-button" onclick="shareSession()">
+                            📤 Share this session
+                        </button>
+                        <div id="shareSuccess" class="share-success" style="display:none;">
+                            Link copied to clipboard!
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="ticket-info">
@@ -140,7 +175,13 @@
             </div>
         </div>
 
-        <!-- Attendees Preview Card (NEW!) -->
+        <!-- Notes Card (NEW!) -->
+        <div class="card notes-card" id="notesCard" style="display:none;">
+            <h3>📝 Important Information</h3>
+            <div class="notes-content" id="notesContent"></div>
+        </div>
+
+        <!-- Attendees Preview Card -->
         <div class="card attendees-preview-card" id="attendeesPreviewCard" style="display:none;">
             <div class="attendees-header">
                 <h3>Who's Coming?</h3>
@@ -272,8 +313,9 @@
         async function loadEventData() {
             try {
                 // Load both event and bookings data in parallel
+                // Updated range to A:AQ to include columns AO (notes) and AP (club URL)
                 const [eventResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:V?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:AQ?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
 
@@ -305,6 +347,8 @@
                     totalSpots: parseInt(eventRow[8]) || 0,
                     spotsRemaining: parseInt(eventRow[9]) || 0,
                     imageUrl: eventRow[21] || '',
+                    notes: eventRow[40] || '', // Column AO (index 40)
+                    clubUrl: eventRow[41] || '', // Column AP (index 41)
                     addons: []
                 };
 
@@ -320,6 +364,7 @@
 
                 displayEvent();
                 displayAttendees();
+                updateShareMetaTags();
             } catch (error) {
                 console.error('Error:', error);
                 showError('Unable to load event details. Please try again later.');
@@ -455,6 +500,98 @@
             skillDistribution.style.display = 'block';
         }
 
+        // ===== Share Functionality =====
+        async function shareSession() {
+            const shareUrl = window.location.href;
+            const shareTitle = eventData.name;
+            const shareText = `Check out this session: ${eventData.name} on ${formatDate(eventData.date)} at ${eventData.time}`;
+
+            // Check if Web Share API is available (mobile devices)
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: shareTitle,
+                        text: shareText,
+                        url: shareUrl
+                    });
+                    console.log('Session shared successfully');
+                } catch (error) {
+                    // User cancelled or error occurred
+                    if (error.name !== 'AbortError') {
+                        // Fallback to clipboard copy
+                        copyToClipboard(shareUrl);
+                    }
+                }
+            } else {
+                // Fallback to clipboard copy for desktop
+                copyToClipboard(shareUrl);
+            }
+        }
+
+        function copyToClipboard(text) {
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showShareSuccess();
+                }).catch(() => {
+                    // Fallback to older method
+                    fallbackCopyToClipboard(text);
+                });
+            } else {
+                // Use fallback method
+                fallbackCopyToClipboard(text);
+            }
+        }
+
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '-1000px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                showShareSuccess();
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+                alert('Failed to copy link. Please copy manually: ' + text);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        function showShareSuccess() {
+            const successMsg = document.getElementById('shareSuccess');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        // ===== Update Meta Tags for Sharing =====
+        function updateShareMetaTags() {
+            const currentUrl = window.location.href;
+            const shareTitle = `${eventData.name} - Book Your Spot`;
+            const shareDescription = `Join us for ${eventData.name} on ${formatDate(eventData.date)} at ${eventData.time}. ${eventData.spotsRemaining} spots available!`;
+            const shareImage = eventData.imageUrl || '';
+
+            // Update Open Graph tags
+            document.getElementById('ogTitle').setAttribute('content', shareTitle);
+            document.getElementById('ogDescription').setAttribute('content', shareDescription);
+            document.getElementById('ogUrl').setAttribute('content', currentUrl);
+            
+            if (shareImage) {
+                document.getElementById('ogImage').setAttribute('content', shareImage);
+                document.getElementById('twitterImage').setAttribute('content', shareImage);
+            }
+
+            // Update page title
+            document.title = shareTitle;
+        }
+
         // ===== Skill Level Functions =====
         function onSkillLevelChange() {
             const skillSelect = document.getElementById('skillLevel');
@@ -546,6 +683,7 @@
             document.getElementById('eventLocation').textContent = eventData.location;
             document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
 
+            // Display "More Info" link if available
             if (eventData.moreInfoUrl && eventData.moreInfoUrl.trim() !== '') {
                 const moreInfoLink = document.getElementById('moreInfoLink');
                 const moreInfoSection = document.getElementById('eventMoreInfo');
@@ -557,6 +695,28 @@
                 
                 moreInfoLink.href = url;
                 moreInfoSection.style.display = 'block';
+            }
+
+            // Display "Club" button if URL is available (NEW!)
+            if (eventData.clubUrl && eventData.clubUrl.trim() !== '') {
+                const clubLink = document.getElementById('clubLink');
+                const clubLinkContainer = document.getElementById('clubLinkContainer');
+                
+                let url = eventData.clubUrl.trim();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                
+                clubLink.href = url;
+                clubLinkContainer.style.display = 'block';
+            }
+
+            // Display notes section if available (NEW!)
+            if (eventData.notes && eventData.notes.trim() !== '') {
+                const notesCard = document.getElementById('notesCard');
+                const notesContent = document.getElementById('notesContent');
+                notesContent.textContent = eventData.notes.trim();
+                notesCard.style.display = 'block';
             }
 
             document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
