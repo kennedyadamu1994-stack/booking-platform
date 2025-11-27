@@ -313,9 +313,9 @@
         async function loadEventData() {
             try {
                 // Load both event and bookings data in parallel
-                // Updated range to A:Z to include columns X (notes) and Y (club URL)
+                // Updated range to A:AB to include end time (Column AA, index 26)
                 const [eventResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:Z?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:AB?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
 
