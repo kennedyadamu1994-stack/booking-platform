@@ -337,6 +337,7 @@
 
                 console.log('Full event row data:', eventRow);
                 console.log('Row length:', eventRow.length);
+                console.log('End Time (Column AA, index 26):', eventRow[26]);
                 console.log('Notes (Column W, index 22):', eventRow[22]);
                 console.log('Club URL (Column X, index 23):', eventRow[23]);
                 
@@ -354,10 +355,12 @@
                     imageUrl: eventRow[21] || '',
                     notes: eventRow[22] || '', // Column W (index 22)
                     clubUrl: eventRow[23] || '', // Column X (index 23)
+                    endTime: eventRow[26] || '', // Column AA (index 26)
                     addons: []
                 };
                 
                 console.log('Loaded eventData:', eventData);
+                console.log('End Time value:', eventData.endTime);
                 console.log('Notes value:', eventData.notes);
                 console.log('Club URL value:', eventData.clubUrl);
 
@@ -670,6 +673,14 @@
             }
         }
 
+        // ===== Format Time Display =====
+        function formatTimeDisplay(startTime, endTime) {
+            if (!endTime || endTime.trim() === '') {
+                return startTime;
+            }
+            return `${startTime} - ${endTime}`;
+        }
+
         // ===== UI fill =====
         function displayEvent() {
             document.getElementById('loading').style.display = 'none';
@@ -690,7 +701,10 @@
 
             document.getElementById('eventTitle').textContent = eventData.name;
             document.getElementById('eventLocation').textContent = eventData.location;
-            document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${eventData.time}`;
+            
+            // Display date and time with end time if available
+            const timeDisplay = formatTimeDisplay(eventData.time, eventData.endTime);
+            document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${timeDisplay}`;
 
             // Display "More Info" link if available
             if (eventData.moreInfoUrl && eventData.moreInfoUrl.trim() !== '') {
