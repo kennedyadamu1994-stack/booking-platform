@@ -175,7 +175,7 @@
             </div>
         </div>
 
-        <!-- Notes Card (NEW!) -->
+        <!-- Notes Card -->
         <div class="card notes-card" id="notesCard" style="display:none;">
             <h3>📝 Important Information</h3>
             <div class="notes-content" id="notesContent"></div>
@@ -313,9 +313,9 @@
         async function loadEventData() {
             try {
                 // Load both event and bookings data in parallel
-                // Updated range to A:AB to include end time (Column AA, index 26)
+                // Updated range to A:AF to include booking_type (Column AE, index 30)
                 const [eventResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:AB?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:AF?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
 
@@ -338,6 +338,7 @@
                 console.log('Full event row data:', eventRow);
                 console.log('Row length:', eventRow.length);
                 console.log('End Time (Column AA, index 26):', eventRow[26]);
+                console.log('Booking Type (Column AE, index 30):', eventRow[30]);
                 console.log('Notes (Column W, index 22):', eventRow[22]);
                 console.log('Club URL (Column X, index 23):', eventRow[23]);
                 
@@ -356,11 +357,13 @@
                     notes: eventRow[22] || '', // Column W (index 22)
                     clubUrl: eventRow[23] || '', // Column X (index 23)
                     endTime: eventRow[26] || '', // Column AA (index 26)
+                    bookingType: (eventRow[30] || 'stripe').toLowerCase(), // Column AE (index 30)
                     addons: []
                 };
                 
                 console.log('Loaded eventData:', eventData);
                 console.log('End Time value:', eventData.endTime);
+                console.log('Booking Type value:', eventData.bookingType);
                 console.log('Notes value:', eventData.notes);
                 console.log('Club URL value:', eventData.clubUrl);
 
@@ -720,7 +723,7 @@
                 moreInfoSection.style.display = 'block';
             }
 
-            // Display "Club" button if URL is available (NEW!)
+            // Display "Club" button if URL is available
             console.log('Checking club URL:', eventData.clubUrl);
             if (eventData.clubUrl && eventData.clubUrl.trim() !== '') {
                 console.log('Club URL found, displaying button');
@@ -739,7 +742,7 @@
                 console.log('No club URL found, button hidden');
             }
 
-            // Display notes section if available (NEW!)
+            // Display notes section if available
             console.log('Checking notes:', eventData.notes);
             if (eventData.notes && eventData.notes.trim() !== '') {
                 console.log('Notes found, displaying card');
@@ -933,13 +936,69 @@
             const finalAmount = totalAmount - discountAmount;
 
             console.log('Processing booking with skill level:', skillLevel);
+            console.log('Booking type:', eventData.bookingType);
 
+            // ROUTE TO CORRECT ENDPOINT BASED ON BOOKING TYPE
+            if (eventData.bookingType === 'direct') {
+                // Direct booking (no Stripe payment)
+                processDirectBooking(name, email, skillLevel, selectedAddonNames, finalAmount);
+            } else {
+                // Stripe payment booking (default)
+                processStripeBooking(name, email, skillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount);
+            }
+        }
+
+        // Process direct booking (free sessions, interest registration)
+        async function processDirectBooking(name, email, skillLevel, selectedAddonNames, finalAmount) {
+            try {
+                console.log('🎯 Processing DIRECT booking (no payment)...');
+                
+                const requestPayload = {
+                    eventId: eventData.id,
+                    eventName: eventData.name,
+                    customerName: name,
+                    customerEmail: email,
+                    skillLevel: skillLevel,
+                    amount: finalAmount,
+                    addons: selectedAddonNames
+                };
+
+                console.log('Direct booking payload:', requestPayload);
+
+                const response = await fetch('/api/create-direct-booking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestPayload)
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.redirectUrl) {
+                    console.log('✅ Direct booking created successfully');
+                    console.log('Redirecting to:', data.redirectUrl);
+                    window.location.href = data.redirectUrl;
+                } else {
+                    throw new Error(data.error || 'Unable to create direct booking');
+                }
+            } catch (e) {
+                console.error('Direct booking error:', e);
+                alert('Unable to process booking. Please try again.');
+                const button = document.getElementById('payButton');
+                button.disabled = false;
+                updatePricing();
+            }
+        }
+
+        // Process Stripe payment booking (existing logic)
+        async function processStripeBooking(name, email, skillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount) {
             const sheetRow = buildSheetRow({
                 name, email, skillLevel, selectedAddonNames, finalAmount,
                 status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
             });
 
-            try{
+            try {
+                console.log('💳 Processing STRIPE payment booking...');
+                
                 const requestPayload = {
                     eventId: eventData.id,
                     eventName: eventData.name,
@@ -978,22 +1037,23 @@
                     }
                 };
 
-                const response = await fetch('/api/create-checkout',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
+                const response = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestPayload)
                 });
 
                 const data = await response.json();
                 if (data.url) {
-                    console.log('Checkout session created successfully');
+                    console.log('✅ Checkout session created successfully');
                     window.location.href = data.url;
                 } else {
                     throw new Error('Unable to create checkout session');
                 }
-            } catch (e){
-                console.error('Booking error:', e);
+            } catch (e) {
+                console.error('Stripe booking error:', e);
                 alert('Unable to process booking. Please try again.');
+                const button = document.getElementById('payButton');
                 button.disabled = false;
                 updatePricing();
             }
