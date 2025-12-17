@@ -273,7 +273,7 @@
 
     <!-- Payment Section -->
     <div class="payment-section" id="paymentSection" style="display:none;">
-        <button id="payButton" class="pay-button" onclick="processBooking()">Complete Payment</button>
+        <button id="payButton" class="pay-button" onclick="processBooking()">Register Interest</button>
     </div>
 
     <script>
@@ -789,6 +789,14 @@
                 });
             }
 
+            // Set initial button text based on booking type
+            const payButton = document.getElementById('payButton');
+            if (eventData.bookingType === 'direct') {
+                payButton.innerHTML = 'Register Interest';
+            } else {
+                payButton.innerHTML = 'Complete Payment';
+            }
+
             updatePricing();
             updateDebugInfo();
         }
@@ -887,8 +895,15 @@
             document.getElementById('priceBreakdown').innerHTML = html;
             document.getElementById('totalPrice').textContent = `£${finalTotal.toFixed(2)}`;
 
+            // Update button text based on booking type
             const payButton = document.getElementById('payButton');
-            if (payButton && !payButton.disabled) payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
+            if (payButton && !payButton.disabled) {
+                if (eventData.bookingType === 'direct') {
+                    payButton.innerHTML = 'Register Interest';
+                } else {
+                    payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
+                }
+            }
         }
 
         function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
@@ -985,7 +1000,7 @@
                 alert('Unable to process booking. Please try again.');
                 const button = document.getElementById('payButton');
                 button.disabled = false;
-                updatePricing();
+                button.innerHTML = 'Register Interest';
             }
         }
 
