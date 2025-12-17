@@ -341,24 +341,39 @@
     <script>
         console.log('Success page loaded');
         
-        // Get session ID from URL
+        // Get session ID or booking ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
+        const bookingId = urlParams.get('booking_id');
         
         console.log('Session ID:', sessionId);
+        console.log('Booking ID:', bookingId);
         
-        if (sessionId) {
-            // Show booking reference (first 8 characters of session ID)
+        // Determine booking type
+        const isDirectBooking = !!bookingId;
+        const isStripeBooking = !!sessionId;
+        
+        if (isStripeBooking) {
+            // Stripe booking flow
             const bookingRef = sessionId.substring(0, 8).toUpperCase();
             document.getElementById('bookingRef').textContent = bookingRef;
             document.getElementById('bookingDetails').style.display = 'block';
             
-            console.log('Booking reference:', bookingRef);
-            
-            // Update the booking in Google Sheets
+            console.log('Processing Stripe booking, reference:', bookingRef);
             updateBookingRecord(sessionId);
+            
+        } else if (isDirectBooking) {
+            // Direct booking flow
+            const bookingRef = bookingId.substring(2, 10).toUpperCase(); // Skip "BK" prefix
+            document.getElementById('bookingRef').textContent = bookingRef;
+            document.getElementById('bookingDetails').style.display = 'block';
+            
+            console.log('Processing direct booking, reference:', bookingRef);
+            // For direct bookings, the booking is already saved - just show success
+            showUpdateStatus('✅ Booking successfully recorded!', 'success');
+            
         } else {
-            console.error('No session ID found in URL');
+            console.error('No session ID or booking ID found in URL');
             showUpdateStatus('No booking reference found. Please contact support.', 'error');
         }
         
