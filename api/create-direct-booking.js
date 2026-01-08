@@ -94,7 +94,7 @@ async function saveDirectBookingToSheets(bookingData) {
     console.log('📋 Fetching session details from Sessions sheet...');
     const sessionsResponse = await sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
-        range: 'Sessions!A:AR', // All columns including Session ID
+        range: 'Sessions!A:AV', // All columns including Session ID and Booking Type
     });
 
     const sessionRows = sessionsResponse.data.values;
