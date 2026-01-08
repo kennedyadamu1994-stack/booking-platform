@@ -248,9 +248,11 @@ async function saveDirectBookingToSheets(bookingData) {
         const newSpots = Math.max(0, spotsRemaining - 1);
         
         console.log(`📉 Reducing spots from ${spotsRemaining} to ${newSpots}...`);
+        console.log(`📍 Updating row ${sessionRowIndex} in Sessions sheet`);
+        console.log(`📍 Sheet ID: ${sessionsSheetId}`);
         
         try {
-            await sheets.spreadsheets.values.update({
+            const updateResponse = await sheets.spreadsheets.values.update({
                 spreadsheetId: sessionsSheetId, // Update Sessions sheet (different spreadsheet)
                 range: `Sessions!M${sessionRowIndex}`, // Column M = spots_available
                 valueInputOption: 'USER_ENTERED',
@@ -260,10 +262,14 @@ async function saveDirectBookingToSheets(bookingData) {
             });
             
             console.log(`✅ Reduced session spots in Sessions sheet from ${spotsRemaining} to ${newSpots}`);
+            console.log(`✅ Update response:`, JSON.stringify(updateResponse.data));
         } catch (updateError) {
-            console.error('❌ Failed to update spots:', updateError);
-            // Don't throw here - booking is already saved
-            console.log('⚠️ Booking saved but spots not updated');
+            console.error('❌ Failed to update spots in Sessions sheet:', updateError);
+            console.error('❌ Error details:', JSON.stringify(updateError));
+            console.error('❌ Attempted to update:', `Sessions!M${sessionRowIndex}`, 'in sheet:', sessionsSheetId);
+            // Don't throw here - booking is already saved, spots update is secondary
+            console.log('⚠️ Booking saved successfully but spots not updated in Sessions sheet');
+            console.log('⚠️ You may need to manually update spots or check Google Service Account permissions');
         }
         
         console.log('✅ Complete direct booking process finished');
