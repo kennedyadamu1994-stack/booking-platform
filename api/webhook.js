@@ -170,10 +170,10 @@ async function saveCompleteBookingAfterPayment(bookingData) {
 
     console.log('Complete booking row to save:', bookingRow);
 
-    // STEP 3: Save to Events sheet (in separate spreadsheet)
+    // STEP 3: Save to Bookings sheet (in separate spreadsheet)
     const appendRequest = {
-        spreadsheetId: bookingsSheetId, // Save to Events spreadsheet
-        range: 'Events!A:P', // Changed from Bookings to Events
+        spreadsheetId: bookingsSheetId, // Save to Bookings spreadsheet
+        range: 'Bookings!A:P', // Save to Bookings tab
         valueInputOption: 'USER_ENTERED',
         insertDataOption: 'INSERT_ROWS',
         resource: {
@@ -181,10 +181,10 @@ async function saveCompleteBookingAfterPayment(bookingData) {
         }
     };
     
-    console.log('Saving booking to Events sheet...');
+    console.log('Saving booking to Bookings sheet...');
     await sheets.spreadsheets.values.append(appendRequest);
     
-    console.log('✅ Booking saved to Events sheet with status "Confirmed"');
+    console.log('✅ Booking saved to Bookings sheet with status "Confirmed"');
 
     // STEP 4: Reduce session spots in Sessions sheet
     const currentSpots = parseInt(sessionDetails.spotsAvailable) || 0;
