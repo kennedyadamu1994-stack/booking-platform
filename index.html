@@ -297,12 +297,56 @@
 
         // ===== Boot =====
         const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get('event');
+        let sessionId = urlParams.get('event'); // Changed to let for reassignment
         
         if (!sessionId) {
             showError('No session specified. Please use a valid booking link.');
         } else {
-            loadSessionData();
+            // Check if this is an NBRH ID (old format) - if so, convert it
+            if (sessionId.startsWith('NBRH')) {
+                console.log('Detected NBRH ID format, converting to Session ID...');
+                convertNbrhToSessionId(sessionId);
+            } else {
+                loadSessionData();
+            }
+        }
+
+        // ===== Convert NBRH ID to Session ID (Backward Compatibility) =====
+        async function convertNbrhToSessionId(nbrhId) {
+            try {
+                console.log('Looking up NBRH ID:', nbrhId);
+                
+                // Load Sessions sheet to find the Session ID for this NBRH ID
+                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`);
+                
+                if (!response.ok) throw new Error('Failed to load sessions data');
+                
+                const data = await response.json();
+                const rows = data.values;
+                
+                // Find the row with this NBRH ID (Column A)
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i][0] === nbrhId) {
+                        // Found it! Get the Session ID from Column AR (index 43)
+                        const foundSessionId = rows[i][43];
+                        console.log('Found Session ID:', foundSessionId);
+                        
+                        // Update the global sessionId variable
+                        sessionId = foundSessionId;
+                        
+                        // Now load the template with this Session ID
+                        loadSessionData();
+                        return;
+                    }
+                }
+                
+                // If we get here, NBRH ID wasn't found
+                showError('Session not found. This booking link may no longer be valid.');
+                
+            } catch (error) {
+                console.error('Error converting NBRH ID:', error);
+                showError('Unable to load session details. Please try again later.');
+            }
         }
 
         // ===== Load Session Template and Available Dates =====
