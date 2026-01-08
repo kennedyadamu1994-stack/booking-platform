@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Who's Coming?</title>
     <style>
+        /* [SAME STYLES AS BEFORE - truncated for brevity] */
         * {
             margin: 0;
             padding: 0;
@@ -461,9 +462,9 @@
 </head>
 <body>
     <div class="header">
-        <button class="close-btn" onclick="window.history.back()"></button>
+        <button class="close-btn" onclick="window.history.back()">←</button>
         <h1>Who's Coming?</h1>
-        <button class="help-btn"></button>
+        <button class="help-btn">?</button>
     </div>
 
     <div id="loading" class="loading">
@@ -563,56 +564,56 @@
     </div>
 
     <script>
-        // Configuration
-        const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
+        // Configuration - UPDATED to use new sheet structure
+        const SHEET_ID = '1P4fON7qVFQt_w9OKoTiweLaT3GkpF9viS910E93BD48';
         const API_KEY = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
         
         // Global variables
         let eventData = null;
         let bookingsData = [];
         
-        // Get event ID from URL
+        // Get NBRH ID from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('event');
+        const nbrhId = urlParams.get('event');
         
         // Initialize
-        if (!eventId) {
-            showError('No event specified. Please provide a valid event ID.');
+        if (!nbrhId) {
+            showError('No event specified. Please provide a valid NBRH ID.');
         } else {
             loadEventData();
         }
         
         async function loadEventData() {
             try {
-                // Load event details and bookings in parallel
-                const [eventResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:R?key=${API_KEY}`),
+                // Load session details and bookings in parallel
+                const [sessionResponse, bookingsResponse] = await Promise.all([
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
                 
-                if (!eventResponse.ok || !bookingsResponse.ok) {
+                if (!sessionResponse.ok || !bookingsResponse.ok) {
                     throw new Error('Failed to load data');
                 }
                 
-                const eventData = await eventResponse.json();
+                const sessionData = await sessionResponse.json();
                 const bookingsData = await bookingsResponse.json();
                 
-                // Process event data
-                const eventRow = findEventById(eventData.values, eventId);
-                if (!eventRow) {
-                    showError('Event not found.');
+                // Process session data - find by NBRH ID
+                const sessionRow = findSessionByNbrhId(sessionData.values, nbrhId);
+                if (!sessionRow) {
+                    showError('Session not found.');
                     return;
                 }
                 
                 // Process bookings data (confirmed only)
-                const eventBookings = filterBookingsByEvent(bookingsData.values, eventId);
+                const eventBookings = filterBookingsByNbrhId(bookingsData.values, nbrhId);
                 
-                displayEventInfo(eventRow);
-                displayCommunityStats(eventRow, eventBookings);
+                displayEventInfo(sessionRow);
+                displayCommunityStats(sessionRow, eventBookings);
                 displayAttendees(eventBookings);
                 displaySkillDistribution(eventBookings);
                 displayPopularAddons(eventBookings);
-                displayCountdown(eventRow.date);
+                displayCountdown(sessionRow.date);
                 
                 // Show content and actions, hide loading
                 document.getElementById('loading').style.display = 'none';
@@ -625,39 +626,38 @@
             }
         }
         
-        function findEventById(rows, eventId) {
+        function findSessionByNbrhId(rows, nbrhId) {
             for (let i = 1; i < rows.length; i++) {
-                if (rows[i][0] === eventId) {
+                if (rows[i][0] === nbrhId) { // Column A = NBRH ID
                     return {
-                        id: rows[i][0],
-                        name: rows[i][1],
-                        description: rows[i][2],
-                        date: rows[i][3],
-                        time: rows[i][4],
-                        location: rows[i][5],
-                        basePrice: parseFloat(rows[i][6]) || 0,
-                        transactionFee: parseFloat(rows[i][7]) || 0,
-                        totalSpots: parseInt(rows[i][8]) || 0,
-                        spotsRemaining: parseInt(rows[i][9]) || 0,
-                        addons: [
-                            { name: rows[i][11], price: parseFloat(rows[i][12]) || 0 },
-                            { name: rows[i][13], price: parseFloat(rows[i][14]) || 0 },
-                            { name: rows[i][15], price: parseFloat(rows[i][16]) || 0 }
-                        ].filter(addon => addon.name)
+                        nbrhId: rows[i][0],
+                        activityType: rows[i][1],
+                        club: rows[i][2],
+                        className: rows[i][3],
+                        date: rows[i][4],
+                        startTime: rows[i][5],
+                        duration: rows[i][6],
+                        location: rows[i][8],
+                        basePrice: parseFloat(rows[i][9]) || 0,
+                        totalPrice: parseFloat(rows[i][11]) || 0,
+                        spotsAvailable: parseInt(rows[i][12]) || 0,
+                        totalSpots: parseInt(rows[i][13]) || 0,
+                        endTime: rows[i][42] || ''
                     };
                 }
             }
             return null;
         }
         
-        function filterBookingsByEvent(rows, eventId) {
+        function filterBookingsByNbrhId(rows, nbrhId) {
             const bookings = [];
             for (let i = 1; i < rows.length; i++) {
-                if (rows[i][2] === eventId && rows[i][9] === 'Confirmed') {
+                // Column C = event_id (NBRH ID), Column J = status
+                if (rows[i][2] === nbrhId && rows[i][9] === 'Confirmed') {
                     bookings.push({
                         customerName: rows[i][4],
                         addonsSelected: rows[i][7] || 'None',
-                        skillLevel: rows[i][12] || 'Not specified'  // Column M
+                        skillLevel: rows[i][12] || 'Not specified'
                     });
                 }
             }
@@ -665,14 +665,19 @@
         }
         
         function displayEventInfo(event) {
-            document.getElementById('eventTitle').textContent = event.name;
+            document.getElementById('eventTitle').textContent = event.className;
             document.getElementById('eventLocation').textContent = event.location;
-            document.getElementById('eventDateTime').textContent = `${formatDate(event.date)} at ${event.time}`;
+            
+            const timeDisplay = event.endTime 
+                ? `${event.startTime} - ${event.endTime}`
+                : event.startTime;
+            
+            document.getElementById('eventDateTime').textContent = `${formatDate(event.date)} at ${timeDisplay}`;
         }
         
         function displayCommunityStats(event, bookings) {
             const totalAttendees = bookings.length;
-            const spotsLeft = event.spotsRemaining;
+            const spotsLeft = event.spotsAvailable;
             
             document.getElementById('totalAttendees').textContent = totalAttendees;
             document.getElementById('spotsLeft').textContent = spotsLeft;
@@ -691,10 +696,9 @@
                 return;
             }
             
-            // Create attendee avatars (first names only for privacy)
             let attendeesHTML = '<div class="attendees-grid">';
             
-            bookings.slice(0, 12).forEach(booking => {  // Show max 12 attendees
+            bookings.slice(0, 12).forEach(booking => {
                 const firstName = booking.customerName.split(' ')[0];
                 const initials = booking.customerName
                     .split(' ')
@@ -729,7 +733,6 @@
             
             if (totalBookings === 0) return;
             
-            // Count skill levels
             bookings.forEach(booking => {
                 const skill = booking.skillLevel || 'Not specified';
                 skillCounts[skill] = (skillCounts[skill] || 0) + 1;
@@ -777,7 +780,7 @@
                 
                 let addonHTML = '';
                 addonKeys
-                    .sort((a, b) => addonCounts[b] - addonCounts[a])  // Sort by popularity
+                    .sort((a, b) => addonCounts[b] - addonCounts[a])
                     .forEach(addon => {
                         const count = addonCounts[addon];
                         const label = count === 1 ? '1 person' : `${count} people`;
@@ -794,9 +797,9 @@
             }
         }
         
-        function displayCountdown(eventDateStr) {
+        function displayCountdown(dateStr) {
             try {
-                const parts = eventDateStr.split('/');
+                const parts = dateStr.split('/');
                 const eventDate = new Date(parts[2], parts[0] - 1, parts[1]);
                 const now = new Date();
                 const timeDiff = eventDate.getTime() - now.getTime();
@@ -804,7 +807,7 @@
                 if (timeDiff > 0) {
                     const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
                     
-                    if (days <= 30) {  // Show countdown if event is within 30 days
+                    if (days <= 30) {
                         document.getElementById('countdownSection').style.display = 'block';
                         document.getElementById('countdownTime').textContent = days;
                         document.getElementById('countdownLabel').textContent = days === 1 ? 'day' : 'days';
@@ -842,7 +845,6 @@
                     url: window.location.href
                 });
             } else {
-                // Fallback - copy to clipboard
                 const shareText = `Join me at ${eventTitle} on ${eventDate}! ${window.location.href}`;
                 navigator.clipboard.writeText(shareText).then(() => {
                     alert('Event link copied to clipboard!');
