@@ -97,12 +97,13 @@ async function saveCompleteBookingAfterPayment(bookingData) {
     });
     
     const sheets = google.sheets({ version: 'v4', auth });
-    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    const sessionsSheetId = process.env.SESSIONS_SHEET_ID;
+    const bookingsSheetId = process.env.BOOKINGS_SHEET_ID;
 
     // STEP 1: Get session details from Sessions sheet using NBRH ID
     console.log('Fetching session details from Sessions sheet...');
     const sessionsResponse = await sheets.spreadsheets.values.get({
-        spreadsheetId: spreadsheetId,
+        spreadsheetId: sessionsSheetId, // Read from Sessions sheet
         range: 'Sessions!A:AV', // All columns including Session ID and Booking Type
     });
 
@@ -169,10 +170,10 @@ async function saveCompleteBookingAfterPayment(bookingData) {
 
     console.log('Complete booking row to save:', bookingRow);
 
-    // STEP 3: Save to Bookings sheet
+    // STEP 3: Save to Events sheet (in separate spreadsheet)
     const appendRequest = {
-        spreadsheetId: spreadsheetId,
-        range: 'Bookings!A:P',
+        spreadsheetId: bookingsSheetId, // Save to Events spreadsheet
+        range: 'Events!A:P', // Changed from Bookings to Events
         valueInputOption: 'USER_ENTERED',
         insertDataOption: 'INSERT_ROWS',
         resource: {
@@ -180,10 +181,10 @@ async function saveCompleteBookingAfterPayment(bookingData) {
         }
     };
     
-    console.log('Saving booking to Google Sheets...');
+    console.log('Saving booking to Events sheet...');
     await sheets.spreadsheets.values.append(appendRequest);
     
-    console.log('✅ Booking saved with status "Confirmed"');
+    console.log('✅ Booking saved to Events sheet with status "Confirmed"');
 
     // STEP 4: Reduce session spots in Sessions sheet
     const currentSpots = parseInt(sessionDetails.spotsAvailable) || 0;
@@ -191,7 +192,7 @@ async function saveCompleteBookingAfterPayment(bookingData) {
     
     if (sessionRowIndex > 0) {
         await sheets.spreadsheets.values.update({
-            spreadsheetId: spreadsheetId,
+            spreadsheetId: sessionsSheetId, // Update Sessions sheet (different spreadsheet)
             range: `Sessions!M${sessionRowIndex}`, // Column M = spots_available
             valueInputOption: 'USER_ENTERED',
             resource: {
