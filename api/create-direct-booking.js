@@ -222,13 +222,13 @@ async function saveDirectBookingToSheets(bookingData) {
 
         console.log('📝 Booking row to save:', bookingRow);
 
-        // STEP 4: Save to Events sheet (in separate spreadsheet)
-        console.log('💾 Saving to Events sheet...');
-        console.log('📋 Using Events Sheet ID:', bookingsSheetId);
+        // STEP 4: Save to Bookings sheet (in separate spreadsheet)
+        console.log('💾 Saving to Bookings sheet...');
+        console.log('📋 Using Bookings Sheet ID:', bookingsSheetId);
         
         const appendRequest = {
-            spreadsheetId: bookingsSheetId, // Save to Events spreadsheet
-            range: 'Events!A:P', // Changed from Bookings to Events
+            spreadsheetId: bookingsSheetId, // Save to Bookings spreadsheet
+            range: 'Bookings!A:P', // Save to Bookings tab
             valueInputOption: 'USER_ENTERED',
             insertDataOption: 'INSERT_ROWS',
             resource: {
@@ -238,9 +238,9 @@ async function saveDirectBookingToSheets(bookingData) {
         
         try {
             await sheets.spreadsheets.values.append(appendRequest);
-            console.log('✅ Booking saved to Events sheet with status "Confirmed"');
+            console.log('✅ Booking saved to Bookings sheet with status "Confirmed"');
         } catch (appendError) {
-            console.error('❌ Failed to append to Events sheet:', appendError);
+            console.error('❌ Failed to append to Bookings sheet:', appendError);
             throw new Error(`Failed to save booking: ${appendError.message}`);
         }
 
