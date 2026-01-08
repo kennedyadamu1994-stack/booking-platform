@@ -314,7 +314,9 @@
         // ===== Convert NBRH ID to Session ID (Backward Compatibility) =====
         async function convertNbrhToSessionId(nbrhId) {
             try {
-                console.log('Looking up NBRH ID:', nbrhId);
+                // Remove any suffix after colon (e.g., NBRH000181:307 → NBRH000181)
+                const cleanNbrhId = nbrhId.split(':')[0];
+                console.log('Looking up NBRH ID:', cleanNbrhId, '(original:', nbrhId + ')');
                 
                 // Load Sessions sheet to find the Session ID for this NBRH ID
                 const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`);
@@ -324,12 +326,14 @@
                 const data = await response.json();
                 const rows = data.values;
                 
-                // Find the row with this NBRH ID (Column A)
+                // Find the row with this NBRH ID (Column A) - try both with and without suffix
                 for (let i = 1; i < rows.length; i++) {
-                    if (rows[i][0] === nbrhId) {
+                    const rowNbrhId = rows[i][0];
+                    // Match either exact or cleaned version
+                    if (rowNbrhId === nbrhId || rowNbrhId === cleanNbrhId || rowNbrhId.split(':')[0] === cleanNbrhId) {
                         // Found it! Get the Session ID from Column AR (index 43)
                         const foundSessionId = rows[i][43];
-                        console.log('Found Session ID:', foundSessionId);
+                        console.log('Found Session ID:', foundSessionId, 'for NBRH ID:', rowNbrhId);
                         
                         // Update the global sessionId variable
                         sessionId = foundSessionId;
@@ -341,6 +345,7 @@
                 }
                 
                 // If we get here, NBRH ID wasn't found
+                console.error('NBRH ID not found in Sessions sheet. Searched for:', nbrhId, 'and', cleanNbrhId);
                 showError('Session not found. This booking link may no longer be valid.');
                 
             } catch (error) {
