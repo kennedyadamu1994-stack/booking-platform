@@ -398,8 +398,8 @@
                 
                 for (let i = 1; i < sessionRows.length; i++) {
                     const row = sessionRows[i];
-                    // Match by Session ID and ensure it's published and bookable
-                    if (row[43] === sessionId && row[35] === 'Published' && row[34] === 'Book') {
+                    // Match by Session ID and ensure it's General Access and ENQUIRE
+                    if (row[43] === sessionId && row[35] === 'General Access' && row[34] === 'ENQUIRE') {
                         const session = parseSessionRow(row);
                         availableSessions.push(session);
                     }
