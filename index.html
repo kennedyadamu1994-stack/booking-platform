@@ -1200,7 +1200,14 @@
                 // parts[0] = month, parts[1] = day, parts[2] = year
                 const month = parseInt(parts[0]) - 1; // 0-indexed
                 const day = parseInt(parts[1]);
-                const year = parseInt(parts[2]) + 2000; // Convert 26 to 2026
+                let year = parseInt(parts[2]);
+                
+                // Handle both 2-digit years (26) and 4-digit years (2026)
+                if (year < 100) {
+                    year += 2000; // Convert 26 to 2026
+                }
+                // If year is already 4 digits (2026), use it as-is
+                
                 return new Date(year, month, day);
             }
             return new Date(dateStr);
