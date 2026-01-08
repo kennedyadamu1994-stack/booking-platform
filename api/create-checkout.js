@@ -1,4 +1,4 @@
-// Fixed api/create-checkout.js - REMOVES premature sheet saving
+// Updated api/create-checkout.js - Works with NBRH IDs from Sessions sheet
 module.exports = async (req, res) => {
     // Only accept POST requests
     if (req.method !== 'POST') {
@@ -12,7 +12,8 @@ module.exports = async (req, res) => {
         // Get the Stripe library
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
         
-        // Get booking details from the form (with skill level!)
+        // Get booking details from the form
+        // NOTE: eventId is now the NBRH ID from the Sessions sheet
         const { 
             eventId, 
             eventName, 
@@ -24,10 +25,10 @@ module.exports = async (req, res) => {
             discountCode,
             discountAmount,
             addons,
-            sheetRow,
             stripeMetadata
         } = req.body;
         
+        console.log('✅ Event ID (NBRH ID):', eventId);
         console.log('✅ Extracted skill level:', skillLevel);
         
         // Validate required fields
@@ -69,7 +70,7 @@ module.exports = async (req, res) => {
             cancel_url: `${process.env.SITE_URL}?event=${eventId}`,
             metadata: {
                 // CRITICAL: Store ALL booking data here for webhook to save after payment
-                eventId: eventId,
+                eventId: eventId, // This is the NBRH ID
                 eventName: eventName,
                 customerName: customerName,
                 customerEmail: customerEmail,
@@ -83,7 +84,7 @@ module.exports = async (req, res) => {
         });
         
         console.log('✅ Stripe session created:', session.id);
-        console.log('🎯 NO SHEET SAVING - Booking will be saved AFTER payment in webhook');
+        console.log('🎯 Booking will be saved AFTER payment in webhook');
         
         // Send back the checkout URL
         console.log('🎯 Returning checkout URL');
@@ -94,5 +95,3 @@ module.exports = async (req, res) => {
         res.status(500).json({ error: 'Unable to create booking session' });
     }
 };
-
-// REMOVED: saveBookingToSheets function - now handled in webhook after payment
