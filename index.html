@@ -49,6 +49,16 @@
         .spots-low{background:#fff4e5;color:#ff9500}
         .spots-out{background:#ffeaea;color:#ff3b30}
         
+        /* Date Selector Styles */
+        .date-selector-card{padding:20px}
+        .date-selector-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:15px}
+        .date-select-wrapper{position:relative}
+        .date-select{width:100%;padding:12px 16px;border:1px solid #d1d1d6;border-radius:8px;font-size:16px;background:#fff;transition:border-color .2s;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 12px center;background-size:20px;padding-right:40px}
+        .date-select:focus{outline:none;border-color:#007aff}
+        .date-select.valid{border-color:#30a330}
+        .date-info{margin-top:10px;font-size:13px;color:#8e8e93;font-style:italic}
+        .date-warning{margin-top:10px;padding:10px;background:#fff4e5;border-left:3px solid #ff9500;border-radius:4px;font-size:13px;color:#ff9500}
+        
         /* Notes Card Styles */
         .notes-card{padding:20px}
         .notes-card h3{font-size:16px;font-weight:600;color:#1c1c1e;margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -112,9 +122,6 @@
         .payment-section{padding:0 20px 20px}
         .pay-button{width:100%;padding:16px;background:#FF006E;color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
         .pay-button:disabled{background:#8e8e93;cursor:not-allowed}
-        .debug-info{background:#f8f8f8;border:1px solid #ddd;border-radius:8px;padding:15px;margin:15px 0;font-family:monospace;font-size:12px;display:none}
-        .debug-info.show{display:block}
-        .debug-toggle{background:#007aff;color:white;border:none;border-radius:4px;padding:5px 10px;font-size:11px;cursor:pointer;margin:10px 0}
         .loading{text-align:center;padding:60px 20px;color:#8e8e93}
         .loading-spinner{border:3px solid #f3f3f3;border-top:3px solid #007aff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 20px}
         @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
@@ -124,9 +131,9 @@
 </head>
 <body>
     <div class="header">
-        <button class="close-btn"></button>
+        <button class="close-btn" onclick="window.history.back()">←</button>
         <h1>Checkout</h1>
-        <button class="help-btn"></button>
+        <button class="help-btn">?</button>
     </div>
 
     <div id="loading" class="loading">
@@ -144,16 +151,16 @@
                 <div class="event-details">
                     <div class="event-title" id="eventTitle">Event Name</div>
                     <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
-                    <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Date & Time</span></div>
+                    <div class="event-meta-item"><span>⏰</span><span id="eventDuration">Duration</span></div>
                     
                     <div class="event-more-info" id="eventMoreInfo" style="display:none;">
-                        <a href="#" id="moreInfoLink" class="more-info-link">
+                        <a href="#" id="moreInfoLink" class="more-info-link" target="_blank">
                             Click here to book direct
                         </a>
                     </div>
                     
                     <div class="event-more-info" id="clubLinkContainer" style="display:none;">
-                        <a href="#" id="clubLink" class="club-link">
+                        <a href="#" id="clubLink" class="club-link" target="_blank">
                             Visit Club Page
                         </a>
                     </div>
@@ -171,8 +178,20 @@
             <div class="ticket-info">
                 <div class="ticket-line"><span class="ticket-quantity">1x Adult (16+)</span><span class="ticket-price" id="ticketPrice">£0.00</span></div>
                 <div class="booking-fee"><span>1x Booking fees: £<span id="bookingFeeAmount">0.00</span></span></div>
-                <div class="spots-indicator" id="spotsIndicator"><span id="spotsText">Checking availability...</span></div>
+                <div class="spots-indicator" id="spotsIndicator"><span id="spotsText">Select a date to check availability</span></div>
             </div>
+        </div>
+
+        <!-- Date Selector Card - NEW -->
+        <div class="card date-selector-card">
+            <h3>📅 Select Your Date</h3>
+            <div class="date-select-wrapper">
+                <select id="dateSelect" class="date-select" onchange="onDateSelected()" required>
+                    <option value="" selected disabled>Choose an available date...</option>
+                </select>
+            </div>
+            <div class="date-info" id="dateInfo">Please select a date to continue</div>
+            <div class="date-warning" id="dateWarning" style="display:none;"></div>
         </div>
 
         <!-- Notes Card -->
@@ -201,7 +220,7 @@
                 </div>
             </div>
             
-            <a href="attendees-public.html" id="viewAllAttendeesLink" class="view-all-link" style="display:none;">
+            <a href="#" id="viewAllAttendeesLink" class="view-all-link" style="display:none;">
                 View full community info →
             </a>
         </div>
@@ -218,7 +237,7 @@
                 <input type="email" id="customerEmail" class="form-input" required placeholder="your.email@example.com">
             </div>
             <div class="form-group">
-                <label class="form-label" for="skillLevel">Skill Level * <span style="color:#007aff;">(This will be recorded in your booking)</span></label>
+                <label class="form-label" for="skillLevel">Skill Level *</label>
                 <select id="skillLevel" class="form-input" required onchange="onSkillLevelChange()">
                     <option value="" selected disabled>Select your skill level</option>
                     <option value="Beginner">Beginner - New to this activity</option>
@@ -227,20 +246,6 @@
                     <option value="Advanced+">Advanced+ - Expert level</option>
                 </select>
                 <div class="skill-level-info">Your skill level helps us provide the best experience for you</div>
-            </div>
-            
-            <button type="button" class="debug-toggle" onclick="toggleDebug()" style="display:none;">Show Debug Info</button>
-            <div id="debugInfo" class="debug-info">
-                <strong>Skill Level Tracking Debug:</strong><br>
-                Selected Skill Level: <span id="debugSkillLevel">None selected</span><br>
-                Column M Index: <span id="debugColumnIndex">12</span><br>
-                Sheet Range: <span id="debugSheetRange">Bookings!A:N</span><br>
-                Ready for submission: <span id="debugReadyStatus">No</span><br>
-                <hr style="margin: 10px 0;">
-                <strong>Anti-Truncation Fix Applied:</strong><br>
-                Issue: Google Sheets API omits trailing empty columns<br>
-                Solution: Added safety column N to preserve column M<br>
-                Status: <span style="color: green;">Column M protected from truncation</span>
             </div>
         </div>
 
@@ -273,28 +278,18 @@
 
     <!-- Payment Section -->
     <div class="payment-section" id="paymentSection" style="display:none;">
-        <button id="payButton" class="pay-button" onclick="processBooking()">Register Interest</button>
+        <button id="payButton" class="pay-button" onclick="processBooking()" disabled>Select a date to continue</button>
     </div>
 
     <script>
         // ===== Config =====
-        const SHEET_ID = '1WRJRtF6wFVirlQFyZhMXxSamMwA6q4bwDn-PVRpaxXA';
+        const SHEET_ID = '1P4fON7qVFQt_w9OKoTiweLaT3GkpF9viS910E93BD48';
         const API_KEY = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
-        const STRIPE_PUBLIC_KEY = 'pk_test_51RtSdb4ajNC0yBi4fyqtba0PWrP4FpuCj9b0p99BGUUl59uh72CE40BhMmlEfNydekmbFfYuxaHrSUEWKXTfC6Oz00MZdjCsWf';
-
-        const SHEET_COLUMNS = [
-            'booking_id','booking_date','event_id','event_name','customer_name','customer_email',
-            'amount_paid','addons_selected','stripe_payment_id','status','email_sent_to_me',
-            'email_sent_to_instructor','skill_level','preserve_column'
-        ];
-        
-        const COLUMN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
-        const SKILL_LEVEL_COLUMN_INDEX = 12;
-        const SKILL_LEVEL_COLUMN_LETTER = 'M';
-        const BOOKINGS_RANGE = 'Bookings!A:V';
 
         // ===== State =====
-        let eventData = null;
+        let sessionTemplate = null; // The template data from Session Templates sheet
+        let availableSessions = []; // All session instances from Sessions sheet
+        let selectedSession = null; // The currently selected session instance
         let selectedAddons = [];
         let appliedDiscount = null;
         let currentSkillLevel = '';
@@ -302,100 +297,260 @@
 
         // ===== Boot =====
         const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('event');
-        if (!eventId) {
-            showError('No event specified. Please use a valid booking link.');
+        const sessionId = urlParams.get('event');
+        
+        if (!sessionId) {
+            showError('No session specified. Please use a valid booking link.');
         } else {
-            loadEventData();
+            loadSessionData();
         }
 
-        // ===== Load Event and Attendees Data =====
-        async function loadEventData() {
+        // ===== Load Session Template and Available Dates =====
+        async function loadSessionData() {
             try {
-                // Load both event and bookings data in parallel
-                // Updated range to A:AF to include booking_type (Column AE, index 30)
-                const [eventResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Events!A:AF?key=${API_KEY}`),
+                console.log('Loading session template:', sessionId);
+                
+                // Load Session Templates and Sessions sheets in parallel
+                const [templatesResponse, sessionsResponse, bookingsResponse] = await Promise.all([
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Session Templates!A:AR?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
 
-                if (!eventResponse.ok) throw new Error('Failed to load event data');
-                const eventDataResponse = await eventResponse.json();
-                const rows = eventDataResponse.values;
-
-                let eventRow = null;
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i][0] === eventId && rows[i][17] === 'yes') { 
-                        eventRow = rows[i]; 
-                        break; 
+                if (!templatesResponse.ok) throw new Error('Failed to load session template data');
+                if (!sessionsResponse.ok) throw new Error('Failed to load sessions data');
+                
+                const templatesData = await templatesResponse.json();
+                const sessionsData = await sessionsResponse.json();
+                
+                // Find the session template
+                const templateRows = templatesData.values;
+                let templateRow = null;
+                
+                for (let i = 1; i < templateRows.length; i++) {
+                    if (templateRows[i][43] === sessionId) { // Session ID is column AR (index 43)
+                        templateRow = templateRows[i];
+                        break;
                     }
                 }
-                if (!eventRow) { 
-                    showError('Event not found or no longer available.'); 
-                    return; 
+                
+                if (!templateRow) {
+                    showError('Session not found or no longer available.');
+                    return;
                 }
 
-                console.log('Full event row data:', eventRow);
-                console.log('Row length:', eventRow.length);
-                console.log('End Time (Column AA, index 26):', eventRow[26]);
-                console.log('Booking Type (Column AE, index 30):', eventRow[30]);
-                console.log('Notes (Column W, index 22):', eventRow[22]);
-                console.log('Club URL (Column X, index 23):', eventRow[23]);
-                
-                eventData = {
-                    id: eventRow[0],
-                    name: eventRow[1],
-                    moreInfoUrl: eventRow[2],
-                    date: eventRow[3],
-                    time: eventRow[4],
-                    location: eventRow[5],
-                    basePrice: parseFloat(eventRow[6]) || 0,
-                    transactionFee: parseFloat(eventRow[7]) || 0,
-                    totalSpots: parseInt(eventRow[8]) || 0,
-                    spotsRemaining: parseInt(eventRow[9]) || 0,
-                    imageUrl: eventRow[21] || '',
-                    notes: eventRow[22] || '', // Column W (index 22)
-                    clubUrl: eventRow[23] || '', // Column X (index 23)
-                    endTime: eventRow[26] || '', // Column AA (index 26)
-                    bookingType: (eventRow[30] || 'stripe').toLowerCase(), // Column AE (index 30)
-                    addons: []
-                };
-                
-                console.log('Loaded eventData:', eventData);
-                console.log('End Time value:', eventData.endTime);
-                console.log('Booking Type value:', eventData.bookingType);
-                console.log('Notes value:', eventData.notes);
-                console.log('Club URL value:', eventData.clubUrl);
+                // Parse template data
+                sessionTemplate = parseSessionRow(templateRow);
+                console.log('Session template loaded:', sessionTemplate);
 
-                if (eventRow[11] && eventRow[12]) eventData.addons.push({ name: eventRow[11], price: parseFloat(eventRow[12]) });
-                if (eventRow[13] && eventRow[14]) eventData.addons.push({ name: eventRow[13], price: parseFloat(eventRow[14]) });
-                if (eventRow[15] && eventRow[16]) eventData.addons.push({ name: eventRow[15], price: parseFloat(eventRow[16]) });
+                // Find all session instances with matching Session ID
+                const sessionRows = sessionsData.values;
+                availableSessions = [];
+                
+                for (let i = 1; i < sessionRows.length; i++) {
+                    const row = sessionRows[i];
+                    // Match by Session ID and ensure it's published and bookable
+                    if (row[43] === sessionId && row[35] === 'Published' && row[33] === 'Book') {
+                        const session = parseSessionRow(row);
+                        availableSessions.push(session);
+                    }
+                }
+
+                console.log(`Found ${availableSessions.length} available dates for this session`);
+
+                if (availableSessions.length === 0) {
+                    showError('No available dates for this session at the moment.');
+                    return;
+                }
+
+                // Sort sessions by date
+                availableSessions.sort((a, b) => new Date(parseUKDate(a.date)) - new Date(parseUKDate(b.date)));
 
                 // Process bookings data if available
                 if (bookingsResponse.ok) {
                     const bookingsData = await bookingsResponse.json();
-                    attendeesData = processAttendeesData(bookingsData.values);
+                    // We'll load attendees for the selected session later
                 }
 
-                displayEvent();
-                displayAttendees();
-                updateShareMetaTags();
+                // Display the template info
+                displaySessionTemplate();
+                populateDateDropdown();
+                
             } catch (error) {
                 console.error('Error:', error);
-                showError('Unable to load event details. Please try again later.');
+                showError('Unable to load session details. Please try again later.');
+            }
+        }
+
+        // ===== Parse Session Row =====
+        function parseSessionRow(row) {
+            return {
+                nbrhId: row[0],           // A: NBRH ID
+                activityType: row[1],     // B: Activity Type
+                club: row[2],             // C: CLUB
+                className: row[3],        // D: Class Name
+                date: row[4],             // E: Date
+                startTime: row[5],        // F: Start Time
+                duration: row[6],         // G: Duration (minutes)
+                address: row[7],          // H: Address
+                location: row[8],         // I: Location
+                basePrice: parseFloat(row[9]) || 0,      // J: Base Price
+                discount: row[10],        // K: Discount
+                totalPrice: parseFloat(row[11]) || 0,    // L: Total Price
+                spotsAvailable: parseInt(row[12]) || 0,  // M: Spots Available
+                totalSpots: parseInt(row[13]) || 0,      // N: Total Spots
+                difficultyLevel: row[14], // O: Difficulty Level
+                bookingUrl: row[15],      // P: Booking URL
+                website: row[16],         // Q: Website
+                imageUrl: row[17],        // R: Image URL
+                ageGroup: row[18],        // S: Age Group
+                equipmentProvided: row[19], // T: Equipment Provided
+                cancellationHours: row[20], // U: Cancellation Hours
+                indoorOutdoor: row[21],   // V: Indoor/Outdoor
+                badge: row[22],           // W: Badge
+                audience: row[23],        // X: Audience
+                userRating: row[24],      // Y: User Rating
+                nbrhRating: row[25],      // Z: NBRH Rating
+                vibe: row[26],            // AA: Vibe
+                sportsmanshipScore: row[27], // AB: Sportsmanship Score
+                organisationScore: row[28],  // AC: Organisation Score
+                competitivenessScore: row[29], // AD: Competitiveness Score
+                equipmentVenuesScore: row[30], // AE: Equipment/Venues Score
+                friendlinessScore: row[31],    // AF: Friendliness Score
+                skillLevelScore: row[32],      // AG: Skill Level Score
+                reviewCount: row[33],          // AH: Review Count
+                bookEasyBook: row[34],         // AI: Book/Easy Book (was column 33)
+                sessionStatus: row[35],        // AJ: Session Status (was column 34)
+                sponsored: row[36],            // AK: Sponsored
+                type: row[37],                 // AL: Type
+                latitude: row[38],             // AM: Latitude
+                longitude: row[39],            // AN: Longitude
+                notes: row[40] || '',          // AO: Notes
+                clubUrl: row[23] || '',        // Same as audience? Need to check
+                sessionId: row[43],            // AR: Session ID (column 44, index 43)
+                endTime: row[42] || '',        // AQ: End Time (column 43, index 42)
+                // Calculate transaction fee (assuming 10% or similar)
+                transactionFee: parseFloat(row[11]) * 0.1 || 0
+            };
+        }
+
+        // ===== Populate Date Dropdown =====
+        function populateDateDropdown() {
+            const dateSelect = document.getElementById('dateSelect');
+            dateSelect.innerHTML = '<option value="" selected disabled>Choose an available date...</option>';
+            
+            availableSessions.forEach((session, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                
+                // Format: "Wednesday 15 January 2025 at 7:00 PM"
+                const formattedDate = formatDate(session.date);
+                const timeDisplay = formatTimeDisplay(session.startTime, session.endTime);
+                const spotsText = session.spotsAvailable > 0 
+                    ? `(${session.spotsAvailable} spots left)`
+                    : '(SOLD OUT)';
+                
+                option.textContent = `${formattedDate} at ${timeDisplay} ${spotsText}`;
+                option.disabled = session.spotsAvailable <= 0;
+                
+                dateSelect.appendChild(option);
+            });
+        }
+
+        // ===== When User Selects a Date =====
+        function onDateSelected() {
+            const dateSelect = document.getElementById('dateSelect');
+            const selectedIndex = parseInt(dateSelect.value);
+            
+            if (isNaN(selectedIndex)) return;
+            
+            selectedSession = availableSessions[selectedIndex];
+            console.log('Selected session:', selectedSession);
+            
+            // Update UI with selected session details
+            dateSelect.classList.add('valid');
+            
+            // Update date info
+            const dateInfo = document.getElementById('dateInfo');
+            dateInfo.textContent = `Selected: ${formatDate(selectedSession.date)} at ${formatTimeDisplay(selectedSession.startTime, selectedSession.endTime)}`;
+            dateInfo.style.color = '#30a330';
+            
+            // Check if date is in the past
+            const sessionDate = parseUKDate(selectedSession.date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (sessionDate < today) {
+                const dateWarning = document.getElementById('dateWarning');
+                dateWarning.textContent = '⚠️ This session date has passed. Please select a future date.';
+                dateWarning.style.display = 'block';
+                document.getElementById('payButton').disabled = true;
+                return;
+            } else {
+                document.getElementById('dateWarning').style.display = 'none';
+            }
+            
+            // Update spots indicator
+            updateSpotsIndicator();
+            
+            // Load attendees for this specific session
+            loadAttendeesForSession(selectedSession.nbrhId);
+            
+            // Enable booking button
+            const payButton = document.getElementById('payButton');
+            payButton.disabled = false;
+            payButton.innerHTML = selectedSession.totalPrice === 0 ? 'Register Interest' : `Pay £${selectedSession.totalPrice.toFixed(2)}`;
+            
+            // Update pricing
+            updatePricing();
+        }
+
+        // ===== Update Spots Indicator =====
+        function updateSpotsIndicator() {
+            if (!selectedSession) return;
+            
+            const spotsIndicator = document.getElementById('spotsIndicator');
+            const spotsText = document.getElementById('spotsText');
+            
+            if (selectedSession.spotsAvailable <= 0) {
+                spotsIndicator.className = 'spots-indicator spots-out';
+                spotsText.textContent = 'SOLD OUT - No spots available';
+                document.getElementById('payButton').disabled = true;
+            } else if (selectedSession.spotsAvailable <= 5) {
+                spotsIndicator.className = 'spots-indicator spots-low';
+                spotsText.textContent = `Hurry! Only ${selectedSession.spotsAvailable} spots left`;
+            } else {
+                spotsIndicator.className = 'spots-indicator spots-available';
+                spotsText.textContent = `${selectedSession.spotsAvailable} spots available`;
+            }
+        }
+
+        // ===== Load Attendees for Selected Session =====
+        async function loadAttendeesForSession(nbrhId) {
+            try {
+                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`);
+                
+                if (!response.ok) return;
+                
+                const bookingsData = await response.json();
+                attendeesData = processAttendeesData(bookingsData.values, nbrhId);
+                displayAttendees();
+                
+            } catch (error) {
+                console.error('Error loading attendees:', error);
             }
         }
 
         // ===== Process Attendees Data =====
-        function processAttendeesData(bookingsRows) {
+        function processAttendeesData(bookingsRows, nbrhId) {
             const attendees = [];
             
             if (!bookingsRows || bookingsRows.length < 2) return attendees;
             
             for (let i = 1; i < bookingsRows.length; i++) {
                 const row = bookingsRows[i];
-                // Check if this booking is for our event and is confirmed
-                if (row[2] === eventId && row[9] === 'Confirmed') {
+                // Check if this booking is for our NBRH ID and is confirmed
+                if (row[2] === nbrhId && row[9] === 'Confirmed') {
                     attendees.push({
                         customerName: row[4] || 'Guest',
                         skillLevel: row[12] || 'Not specified',
@@ -407,6 +562,84 @@
             return attendees;
         }
 
+        // ===== Display Session Template =====
+        function displaySessionTemplate() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('bookingForm').style.display = 'block';
+            document.getElementById('paymentSection').style.display = 'block';
+
+            const eventImage = document.getElementById('eventImage');
+            if (sessionTemplate.imageUrl && sessionTemplate.imageUrl.trim() !== '') {
+                eventImage.src = sessionTemplate.imageUrl;
+                eventImage.style.display = 'block';
+                eventImage.classList.remove('loading');
+                
+                eventImage.onerror = function() {
+                    console.error('Failed to load event image:', sessionTemplate.imageUrl);
+                    eventImage.style.display = 'none';
+                };
+            }
+
+            document.getElementById('eventTitle').textContent = sessionTemplate.className;
+            document.getElementById('eventLocation').textContent = sessionTemplate.location;
+            
+            // Show duration instead of specific time
+            const durationMinutes = parseInt(sessionTemplate.duration) || 0;
+            const durationHours = Math.floor(durationMinutes / 60);
+            const remainingMinutes = durationMinutes % 60;
+            let durationText = '';
+            if (durationHours > 0) {
+                durationText = `${durationHours}h`;
+                if (remainingMinutes > 0) durationText += ` ${remainingMinutes}m`;
+            } else {
+                durationText = `${durationMinutes} minutes`;
+            }
+            document.getElementById('eventDuration').textContent = durationText;
+
+            // Base price display (will be updated when date is selected)
+            document.getElementById('ticketPrice').textContent = `£${sessionTemplate.totalPrice.toFixed(2)}`;
+            document.getElementById('bookingFeeAmount').textContent = sessionTemplate.transactionFee.toFixed(2);
+
+            // Display "More Info" link if available
+            if (sessionTemplate.bookingUrl && sessionTemplate.bookingUrl.trim() !== '') {
+                const moreInfoLink = document.getElementById('moreInfoLink');
+                const moreInfoSection = document.getElementById('eventMoreInfo');
+                
+                let url = sessionTemplate.bookingUrl.trim();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                
+                moreInfoLink.href = url;
+                moreInfoSection.style.display = 'block';
+            }
+
+            // Display "Club" button if URL is available
+            if (sessionTemplate.website && sessionTemplate.website.trim() !== '') {
+                const clubLink = document.getElementById('clubLink');
+                const clubLinkContainer = document.getElementById('clubLinkContainer');
+                
+                let url = sessionTemplate.website.trim();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                
+                clubLink.href = url;
+                clubLinkContainer.style.display = 'block';
+            }
+
+            // Display notes section if available
+            if (sessionTemplate.notes && sessionTemplate.notes.trim() !== '') {
+                const notesCard = document.getElementById('notesCard');
+                const notesContent = document.getElementById('notesContent');
+                notesContent.textContent = sessionTemplate.notes.trim();
+                notesCard.style.display = 'block';
+            }
+
+            updatePricing();
+            updateShareMetaTags();
+        }
+
         // ===== Display Attendees =====
         function displayAttendees() {
             const card = document.getElementById('attendeesPreviewCard');
@@ -416,7 +649,6 @@
             const viewAllLink = document.getElementById('viewAllAttendeesLink');
             
             if (attendeesData.length === 0) {
-                // Show empty state
                 grid.classList.add('empty');
                 grid.innerHTML = `
                     <div class="attendees-empty">
@@ -429,14 +661,11 @@
                 return;
             }
             
-            // Remove empty class if it was previously set
             grid.classList.remove('empty');
 
-            // Show attendee count
             const attendeeText = attendeesData.length === 1 ? '1 person attending' : `${attendeesData.length} people attending`;
             count.textContent = attendeeText;
 
-            // Display up to 8 attendees
             const displayCount = Math.min(attendeesData.length, 8);
             let gridHTML = '';
 
@@ -457,7 +686,6 @@
                 `;
             }
 
-            // Add "more" indicator if there are additional attendees
             if (attendeesData.length > 8) {
                 gridHTML += `
                     <div class="attendee-item">
@@ -468,15 +696,13 @@
             }
 
             grid.innerHTML = gridHTML;
-
-            // Display skill level distribution
             displaySkillDistribution();
 
-            // Update view all link
-            viewAllLink.href = `attendees-public.html?event=${eventId}`;
-            viewAllLink.style.display = 'block';
+            if (selectedSession) {
+                viewAllLink.href = `attendees-public.html?event=${selectedSession.nbrhId}`;
+                viewAllLink.style.display = 'block';
+            }
 
-            // Show the card
             card.style.display = 'block';
         }
 
@@ -496,7 +722,6 @@
             
             let skillHTML = '';
             
-            // Map skills to CSS classes
             const skillClasses = {
                 'Beginner': 'skill-beginner',
                 'Intermediate': 'skill-intermediate',
@@ -518,10 +743,9 @@
         // ===== Share Functionality =====
         async function shareSession() {
             const shareUrl = window.location.href;
-            const shareTitle = eventData.name;
-            const shareText = `Check out this session: ${eventData.name} on ${formatDate(eventData.date)} at ${eventData.time}`;
+            const shareTitle = sessionTemplate.className;
+            const shareText = `Check out this session: ${sessionTemplate.className}`;
 
-            // Check if Web Share API is available (mobile devices)
             if (navigator.share) {
                 try {
                     await navigator.share({
@@ -529,31 +753,24 @@
                         text: shareText,
                         url: shareUrl
                     });
-                    console.log('Session shared successfully');
                 } catch (error) {
-                    // User cancelled or error occurred
                     if (error.name !== 'AbortError') {
-                        // Fallback to clipboard copy
                         copyToClipboard(shareUrl);
                     }
                 }
             } else {
-                // Fallback to clipboard copy for desktop
                 copyToClipboard(shareUrl);
             }
         }
 
         function copyToClipboard(text) {
-            // Try modern clipboard API first
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
                     showShareSuccess();
                 }).catch(() => {
-                    // Fallback to older method
                     fallbackCopyToClipboard(text);
                 });
             } else {
-                // Use fallback method
                 fallbackCopyToClipboard(text);
             }
         }
@@ -571,7 +788,6 @@
                 document.execCommand('copy');
                 showShareSuccess();
             } catch (error) {
-                console.error('Failed to copy to clipboard:', error);
                 alert('Failed to copy link. Please copy manually: ' + text);
             }
 
@@ -589,11 +805,10 @@
         // ===== Update Meta Tags for Sharing =====
         function updateShareMetaTags() {
             const currentUrl = window.location.href;
-            const shareTitle = `${eventData.name} - Book Your Spot`;
-            const shareDescription = `Join us for ${eventData.name} on ${formatDate(eventData.date)} at ${eventData.time}. ${eventData.spotsRemaining} spots available!`;
-            const shareImage = eventData.imageUrl || '';
+            const shareTitle = `${sessionTemplate.className} - Book Your Spot`;
+            const shareDescription = `Join us for ${sessionTemplate.className} at ${sessionTemplate.location}. Multiple dates available!`;
+            const shareImage = sessionTemplate.imageUrl || '';
 
-            // Update Open Graph tags
             document.getElementById('ogTitle').setAttribute('content', shareTitle);
             document.getElementById('ogDescription').setAttribute('content', shareDescription);
             document.getElementById('ogUrl').setAttribute('content', currentUrl);
@@ -603,289 +818,50 @@
                 document.getElementById('twitterImage').setAttribute('content', shareImage);
             }
 
-            // Update page title
             document.title = shareTitle;
         }
 
         // ===== Skill Level Functions =====
         function onSkillLevelChange() {
             const skillSelect = document.getElementById('skillLevel');
-            const selectedValue = skillSelect.value;
-            currentSkillLevel = selectedValue;
+            currentSkillLevel = skillSelect.value;
             
-            if (selectedValue) {
+            if (currentSkillLevel) {
                 skillSelect.classList.add('valid');
             } else {
                 skillSelect.classList.remove('valid');
             }
-            
-            updateDebugInfo();
-            console.log('Skill level selected:', selectedValue, '- Will be saved to column M');
         }
 
         function validateSkillLevel() {
-            const skillLevel = document.getElementById('skillLevel').value;
-            if (!skillLevel || skillLevel === '') {
-                alert('Please select your skill level before proceeding. This helps us provide the best experience for you.');
+            if (!currentSkillLevel || currentSkillLevel === '') {
+                alert('Please select your skill level before proceeding.');
                 document.getElementById('skillLevel').focus();
                 return false;
             }
             return true;
         }
 
-        function updateDebugInfo() {
-            const debugElements = {
-                skillLevel: document.getElementById('debugSkillLevel'),
-                columnIndex: document.getElementById('debugColumnIndex'),
-                sheetRange: document.getElementById('debugSheetRange'),
-                readyStatus: document.getElementById('debugReadyStatus')
-            };
-            
-            if (debugElements.skillLevel) {
-                const skillValue = currentSkillLevel || 'None selected';
-                debugElements.skillLevel.textContent = skillValue;
-                debugElements.skillLevel.style.color = currentSkillLevel ? 'green' : 'red';
-            }
-            
-            if (debugElements.columnIndex) {
-                debugElements.columnIndex.textContent = `${SKILL_LEVEL_COLUMN_INDEX} (Column ${SKILL_LEVEL_COLUMN_LETTER})`;
-            }
-            
-            if (debugElements.sheetRange) {
-                debugElements.sheetRange.textContent = BOOKINGS_RANGE + ' (includes safety column N)';
-            }
-            
-            if (debugElements.readyStatus) {
-                const isReady = currentSkillLevel !== '';
-                debugElements.readyStatus.textContent = isReady ? 'Yes' : 'No';
-                debugElements.readyStatus.style.color = isReady ? 'green' : 'red';
-            }
-        }
-
-        function toggleDebug() {
-            const debugInfo = document.getElementById('debugInfo');
-            const debugToggle = document.querySelector('.debug-toggle');
-            
-            if (debugInfo.classList.contains('show')) {
-                debugInfo.classList.remove('show');
-                debugToggle.textContent = 'Show Debug Info';
-            } else {
-                debugInfo.classList.add('show');
-                debugToggle.textContent = 'Hide Debug Info';
-                updateDebugInfo();
-            }
-        }
-
-        // ===== Format Time Display =====
-        function formatTimeDisplay(startTime, endTime) {
-            if (!endTime || endTime.trim() === '') {
-                return startTime;
-            }
-            return `${startTime} - ${endTime}`;
-        }
-
-        // ===== UI fill =====
-        function displayEvent() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('bookingForm').style.display = 'block';
-            document.getElementById('paymentSection').style.display = 'block';
-
-            const eventImage = document.getElementById('eventImage');
-            if (eventData.imageUrl && eventData.imageUrl.trim() !== '') {
-                eventImage.src = eventData.imageUrl;
-                eventImage.style.display = 'block';
-                eventImage.classList.remove('loading');
-                
-                eventImage.onerror = function() {
-                    console.error('Failed to load event image:', eventData.imageUrl);
-                    eventImage.style.display = 'none';
-                };
+        // ===== Pricing Functions =====
+        function updatePricing() {
+            if (!selectedSession) {
+                document.getElementById('totalPrice').textContent = '£0.00';
+                return;
             }
 
-            document.getElementById('eventTitle').textContent = eventData.name;
-            document.getElementById('eventLocation').textContent = eventData.location;
-            
-            // Display date and time with end time if available
-            const timeDisplay = formatTimeDisplay(eventData.time, eventData.endTime);
-            document.getElementById('eventDateTime').textContent = `${formatDate(eventData.date)} at ${timeDisplay}`;
-
-            // Display "More Info" link if available
-            if (eventData.moreInfoUrl && eventData.moreInfoUrl.trim() !== '') {
-                const moreInfoLink = document.getElementById('moreInfoLink');
-                const moreInfoSection = document.getElementById('eventMoreInfo');
-                
-                let url = eventData.moreInfoUrl.trim();
-                if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    url = 'https://' + url;
-                }
-                
-                moreInfoLink.href = url;
-                moreInfoSection.style.display = 'block';
-            }
-
-            // Display "Club" button if URL is available
-            console.log('Checking club URL:', eventData.clubUrl);
-            if (eventData.clubUrl && eventData.clubUrl.trim() !== '') {
-                console.log('Club URL found, displaying button');
-                const clubLink = document.getElementById('clubLink');
-                const clubLinkContainer = document.getElementById('clubLinkContainer');
-                
-                let url = eventData.clubUrl.trim();
-                if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    url = 'https://' + url;
-                }
-                
-                clubLink.href = url;
-                clubLinkContainer.style.display = 'block';
-                console.log('Club button configured with URL:', url);
-            } else {
-                console.log('No club URL found, button hidden');
-            }
-
-            // Display notes section if available
-            console.log('Checking notes:', eventData.notes);
-            if (eventData.notes && eventData.notes.trim() !== '') {
-                console.log('Notes found, displaying card');
-                const notesCard = document.getElementById('notesCard');
-                const notesContent = document.getElementById('notesContent');
-                notesContent.textContent = eventData.notes.trim();
-                notesCard.style.display = 'block';
-                console.log('Notes card displayed with content:', eventData.notes.trim());
-            } else {
-                console.log('No notes found, card hidden');
-            }
-
-            document.getElementById('ticketPrice').textContent = `£${(eventData.basePrice + eventData.transactionFee).toFixed(2)}`;
-            document.getElementById('bookingFeeAmount').textContent = eventData.transactionFee.toFixed(2);
-
-            const spotsIndicator = document.getElementById('spotsIndicator');
-            const spotsText = document.getElementById('spotsText');
-            if (eventData.spotsRemaining <= 0) {
-                spotsIndicator.className = 'spots-indicator spots-out';
-                spotsText.textContent = 'SOLD OUT - No spots available';
-                document.getElementById('payButton').disabled = true;
-            } else if (eventData.spotsRemaining <= 5) {
-                spotsIndicator.className = 'spots-indicator spots-low';
-                spotsText.textContent = `Hurry! Only ${eventData.spotsRemaining} spots left`;
-            } else {
-                spotsIndicator.className = 'spots-indicator spots-available';
-                spotsText.textContent = `${eventData.spotsRemaining} spots available`;
-            }
-
-            if (eventData.addons.length > 0) {
-                document.getElementById('addonsSection').style.display = 'block';
-                const addonsList = document.getElementById('addonsList');
-                eventData.addons.forEach((addon, index) => {
-                    const addonDiv = document.createElement('div');
-                    addonDiv.className = 'addon-item';
-                    addonDiv.onclick = () => toggleAddon(index);
-                    addonDiv.innerHTML = `
-                        <input type="checkbox" class="addon-checkbox" id="addon${index}">
-                        <div class="addon-details">
-                            <div class="addon-name">${addon.name}</div>
-                            <div class="addon-price">+£${addon.price.toFixed(2)}</div>
-                        </div>`;
-                    addonsList.appendChild(addonDiv);
-                });
-            }
-
-            // Set initial button text based on booking type
-            const payButton = document.getElementById('payButton');
-            if (eventData.bookingType === 'direct') {
-                payButton.innerHTML = 'Register Interest';
-            } else {
-                payButton.innerHTML = 'Complete Payment';
-            }
-
-            updatePricing();
-            updateDebugInfo();
-        }
-
-        function toggleAddon(index) {
-            const checkbox = document.getElementById(`addon${index}`);
-            checkbox.checked = !checkbox.checked;
-            if (checkbox.checked) selectedAddons.push(index);
-            else selectedAddons = selectedAddons.filter(i => i !== index);
-            updatePricing();
-        }
-
-        // ===== Discounts & pricing =====
-        async function applyDiscountCode() {
-            const codeInput = document.getElementById('discountCode');
-            const applyBtn = document.getElementById('applyDiscountBtn');
-            const code = codeInput.value.trim().toUpperCase();
-            if (!code){ showDiscountMessage('Please enter a discount code.','error'); return; }
-
-            applyBtn.disabled = true; applyBtn.textContent = 'Checking...';
-            try {
-                const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=${API_KEY}`;
-                const response = await fetch(discountUrl);
-                if (!response.ok) throw new Error('Unable to verify discount code');
-                const data = await response.json();
-                const rows = data.values || [];
-                let discountFound = null;
-
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row[0] && row[0].toUpperCase() === code && row[3] === 'yes') {
-                        discountFound = {
-                            code: row[0], type: row[1],
-                            value: parseFloat(row[2])||0, active: row[3],
-                            description: row[4]||'', usageLimit: row[5]||'unlimited'
-                        };
-                        break;
-                    }
-                }
-
-                if (discountFound) {
-                    appliedDiscount = discountFound;
-                    showDiscountMessage(`${discountFound.description || 'Discount applied successfully!'}`,'success');
-                    codeInput.disabled = true; applyBtn.textContent = 'Applied';
-                    updatePricing();
-                } else {
-                    showDiscountMessage('Invalid or expired discount code.','error');
-                }
-            } catch (e) {
-                console.error('Discount code error:', e);
-                showDiscountMessage('Unable to verify discount code. Please try again.','error');
-            } finally {
-                if (!appliedDiscount){ applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
-            }
-        }
-
-        function showDiscountMessage(message,type){
-            const el = document.getElementById('discountMessage');
-            el.textContent = message;
-            el.className = `discount-message discount-${type}`;
-            el.style.display = 'block';
-        }
-
-        function calculateDiscount(subtotal){
-            if (!appliedDiscount) return 0;
-            if (appliedDiscount.type === 'percentage') return subtotal * (appliedDiscount.value/100);
-            if (appliedDiscount.type === 'fixed') return Math.min(appliedDiscount.value, subtotal);
-            return 0;
-        }
-
-        function updatePricing(){
-            let ticketsTotal = eventData.basePrice;
+            let ticketsTotal = selectedSession.basePrice;
             let addonsTotal = 0;
-            selectedAddons.forEach(i => addonsTotal += eventData.addons[i].price);
-            const subtotal = ticketsTotal + eventData.transactionFee + addonsTotal;
+            const subtotal = ticketsTotal + selectedSession.transactionFee + addonsTotal;
 
             let html = `
                 <div class="price-line"><span>Tickets:</span><span>£${ticketsTotal.toFixed(2)}</span></div>
-                <div class="price-line"><span>Booking fee:</span><span>£${eventData.transactionFee.toFixed(2)}</span></div>
+                <div class="price-line"><span>Booking fee:</span><span>£${selectedSession.transactionFee.toFixed(2)}</span></div>
             `;
-            selectedAddons.forEach(i => {
-                const a = eventData.addons[i];
-                html += `<div class="price-line"><span>${a.name}:</span><span>£${a.price.toFixed(2)}</span></div>`;
-            });
 
             const discountAmount = calculateDiscount(subtotal);
             const finalTotal = subtotal - discountAmount;
 
-            if (appliedDiscount && discountAmount > 0){
+            if (appliedDiscount && discountAmount > 0) {
                 const txt = appliedDiscount.type === 'percentage'
                     ? `${appliedDiscount.code} (${appliedDiscount.value}% off)`
                     : `${appliedDiscount.code} (£${appliedDiscount.value} off)`;
@@ -895,42 +871,103 @@
             document.getElementById('priceBreakdown').innerHTML = html;
             document.getElementById('totalPrice').textContent = `£${finalTotal.toFixed(2)}`;
 
-            // Update button text based on booking type
             const payButton = document.getElementById('payButton');
             if (payButton && !payButton.disabled) {
-                if (eventData.bookingType === 'direct') {
-                    payButton.innerHTML = 'Register Interest';
+                payButton.innerHTML = finalTotal === 0 ? 'Register Interest' : `Pay £${finalTotal.toFixed(2)}`;
+            }
+        }
+
+        function calculateDiscount(subtotal) {
+            if (!appliedDiscount) return 0;
+            if (appliedDiscount.type === 'percentage') return subtotal * (appliedDiscount.value / 100);
+            if (appliedDiscount.type === 'fixed') return Math.min(appliedDiscount.value, subtotal);
+            return 0;
+        }
+
+        async function applyDiscountCode() {
+            const codeInput = document.getElementById('discountCode');
+            const applyBtn = document.getElementById('applyDiscountBtn');
+            const code = codeInput.value.trim().toUpperCase();
+            
+            if (!code) {
+                showDiscountMessage('Please enter a discount code.', 'error');
+                return;
+            }
+
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Checking...';
+            
+            try {
+                const discountUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Discount Codes!A:F?key=${API_KEY}`;
+                const response = await fetch(discountUrl);
+                
+                if (!response.ok) throw new Error('Unable to verify discount code');
+                
+                const data = await response.json();
+                const rows = data.values || [];
+                let discountFound = null;
+
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row[0] && row[0].toUpperCase() === code && row[3] === 'yes') {
+                        discountFound = {
+                            code: row[0],
+                            type: row[1],
+                            value: parseFloat(row[2]) || 0,
+                            active: row[3],
+                            description: row[4] || '',
+                            usageLimit: row[5] || 'unlimited'
+                        };
+                        break;
+                    }
+                }
+
+                if (discountFound) {
+                    appliedDiscount = discountFound;
+                    showDiscountMessage(`${discountFound.description || 'Discount applied successfully!'}`, 'success');
+                    codeInput.disabled = true;
+                    applyBtn.textContent = 'Applied';
+                    updatePricing();
                 } else {
-                    payButton.innerHTML = `Pay £${finalTotal.toFixed(2)}`;
+                    showDiscountMessage('Invalid or expired discount code.', 'error');
+                }
+            } catch (e) {
+                console.error('Discount code error:', e);
+                showDiscountMessage('Unable to verify discount code. Please try again.', 'error');
+            } finally {
+                if (!appliedDiscount) {
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply';
                 }
             }
         }
 
-        function buildSheetRow({ name, email, skillLevel, selectedAddonNames, finalAmount, status='pending', bookingId='', stripePaymentId='', emailToMe='', emailToInstructor='' }){
-            const safeSkillLevel = skillLevel && skillLevel.trim() !== '' ? skillLevel : 'Not specified';
-            
-            const row = [
-                bookingId || '', new Date().toISOString(), eventData.id, eventData.name,
-                name, email, Number(finalAmount.toFixed(2)),
-                selectedAddonNames.join(', ') || '', stripePaymentId || '', status,
-                emailToMe || '', emailToInstructor || '', safeSkillLevel, 'PRESERVE_COLUMN_M'
-            ];
-            
-            console.log('Sheet row constructed for columns A-N (M=skill level):', row);
-            console.log(`Skill level "${safeSkillLevel}" will be saved to position ${SKILL_LEVEL_COLUMN_INDEX} (Column M)`);
-            
-            return row;
+        function showDiscountMessage(message, type) {
+            const el = document.getElementById('discountMessage');
+            el.textContent = message;
+            el.className = `discount-message discount-${type}`;
+            el.style.display = 'block';
         }
 
-        // ===== Booking submit =====
-        async function processBooking(){
+        // ===== Booking Submit =====
+        async function processBooking() {
+            // Validate date selection
+            if (!selectedSession) {
+                alert('Please select a date before booking.');
+                return;
+            }
+
             const name = document.getElementById('customerName').value.trim();
             const email = document.getElementById('customerEmail').value.trim();
-            const skillLevel = document.getElementById('skillLevel').value;
-
-            if (!name){ alert('Please enter your name'); return; }
-            if (!email || !email.includes('@')){ alert('Please enter a valid email address'); return; }
             
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
             if (!validateSkillLevel()) {
                 return;
             }
@@ -939,46 +976,39 @@
             button.disabled = true;
             button.innerHTML = 'Processing...';
 
-            let totalAmount = eventData.basePrice + eventData.transactionFee;
+            let totalAmount = selectedSession.basePrice + selectedSession.transactionFee;
             const selectedAddonNames = [];
-            selectedAddons.forEach(i => {
-                const a = eventData.addons[i];
-                totalAmount += a.price;
-                selectedAddonNames.push(a.name);
-            });
 
             const discountAmount = calculateDiscount(totalAmount);
             const finalAmount = totalAmount - discountAmount;
 
-            console.log('Processing booking with skill level:', skillLevel);
-            console.log('Booking type:', eventData.bookingType);
+            console.log('Processing booking for session:', selectedSession.nbrhId);
+            console.log('Date:', selectedSession.date);
+            console.log('Skill level:', currentSkillLevel);
 
-            // ROUTE TO CORRECT ENDPOINT BASED ON BOOKING TYPE
-            if (eventData.bookingType === 'direct') {
-                // Direct booking (no Stripe payment)
-                processDirectBooking(name, email, skillLevel, selectedAddonNames, finalAmount);
+            // Determine booking type
+            const bookingType = selectedSession.totalPrice === 0 ? 'direct' : 'stripe';
+
+            if (bookingType === 'direct') {
+                processDirectBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount);
             } else {
-                // Stripe payment booking (default)
-                processStripeBooking(name, email, skillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount);
+                processStripeBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount);
             }
         }
 
-        // Process direct booking (free sessions, interest registration)
         async function processDirectBooking(name, email, skillLevel, selectedAddonNames, finalAmount) {
             try {
-                console.log('🎯 Processing DIRECT booking (no payment)...');
+                console.log('🎯 Processing DIRECT booking...');
                 
                 const requestPayload = {
-                    eventId: eventData.id,
-                    eventName: eventData.name,
+                    eventId: selectedSession.nbrhId,
+                    eventName: selectedSession.className,
                     customerName: name,
                     customerEmail: email,
                     skillLevel: skillLevel,
                     amount: finalAmount,
                     addons: selectedAddonNames
                 };
-
-                console.log('Direct booking payload:', requestPayload);
 
                 const response = await fetch('/api/create-direct-booking', {
                     method: 'POST',
@@ -989,8 +1019,6 @@
                 const data = await response.json();
                 
                 if (data.success && data.redirectUrl) {
-                    console.log('✅ Direct booking created successfully');
-                    console.log('Redirecting to:', data.redirectUrl);
                     window.location.href = data.redirectUrl;
                 } else {
                     throw new Error(data.error || 'Unable to create direct booking');
@@ -1004,19 +1032,13 @@
             }
         }
 
-        // Process Stripe payment booking (existing logic)
         async function processStripeBooking(name, email, skillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount) {
-            const sheetRow = buildSheetRow({
-                name, email, skillLevel, selectedAddonNames, finalAmount,
-                status: 'pending', bookingId: '', stripePaymentId: '', emailToMe: '', emailToInstructor: ''
-            });
-
             try {
                 console.log('💳 Processing STRIPE payment booking...');
                 
                 const requestPayload = {
-                    eventId: eventData.id,
-                    eventName: eventData.name,
+                    eventId: selectedSession.nbrhId,
+                    eventName: selectedSession.className,
                     customerName: name,
                     customerEmail: email,
                     skillLevel: skillLevel,
@@ -1025,25 +1047,9 @@
                     discountCode: appliedDiscount ? appliedDiscount.code : null,
                     discountAmount: discountAmount,
                     addons: selectedAddonNames,
-                    sheetRange: BOOKINGS_RANGE,
-                    sheetColumns: SHEET_COLUMNS,
-                    sheetRow: sheetRow,
-                    columnLetters: COLUMN_LETTERS,
-                    skillLevelColumnIndex: SKILL_LEVEL_COLUMN_INDEX,
-                    skillLevelColumnLetter: SKILL_LEVEL_COLUMN_LETTER,
-                    forceSkillOnColumnM: true,
-                    preventColumnTruncation: true,
-                    safetyColumnN: 'PRESERVE_COLUMN_M',
-                    skillLevelData: {
-                        value: skillLevel,
-                        columnIndex: SKILL_LEVEL_COLUMN_INDEX,
-                        columnLetter: SKILL_LEVEL_COLUMN_LETTER,
-                        position: 'Column M',
-                        validated: true
-                    },
                     stripeMetadata: {
-                        event_id: eventData.id,
-                        event_name: eventData.name,
+                        event_id: selectedSession.nbrhId,
+                        event_name: selectedSession.className,
                         customer_name: name,
                         customer_email: email,
                         skill_level: skillLevel,
@@ -1060,7 +1066,6 @@
 
                 const data = await response.json();
                 if (data.url) {
-                    console.log('✅ Checkout session created successfully');
                     window.location.href = data.url;
                 } else {
                     throw new Error('Unable to create checkout session');
@@ -1074,14 +1079,30 @@
             }
         }
 
-        function formatDate(dateStr){
+        // ===== Helper Functions =====
+        function parseUKDate(dateStr) {
+            // Assumes format "DD/MM/YYYY"
             const parts = dateStr.split('/');
-            const date = new Date(parts[2], parts[0]-1, parts[1]);
-            const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            return new Date(dateStr);
+        }
+
+        function formatDate(dateStr) {
+            const date = parseUKDate(dateStr);
+            const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             return date.toLocaleDateString('en-GB', opts);
         }
 
-        function showError(msg){
+        function formatTimeDisplay(startTime, endTime) {
+            if (!endTime || endTime.trim() === '') {
+                return startTime;
+            }
+            return `${startTime} - ${endTime}`;
+        }
+
+        function showError(msg) {
             document.getElementById('loading').style.display = 'none';
             const err = document.getElementById('error');
             err.style.display = 'block';
@@ -1090,13 +1111,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const discountInput = document.getElementById('discountCode');
-            if (discountInput){
+            if (discountInput) {
                 discountInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') applyDiscountCode();
                 });
             }
-            
-            updateDebugInfo();
         });
     </script>
 </body>
