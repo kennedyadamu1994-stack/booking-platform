@@ -1,4 +1,4 @@
-// api/webhook.js - Complete solution: Save booking AFTER payment with event details
+// Updated api/webhook.js - Works with NBRH IDs and Sessions sheet
 module.exports = async (req, res) => {
     console.log('Webhook called with method:', req.method);
     
@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
         // Extract booking data from Stripe metadata
         const metadata = checkoutSession.metadata;
         const bookingData = {
-            eventId: metadata.eventId,
+            eventId: metadata.eventId, // This is the NBRH ID
             eventName: metadata.eventName,
             customerName: metadata.customerName,
             customerEmail: metadata.customerEmail,
@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
 
         console.log('Booking data from Stripe metadata:', bookingData);
 
-        // NOW save the booking to Google Sheets with event details
+        // Save the booking to Google Sheets
         const { eventId } = await saveCompleteBookingAfterPayment(bookingData);
 
         res.status(200).json({ 
@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
     }
 };
 
-// Complete function that saves booking AFTER payment with event details
+// Complete function that saves booking AFTER payment
 async function saveCompleteBookingAfterPayment(bookingData) {
     console.log('Saving complete booking after successful payment...');
     
@@ -99,51 +99,59 @@ async function saveCompleteBookingAfterPayment(bookingData) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // STEP 1: Get event details from Events sheet
-    console.log('Fetching event details from Events sheet...');
-    const eventsResponse = await sheets.spreadsheets.values.get({
+    // STEP 1: Get session details from Sessions sheet using NBRH ID
+    console.log('Fetching session details from Sessions sheet...');
+    const sessionsResponse = await sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
-        range: 'Events!A:R', // Full range to get all event data
+        range: 'Sessions!A:AR', // All columns including Session ID
     });
 
-    const eventRows = eventsResponse.data.values;
-    if (!eventRows || eventRows.length === 0) {
-        throw new Error('No data found in Events sheet');
+    const sessionRows = sessionsResponse.data.values;
+    if (!sessionRows || sessionRows.length === 0) {
+        throw new Error('No data found in Sessions sheet');
     }
 
-    // Find the event by event_id (column A)
-    let eventDetails = null;
-    for (let i = 1; i < eventRows.length; i++) {
-        if (eventRows[i][0] === bookingData.eventId) {
-            eventDetails = {
-                id: eventRows[i][0],          // A: event_id
-                name: eventRows[i][1],        // B: event_name
-                description: eventRows[i][2], // C: description
-                date: eventRows[i][3],        // D: date
-                time: eventRows[i][4],        // E: time
-                location: eventRows[i][5],    // F: location
-                totalSpots: eventRows[i][8],  // I: total_spots
-                spotsRemaining: eventRows[i][9] // J: spots_remaining
+    // Find the session by NBRH ID (column A)
+    let sessionDetails = null;
+    let sessionRowIndex = -1;
+    
+    for (let i = 1; i < sessionRows.length; i++) {
+        if (sessionRows[i][0] === bookingData.eventId) { // Column A = NBRH ID
+            sessionDetails = {
+                nbrhId: sessionRows[i][0],        // A: NBRH ID
+                activityType: sessionRows[i][1],  // B: Activity Type
+                club: sessionRows[i][2],          // C: CLUB
+                className: sessionRows[i][3],     // D: Class Name
+                date: sessionRows[i][4],          // E: Date
+                startTime: sessionRows[i][5],     // F: Start Time
+                duration: sessionRows[i][6],      // G: Duration
+                address: sessionRows[i][7],       // H: Address
+                location: sessionRows[i][8],      // I: Location
+                basePrice: sessionRows[i][9],     // J: Base Price
+                totalPrice: sessionRows[i][11],   // L: Total Price
+                spotsAvailable: sessionRows[i][12], // M: Spots Available
+                totalSpots: sessionRows[i][13]    // N: Total Spots
             };
+            sessionRowIndex = i + 1; // 1-based index
             break;
         }
     }
 
-    if (!eventDetails) {
-        throw new Error(`Event not found: ${bookingData.eventId}`);
+    if (!sessionDetails) {
+        throw new Error(`Session not found with NBRH ID: ${bookingData.eventId}`);
     }
 
-    console.log('Event details found:', eventDetails);
+    console.log('Session details found:', sessionDetails);
 
-    // STEP 2: Create complete booking row with event details
+    // STEP 2: Create complete booking row
     const bookingId = `BK${Date.now()}`;
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // Build comprehensive booking row (A through N)
+    // Build comprehensive booking row
     const bookingRow = [
         bookingId,                          // A: booking_id
         currentDate,                        // B: booking_date
-        bookingData.eventId,                // C: event_id
+        bookingData.eventId,                // C: event_id (NBRH ID)
         bookingData.eventName,              // D: event_name
         bookingData.customerName,           // E: customer_name
         bookingData.customerEmail,          // F: customer_email
@@ -152,19 +160,19 @@ async function saveCompleteBookingAfterPayment(bookingData) {
         bookingData.paymentIntentId,        // I: stripe_payment_id
         'Confirmed',                        // J: status - CONFIRMED after payment!
         '',                                 // K: email_sent
-        '',                                 // L: email_sent_to_instructor (if exists)
+        '',                                 // L: email_sent_to_instructor
         bookingData.skillLevel || '',       // M: skill_level
-        eventDetails.date || '',            // N: event_date
-        eventDetails.time || '',            // O: event_time  
-        eventDetails.location || ''         // P: event_location
+        sessionDetails.date || '',          // N: event_date
+        sessionDetails.startTime || '',     // O: event_time  
+        sessionDetails.location || ''       // P: event_location
     ];
 
     console.log('Complete booking row to save:', bookingRow);
 
-    // STEP 3: Save to Bookings sheet (extend range to include event details)
+    // STEP 3: Save to Bookings sheet
     const appendRequest = {
         spreadsheetId: spreadsheetId,
-        range: 'Bookings!A:P', // Extended range to include event details
+        range: 'Bookings!A:P',
         valueInputOption: 'USER_ENTERED',
         insertDataOption: 'INSERT_ROWS',
         resource: {
@@ -175,31 +183,23 @@ async function saveCompleteBookingAfterPayment(bookingData) {
     console.log('Saving booking to Google Sheets...');
     await sheets.spreadsheets.values.append(appendRequest);
     
-    console.log('✅ Booking saved with status "Confirmed" - will trigger email system');
+    console.log('✅ Booking saved with status "Confirmed"');
 
-    // STEP 4: Reduce event spots
-    const newSpots = Math.max(0, (parseInt(eventDetails.spotsRemaining) || 0) - 1);
+    // STEP 4: Reduce session spots in Sessions sheet
+    const currentSpots = parseInt(sessionDetails.spotsAvailable) || 0;
+    const newSpots = Math.max(0, currentSpots - 1);
     
-    // Find the event row index again to update spots
-    let eventRowIndex = -1;
-    for (let i = 1; i < eventRows.length; i++) {
-        if (eventRows[i][0] === bookingData.eventId) {
-            eventRowIndex = i + 1; // 1-based index
-            break;
-        }
-    }
-
-    if (eventRowIndex > 0) {
+    if (sessionRowIndex > 0) {
         await sheets.spreadsheets.values.update({
             spreadsheetId: spreadsheetId,
-            range: `Events!J${eventRowIndex}`, // Column J = spots_remaining
+            range: `Sessions!M${sessionRowIndex}`, // Column M = spots_available
             valueInputOption: 'USER_ENTERED',
             resource: {
                 values: [[newSpots]]
             }
         });
         
-        console.log(`✅ Reduced event spots to ${newSpots}`);
+        console.log(`✅ Reduced session spots from ${currentSpots} to ${newSpots}`);
     }
     
     console.log('✅ Complete booking process finished');
