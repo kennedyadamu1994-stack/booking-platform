@@ -190,17 +190,30 @@ async function saveCompleteBookingAfterPayment(bookingData) {
     const currentSpots = parseInt(sessionDetails.spotsAvailable) || 0;
     const newSpots = Math.max(0, currentSpots - 1);
     
+    console.log(`📉 Reducing spots from ${currentSpots} to ${newSpots}...`);
+    console.log(`📍 Updating row ${sessionRowIndex} in Sessions sheet`);
+    console.log(`📍 Sheet ID: ${sessionsSheetId}`);
+    
     if (sessionRowIndex > 0) {
-        await sheets.spreadsheets.values.update({
-            spreadsheetId: sessionsSheetId, // Update Sessions sheet (different spreadsheet)
-            range: `Sessions!M${sessionRowIndex}`, // Column M = spots_available
-            valueInputOption: 'USER_ENTERED',
-            resource: {
-                values: [[newSpots]]
-            }
-        });
-        
-        console.log(`✅ Reduced session spots from ${currentSpots} to ${newSpots}`);
+        try {
+            const updateResponse = await sheets.spreadsheets.values.update({
+                spreadsheetId: sessionsSheetId, // Update Sessions sheet (different spreadsheet)
+                range: `Sessions!M${sessionRowIndex}`, // Column M = spots_available
+                valueInputOption: 'USER_ENTERED',
+                resource: {
+                    values: [[newSpots]]
+                }
+            });
+            
+            console.log(`✅ Reduced session spots from ${currentSpots} to ${newSpots}`);
+            console.log(`✅ Update response:`, JSON.stringify(updateResponse.data));
+        } catch (updateError) {
+            console.error('❌ Failed to update spots in Sessions sheet:', updateError);
+            console.error('❌ Error details:', JSON.stringify(updateError));
+            console.error('❌ Attempted to update:', `Sessions!M${sessionRowIndex}`, 'in sheet:', sessionsSheetId);
+            // Don't throw here - booking is already saved
+            console.log('⚠️ Booking saved successfully but spots not updated in Sessions sheet');
+        }
     }
     
     console.log('✅ Complete booking process finished');
