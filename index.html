@@ -399,7 +399,7 @@
                 for (let i = 1; i < sessionRows.length; i++) {
                     const row = sessionRows[i];
                     // Match by Session ID and ensure it's published and bookable
-                    if (row[43] === sessionId && row[35] === 'Published' && row[33] === 'Book') {
+                    if (row[43] === sessionId && row[35] === 'Published' && row[34] === 'Book') {
                         const session = parseSessionRow(row);
                         availableSessions.push(session);
                     }
