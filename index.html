@@ -494,19 +494,32 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
+            console.log('=== DATE FILTERING DEBUG ===');
+            console.log('Today is:', today.toDateString());
+            console.log(`Total sessions found: ${availableSessions.length}`);
+            
             let futureSessionsCount = 0;
+            let pastSessionsCount = 0;
             
             availableSessions.forEach((session, index) => {
+                console.log(`\nSession ${index}:`, session.date);
+                
                 // Parse the session date
                 const sessionDate = parseUKDate(session.date);
                 sessionDate.setHours(0, 0, 0, 0);
                 
+                console.log('  Parsed as:', sessionDate.toDateString());
+                console.log('  Comparison:', sessionDate.getTime(), 'vs', today.getTime());
+                console.log('  Is in past?', sessionDate < today);
+                
                 // Skip past dates - don't add them to dropdown at all
                 if (sessionDate < today) {
-                    console.log(`Skipping past date: ${session.date}`);
+                    console.log('  ❌ SKIPPED - Past date');
+                    pastSessionsCount++;
                     return; // Skip this session
                 }
                 
+                console.log('  ✅ INCLUDED - Future date');
                 futureSessionsCount++;
                 
                 const option = document.createElement('option');
@@ -525,6 +538,10 @@
                 dateSelect.appendChild(option);
             });
             
+            console.log('\n=== FILTERING SUMMARY ===');
+            console.log(`Past dates filtered out: ${pastSessionsCount}`);
+            console.log(`Future dates shown: ${futureSessionsCount}`);
+            
             // If no future sessions, show message
             if (futureSessionsCount === 0) {
                 const option = document.createElement('option');
@@ -532,6 +549,7 @@
                 option.disabled = true;
                 option.textContent = 'No upcoming dates available';
                 dateSelect.appendChild(option);
+                console.log('⚠️ No future sessions available');
             }
         }
 
