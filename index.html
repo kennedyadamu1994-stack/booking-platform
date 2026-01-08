@@ -151,6 +151,7 @@
                 <div class="event-details">
                     <div class="event-title" id="eventTitle">Event Name</div>
                     <div class="event-meta-item"><span>📍</span><span id="eventLocation">Location</span></div>
+                    <div class="event-meta-item"><span>📅</span><span id="eventDateTime">Select a date to see details</span></div>
                     <div class="event-meta-item"><span>⏰</span><span id="eventDuration">Duration</span></div>
                     
                     <div class="event-more-info" id="eventMoreInfo" style="display:none;">
@@ -319,7 +320,7 @@
                 console.log('Looking up NBRH ID:', cleanNbrhId, '(original:', nbrhId + ')');
                 
                 // Load Sessions sheet to find the Session ID for this NBRH ID
-                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`);
+                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AV?key=${API_KEY}`);
                 
                 if (!response.ok) throw new Error('Failed to load sessions data');
                 
@@ -361,8 +362,8 @@
                 
                 // Load Session Templates and Sessions sheets in parallel
                 const [templatesResponse, sessionsResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Session Templates!A:AR?key=${API_KEY}`),
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Session Templates!A:AV?key=${API_KEY}`),
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AV?key=${API_KEY}`),
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
                 ]);
 
@@ -475,7 +476,8 @@
                 latitude: row[38],             // AM: Latitude
                 longitude: row[39],            // AN: Longitude
                 notes: row[40] || '',          // AO: Notes
-                clubUrl: row[23] || '',        // Same as audience? Need to check
+                bookingType: (row[46] || 'stripe').toLowerCase(), // AU: Booking Type (Column AU, index 46)
+                clubUrl: row[23] || '',        // X: Audience (reused for club URL)
                 sessionId: row[43],            // AR: Session ID (column 44, index 43)
                 endTime: row[42] || '',        // AQ: End Time (column 43, index 42)
                 // Calculate transaction fee (assuming 10% or similar)
@@ -515,13 +517,19 @@
             
             selectedSession = availableSessions[selectedIndex];
             console.log('Selected session:', selectedSession);
+            console.log('Booking type:', selectedSession.bookingType);
             
             // Update UI with selected session details
             dateSelect.classList.add('valid');
             
+            // Update the main event card with selected date details
+            const timeDisplay = formatTimeDisplay(selectedSession.startTime, selectedSession.endTime);
+            document.getElementById('eventDateTime').textContent = `${formatDate(selectedSession.date)} at ${timeDisplay}`;
+            document.getElementById('eventLocation').textContent = `${selectedSession.location} • ${selectedSession.address || ''}`;
+            
             // Update date info
             const dateInfo = document.getElementById('dateInfo');
-            dateInfo.textContent = `Selected: ${formatDate(selectedSession.date)} at ${formatTimeDisplay(selectedSession.startTime, selectedSession.endTime)}`;
+            dateInfo.textContent = `Selected: ${formatDate(selectedSession.date)} at ${timeDisplay}`;
             dateInfo.style.color = '#30a330';
             
             // Check if date is in the past
@@ -545,10 +553,15 @@
             // Load attendees for this specific session
             loadAttendeesForSession(selectedSession.nbrhId);
             
-            // Enable booking button
+            // Enable booking button and set text based on booking type
             const payButton = document.getElementById('payButton');
             payButton.disabled = false;
-            payButton.innerHTML = selectedSession.totalPrice === 0 ? 'Register Interest' : `Pay £${selectedSession.totalPrice.toFixed(2)}`;
+            
+            if (selectedSession.bookingType === 'direct') {
+                payButton.innerHTML = 'Register Interest';
+            } else {
+                payButton.innerHTML = selectedSession.totalPrice === 0 ? 'Register Interest' : `Pay £${selectedSession.totalPrice.toFixed(2)}`;
+            }
             
             // Update pricing
             updatePricing();
@@ -921,8 +934,12 @@
             document.getElementById('totalPrice').textContent = `£${finalTotal.toFixed(2)}`;
 
             const payButton = document.getElementById('payButton');
-            if (payButton && !payButton.disabled) {
-                payButton.innerHTML = finalTotal === 0 ? 'Register Interest' : `Pay £${finalTotal.toFixed(2)}`;
+            if (payButton && !payButton.disabled && selectedSession) {
+                if (selectedSession.bookingType === 'direct') {
+                    payButton.innerHTML = 'Register Interest';
+                } else {
+                    payButton.innerHTML = finalTotal === 0 ? 'Register Interest' : `Pay £${finalTotal.toFixed(2)}`;
+                }
             }
         }
 
@@ -1034,9 +1051,10 @@
             console.log('Processing booking for session:', selectedSession.nbrhId);
             console.log('Date:', selectedSession.date);
             console.log('Skill level:', currentSkillLevel);
+            console.log('Booking type:', selectedSession.bookingType);
 
-            // Determine booking type
-            const bookingType = selectedSession.totalPrice === 0 ? 'direct' : 'stripe';
+            // Use the booking type from the session (Column AE)
+            const bookingType = selectedSession.bookingType;
 
             if (bookingType === 'direct') {
                 processDirectBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount);
@@ -1130,10 +1148,15 @@
 
         // ===== Helper Functions =====
         function parseUKDate(dateStr) {
-            // Assumes format "DD/MM/YYYY"
+            // Google Sheets stores dates as M/D/Y format
+            // So "1/4/26" means January 4, 2026 (not April 1st)
             const parts = dateStr.split('/');
             if (parts.length === 3) {
-                return new Date(parts[2], parts[1] - 1, parts[0]);
+                // parts[0] = month, parts[1] = day, parts[2] = year
+                const month = parseInt(parts[0]) - 1; // 0-indexed
+                const day = parseInt(parts[1]);
+                const year = parseInt(parts[2]) + 2000; // Convert 26 to 2026
+                return new Date(year, month, day);
             }
             return new Date(dateStr);
         }
