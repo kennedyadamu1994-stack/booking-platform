@@ -1,5 +1,4 @@
-// api/create-direct-booking.js - Direct booking without Stripe payment
-// Used for free sessions or interest registration
+// Updated api/create-direct-booking.js - Works with NBRH IDs from Sessions sheet
 module.exports = async (req, res) => {
     // Only accept POST requests
     if (req.method !== 'POST') {
@@ -11,6 +10,7 @@ module.exports = async (req, res) => {
         console.log('📨 Request payload:', JSON.stringify(req.body, null, 2));
         
         // Get booking details from the form
+        // NOTE: eventId is now the NBRH ID from the Sessions sheet
         const { 
             eventId, 
             eventName, 
@@ -31,6 +31,7 @@ module.exports = async (req, res) => {
         }
         
         console.log('✅ All required fields present');
+        console.log('✅ NBRH ID:', eventId);
         console.log('📝 Skill level:', skillLevel);
         
         // Generate booking ID
@@ -89,48 +90,54 @@ async function saveDirectBookingToSheets(bookingData) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // STEP 1: Get event details from Events sheet
-    console.log('📋 Fetching event details from Events sheet...');
-    const eventsResponse = await sheets.spreadsheets.values.get({
+    // STEP 1: Get session details from Sessions sheet using NBRH ID
+    console.log('📋 Fetching session details from Sessions sheet...');
+    const sessionsResponse = await sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
-        range: 'Events!A:AF', // Include all columns up to booking_type (Column AE)
+        range: 'Sessions!A:AR', // All columns including Session ID
     });
 
-    const eventRows = eventsResponse.data.values;
-    if (!eventRows || eventRows.length === 0) {
-        throw new Error('No data found in Events sheet');
+    const sessionRows = sessionsResponse.data.values;
+    if (!sessionRows || sessionRows.length === 0) {
+        throw new Error('No data found in Sessions sheet');
     }
 
-    // Find the event by event_id
-    let eventDetails = null;
-    let eventRowIndex = -1;
-    for (let i = 1; i < eventRows.length; i++) {
-        if (eventRows[i][0] === bookingData.eventId) {
-            eventDetails = {
-                id: eventRows[i][0],          // A: event_id
-                name: eventRows[i][1],        // B: event_name
-                description: eventRows[i][2], // C: description
-                date: eventRows[i][3],        // D: date
-                time: eventRows[i][4],        // E: time
-                location: eventRows[i][5],    // F: location
-                totalSpots: eventRows[i][8],  // I: total_spots
-                spotsRemaining: eventRows[i][9] // J: spots_remaining
+    // Find the session by NBRH ID (column A)
+    let sessionDetails = null;
+    let sessionRowIndex = -1;
+    
+    for (let i = 1; i < sessionRows.length; i++) {
+        if (sessionRows[i][0] === bookingData.eventId) { // Column A = NBRH ID
+            sessionDetails = {
+                nbrhId: sessionRows[i][0],        // A: NBRH ID
+                activityType: sessionRows[i][1],  // B: Activity Type
+                club: sessionRows[i][2],          // C: CLUB
+                className: sessionRows[i][3],     // D: Class Name
+                date: sessionRows[i][4],          // E: Date
+                startTime: sessionRows[i][5],     // F: Start Time
+                duration: sessionRows[i][6],      // G: Duration
+                address: sessionRows[i][7],       // H: Address
+                location: sessionRows[i][8],      // I: Location
+                basePrice: sessionRows[i][9],     // J: Base Price
+                totalPrice: sessionRows[i][11],   // L: Total Price
+                spotsAvailable: sessionRows[i][12], // M: Spots Available
+                totalSpots: sessionRows[i][13]    // N: Total Spots
             };
-            eventRowIndex = i + 1; // 1-based index for sheets
+            sessionRowIndex = i + 1; // 1-based index for sheets
             break;
         }
     }
 
-    if (!eventDetails) {
-        throw new Error(`Event not found: ${bookingData.eventId}`);
+    if (!sessionDetails) {
+        throw new Error(`Session not found with NBRH ID: ${bookingData.eventId}`);
     }
 
-    console.log('✅ Event details found:', eventDetails);
+    console.log('✅ Session details found:', sessionDetails);
 
     // STEP 2: Check if spots are available
-    const spotsRemaining = parseInt(eventDetails.spotsRemaining) || 0;
+    const spotsRemaining = parseInt(sessionDetails.spotsAvailable) || 0;
     if (spotsRemaining <= 0) {
-        throw new Error('No spots remaining for this event');
+        throw new Error('No spots remaining for this session');
     }
 
     // STEP 3: Create booking row
@@ -139,7 +146,7 @@ async function saveDirectBookingToSheets(bookingData) {
     const bookingRow = [
         bookingData.bookingId,              // A: booking_id
         currentDate,                        // B: booking_date
-        bookingData.eventId,                // C: event_id
+        bookingData.eventId,                // C: event_id (NBRH ID)
         bookingData.eventName,              // D: event_name
         bookingData.customerName,           // E: customer_name
         bookingData.customerEmail,          // F: customer_email
@@ -150,9 +157,9 @@ async function saveDirectBookingToSheets(bookingData) {
         '',                                 // K: email_sent
         '',                                 // L: email_sent_to_instructor
         bookingData.skillLevel || '',       // M: skill_level
-        eventDetails.date || '',            // N: event_date
-        eventDetails.time || '',            // O: event_time  
-        eventDetails.location || ''         // P: event_location
+        sessionDetails.date || '',          // N: event_date
+        sessionDetails.startTime || '',     // O: event_time  
+        sessionDetails.location || ''       // P: event_location
     ];
 
     console.log('📝 Booking row to save:', bookingRow);
@@ -173,19 +180,19 @@ async function saveDirectBookingToSheets(bookingData) {
     
     console.log('✅ Booking saved with status "Confirmed"');
 
-    // STEP 5: Reduce event spots
+    // STEP 5: Reduce session spots in Sessions sheet
     const newSpots = Math.max(0, spotsRemaining - 1);
     
     await sheets.spreadsheets.values.update({
         spreadsheetId: spreadsheetId,
-        range: `Events!J${eventRowIndex}`, // Column J = spots_remaining
+        range: `Sessions!M${sessionRowIndex}`, // Column M = spots_available
         valueInputOption: 'USER_ENTERED',
         resource: {
             values: [[newSpots]]
         }
     });
     
-    console.log(`✅ Reduced event spots to ${newSpots}`);
+    console.log(`✅ Reduced session spots from ${spotsRemaining} to ${newSpots}`);
     
     console.log('✅ Complete direct booking process finished');
     
