@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Who's Coming?</title>
     <style>
-        /* [SAME STYLES AS BEFORE - truncated for brevity] */
         * {
             margin: 0;
             padding: 0;
@@ -350,6 +349,20 @@
             border-radius: 12px;
             margin: 20px;
             text-align: center;
+            line-height: 1.6;
+        }
+
+        .error-message strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .error-message small {
+            display: block;
+            margin-top: 10px;
+            opacity: 0.8;
+            font-size: 12px;
         }
         
         .empty-state {
@@ -564,7 +577,18 @@
     </div>
 
     <script>
-        // Configuration - UPDATED to use new sheet structure
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        // Sheet Configuration:
+        // - Session ID in Sessions sheet: Column AR (index 43)
+        // - Session ID in Bookings sheet: Column AC (index 28)
+        // 
+        // URL format: ?session=YOUR_SESSION_ID
+        // Example: ?session=abc123xyz
+        // ============================================================
+        
+        // Configuration
         const SHEET_ID = '1P4fON7qVFQt_w9OKoTiweLaT3GkpF9viS910E93BD48';
         const API_KEY = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
         
@@ -572,41 +596,77 @@
         let eventData = null;
         let bookingsData = [];
         
-        // Get NBRH ID from URL parameter
+        // Get Session ID from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
-        const nbrhId = urlParams.get('event');
+        const sessionId = urlParams.get('session');
         
         // Initialize
-        if (!nbrhId) {
-            showError('No event specified. Please provide a valid NBRH ID.');
+        if (!sessionId) {
+            showError('No session specified. Please provide a valid Session ID in the URL (e.g., ?session=YOUR_SESSION_ID)');
         } else {
+            console.log('Loading data for session:', sessionId);
             loadEventData();
         }
         
         async function loadEventData() {
             try {
+                console.log('Fetching data from Google Sheets...');
+                
+                // Build URLs - Bookings sheet extended to column AC to include Session ID
+                const sessionsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`;
+                const bookingsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:AC?key=${API_KEY}`;
+                
+                console.log('Sessions URL:', sessionsUrl);
+                console.log('Bookings URL:', bookingsUrl);
+                
                 // Load session details and bookings in parallel
                 const [sessionResponse, bookingsResponse] = await Promise.all([
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AR?key=${API_KEY}`),
-                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
+                    fetch(sessionsUrl),
+                    fetch(bookingsUrl)
                 ]);
                 
-                if (!sessionResponse.ok || !bookingsResponse.ok) {
-                    throw new Error('Failed to load data');
+                console.log('Session response status:', sessionResponse.status);
+                console.log('Bookings response status:', bookingsResponse.status);
+                
+                // Check for errors and get detailed error messages
+                if (!sessionResponse.ok) {
+                    const errorText = await sessionResponse.text();
+                    console.error('Sessions API Error:', errorText);
+                    throw new Error(`Sessions API returned ${sessionResponse.status}: ${errorText}`);
+                }
+                
+                if (!bookingsResponse.ok) {
+                    const errorText = await bookingsResponse.text();
+                    console.error('Bookings API Error:', errorText);
+                    throw new Error(`Bookings API returned ${bookingsResponse.status}: ${errorText}`);
                 }
                 
                 const sessionData = await sessionResponse.json();
-                const bookingsData = await bookingsResponse.json();
+                const bookingsDataResponse = await bookingsResponse.json();
                 
-                // Process session data - find by NBRH ID
-                const sessionRow = findSessionByNbrhId(sessionData.values, nbrhId);
-                if (!sessionRow) {
-                    showError('Session not found.');
-                    return;
+                console.log('Session data loaded:', sessionData.values ? sessionData.values.length + ' rows' : 'No data');
+                console.log('Bookings data loaded:', bookingsDataResponse.values ? bookingsDataResponse.values.length + ' rows' : 'No data');
+                
+                // Validate data structure
+                if (!sessionData.values || sessionData.values.length === 0) {
+                    throw new Error('No data found in Sessions sheet. Please check the sheet name and permissions.');
                 }
                 
+                if (!bookingsDataResponse.values || bookingsDataResponse.values.length === 0) {
+                    console.warn('No bookings data found - this might be okay for new events');
+                }
+                
+                // Process session data - find by Session ID
+                const sessionRow = findSessionBySessionId(sessionData.values, sessionId);
+                if (!sessionRow) {
+                    throw new Error(`Session ${sessionId} not found in the Sessions sheet. Please check the Session ID.`);
+                }
+                
+                console.log('Found session:', sessionRow);
+                
                 // Process bookings data (confirmed only)
-                const eventBookings = filterBookingsByNbrhId(bookingsData.values, nbrhId);
+                const eventBookings = filterBookingsBySessionId(bookingsDataResponse.values, sessionId);
+                console.log('Found bookings:', eventBookings.length);
                 
                 displayEventInfo(sessionRow);
                 displayCommunityStats(sessionRow, eventBookings);
@@ -622,51 +682,72 @@
                 
             } catch (error) {
                 console.error('Error loading data:', error);
-                showError('Unable to load community information. Please try again later.');
+                showError(error.message || 'Unable to load community information. Please try again later.');
             }
         }
         
-        function findSessionByNbrhId(rows, nbrhId) {
+        function findSessionBySessionId(rows, sessionId) {
+            // Session ID is in Column AR (index 43) of the Sessions sheet
+            const SESSION_ID_COLUMN = 43; // AR = 43 (A=0, B=1...Z=25, AA=26...AR=43)
+            
+            console.log('Searching for Session ID:', sessionId, 'in column index', SESSION_ID_COLUMN, 'across', rows.length, 'rows');
+            
             for (let i = 1; i < rows.length; i++) {
-                if (rows[i][0] === nbrhId) { // Column A = NBRH ID
+                if (rows[i][SESSION_ID_COLUMN] === sessionId) {
+                    console.log('Found match at row', i);
+                    // NOTE: Adjust these column indices to match YOUR sheet structure
                     return {
-                        nbrhId: rows[i][0],
-                        activityType: rows[i][1],
-                        club: rows[i][2],
-                        className: rows[i][3],
-                        date: rows[i][4],
-                        startTime: rows[i][5],
-                        duration: rows[i][6],
-                        location: rows[i][8],
-                        basePrice: parseFloat(rows[i][9]) || 0,
-                        totalPrice: parseFloat(rows[i][11]) || 0,
-                        spotsAvailable: parseInt(rows[i][12]) || 0,
-                        totalSpots: parseInt(rows[i][13]) || 0,
-                        endTime: rows[i][42] || ''
+                        nbrhId: rows[i][0],           // Column A - NBRH ID
+                        sessionId: rows[i][SESSION_ID_COLUMN],  // Session ID (configurable column)
+                        activityType: rows[i][1],      // Column B - adjust if needed
+                        club: rows[i][2],              // Column C
+                        className: rows[i][3],         // Column D
+                        date: rows[i][4],              // Column E
+                        startTime: rows[i][5],         // Column F
+                        duration: rows[i][6],          // Column G
+                        location: rows[i][8],          // Column I
+                        basePrice: parseFloat(rows[i][9]) || 0,   // Column J
+                        totalPrice: parseFloat(rows[i][11]) || 0, // Column L
+                        spotsAvailable: parseInt(rows[i][12]) || 0, // Column M
+                        totalSpots: parseInt(rows[i][13]) || 0,    // Column N
+                        endTime: rows[i][42] || ''     // Column AQ
                     };
                 }
             }
+            
+            console.log('No match found for Session ID:', sessionId);
+            console.log('Available Session IDs in first 5 rows:', rows.slice(1, 6).map(row => row[SESSION_ID_COLUMN]));
             return null;
         }
         
-        function filterBookingsByNbrhId(rows, nbrhId) {
+        function filterBookingsBySessionId(rows, sessionId) {
+            if (!rows || rows.length <= 1) return [];
+            
+            // Session ID is in Column AC (index 28) of the Bookings sheet
+            const SESSION_ID_COLUMN = 28; // AC = 28 (A=0, B=1...Z=25, AA=26, AB=27, AC=28)
+            const STATUS_COLUMN = 9;      // Column J (index 9) for booking status
+            
             const bookings = [];
+            console.log('Filtering bookings for session:', sessionId);
+            
             for (let i = 1; i < rows.length; i++) {
-                // Column C = event_id (NBRH ID), Column J = status
-                if (rows[i][2] === nbrhId && rows[i][9] === 'Confirmed') {
+                // Match by Session ID and only include Confirmed bookings
+                if (rows[i][SESSION_ID_COLUMN] === sessionId && rows[i][STATUS_COLUMN] === 'Confirmed') {
                     bookings.push({
-                        customerName: rows[i][4],
-                        addonsSelected: rows[i][7] || 'None',
-                        skillLevel: rows[i][12] || 'Not specified'
+                        customerName: rows[i][4] || 'Guest',        // Column E
+                        addonsSelected: rows[i][7] || 'None',       // Column H
+                        skillLevel: rows[i][12] || 'Not specified'  // Column M
                     });
                 }
             }
+            
+            console.log('Found', bookings.length, 'confirmed bookings');
             return bookings;
         }
         
         function displayEventInfo(event) {
-            document.getElementById('eventTitle').textContent = event.className;
-            document.getElementById('eventLocation').textContent = event.location;
+            document.getElementById('eventTitle').textContent = event.className || 'Event';
+            document.getElementById('eventLocation').textContent = event.location || 'Location TBA';
             
             const timeDisplay = event.endTime 
                 ? `${event.startTime} - ${event.endTime}`
@@ -855,7 +936,18 @@
         function showError(message) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('error').style.display = 'block';
-            document.getElementById('error').textContent = message;
+            
+            let errorHTML = '<strong>Oops! Something went wrong</strong>';
+            errorHTML += `<p>${message}</p>`;
+            
+            // Add troubleshooting tips
+            if (message.includes('400')) {
+                errorHTML += '<small>This usually means the Google Sheet needs to be publicly accessible. Make sure the sheet is set to "Anyone with the link can view".</small>';
+            } else if (message.includes('not found')) {
+                errorHTML += '<small>Double-check that the event ID in the URL is correct.</small>';
+            }
+            
+            document.getElementById('error').innerHTML = errorHTML;
         }
     </script>
 </body>
