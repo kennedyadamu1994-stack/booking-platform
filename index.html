@@ -128,7 +128,7 @@
     <div class="header">
         <button class="close-btn" onclick="window.history.back()">←</button>
         <h1>Checkout</h1>
-        <button class="help-btn"></button>
+        <button class="help-btn">?</button>
     </div>
 
     <div id="loading" class="loading">
@@ -458,7 +458,7 @@
                 clubUrl: row[23] || '',
                 sessionId: row[43],
                 endTime: row[42] || '',
-                transactionFee: parseFloat(row[11]) * 0.1 || 0
+                transactionFee: parseFloat(row[47]) || 0
             };
         }
 
