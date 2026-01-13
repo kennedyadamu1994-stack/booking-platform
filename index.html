@@ -150,13 +150,13 @@
                     <div class="event-meta-item"><span>⏰</span><span id="eventDuration">Duration</span></div>
                     
                     <div class="event-more-info" id="eventMoreInfo" style="display:none;">
-                        <a href="#" id="moreInfoLink" class="more-info-link" target="_blank">
+                        <a href="#" id="moreInfoLink" class="more-info-link">
                             Click here to book direct
                         </a>
                     </div>
                     
                     <div class="event-more-info" id="clubLinkContainer" style="display:none;">
-                        <a href="#" id="clubLink" class="club-link" target="_blank">
+                        <a href="#" id="clubLink" class="club-link">
                             Visit Club Page
                         </a>
                     </div>
@@ -661,7 +661,7 @@
             document.getElementById('ticketPrice').textContent = `£${sessionTemplate.totalPrice.toFixed(2)}`;
             document.getElementById('bookingFeeAmount').textContent = sessionTemplate.transactionFee.toFixed(2);
 
-            // FIXED: Use website column for "Click here to book direct" link
+            // Use website column for "Click here to book direct" link
             if (sessionTemplate.website && sessionTemplate.website.trim() !== '') {
                 const moreInfoLink = document.getElementById('moreInfoLink');
                 const moreInfoSection = document.getElementById('eventMoreInfo');
@@ -695,7 +695,7 @@
                 notesCard.style.display = 'block';
             }
 
-            // ADDED: Show membership/bundle indicator if type is "Clubs"
+            // Show membership/bundle indicator if type is "Clubs"
             if (sessionTemplate.type && sessionTemplate.type.toLowerCase() === 'clubs') {
                 const membershipBadge = document.getElementById('membershipBadge');
                 const pricingNote = document.getElementById('pricingNote');
