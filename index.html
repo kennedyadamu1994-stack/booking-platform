@@ -128,7 +128,7 @@
     <div class="header">
         <button class="close-btn" onclick="window.history.back()">←</button>
         <h1>Checkout</h1>
-        <button class="help-btn"></button>
+        <button class="help-btn">?</button>
     </div>
 
     <div id="loading" class="loading">
@@ -296,6 +296,51 @@
         let appliedDiscount = null;
         let currentSkillLevel = '';
         let attendeesData = [];
+
+        // ⭐ NEW: Analytics Helper Functions
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+                return "Tablet";
+            }
+            if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+                return "Mobile";
+            }
+            return "Desktop";
+        }
+
+        function getBrowser() {
+            const ua = navigator.userAgent;
+            if (ua.includes("Edg")) return "Edge";
+            if (ua.includes("Chrome")) return "Chrome";
+            if (ua.includes("Safari")) return "Safari";
+            if (ua.includes("Firefox")) return "Firefox";
+            if (ua.includes("Opera") || ua.includes("OPR")) return "Opera";
+            return "Other";
+        }
+
+        function calculateDaysUntil(sessionDateStr) {
+            const sessionDate = parseUKDate(sessionDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            sessionDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = sessionDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        function getBookingDayOfWeek() {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[new Date().getDay()];
+        }
+
+        function getBookingTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'Morning';
+            if (hour < 17) return 'Afternoon';
+            return 'Evening';
+        }
 
         // ===== Boot =====
         const urlParams = new URLSearchParams(window.location.search);
@@ -661,7 +706,6 @@
             document.getElementById('ticketPrice').textContent = `£${sessionTemplate.totalPrice.toFixed(2)}`;
             document.getElementById('bookingFeeAmount').textContent = sessionTemplate.transactionFee.toFixed(2);
 
-            // Use website column for "Click here to book direct" link
             if (sessionTemplate.website && sessionTemplate.website.trim() !== '') {
                 const moreInfoLink = document.getElementById('moreInfoLink');
                 const moreInfoSection = document.getElementById('eventMoreInfo');
@@ -695,7 +739,6 @@
                 notesCard.style.display = 'block';
             }
 
-            // Show membership/bundle indicator if type is "Clubs"
             if (sessionTemplate.type && sessionTemplate.type.toLowerCase() === 'clubs') {
                 const membershipBadge = document.getElementById('membershipBadge');
                 const pricingNote = document.getElementById('pricingNote');
@@ -1019,6 +1062,7 @@
             el.style.display = 'block';
         }
 
+        // ⭐ UPDATED: Process booking with analytics collection
         async function processBooking() {
             if (!selectedSession) {
                 alert('Please select a date before booking.');
@@ -1050,6 +1094,18 @@
             const discountAmount = calculateDiscount(totalAmount);
             const finalAmount = totalAmount - discountAmount;
 
+            // ⭐ NEW: Collect analytics data (columns X-AC)
+            const analytics = {
+                bookingTimestamp: new Date().toISOString(),
+                deviceType: getDeviceType(),
+                browser: getBrowser(),
+                daysUntilSession: calculateDaysUntil(selectedSession.date),
+                bookingDayOfWeek: getBookingDayOfWeek(),
+                bookingTimeOfDay: getBookingTimeOfDay(),
+                screenWidth: window.screen.width
+            };
+
+            console.log('📊 Analytics collected:', analytics);
             console.log('Processing booking for session:', selectedSession.nbrhId);
             console.log('Date:', selectedSession.date);
             console.log('Skill level:', currentSkillLevel);
@@ -1058,15 +1114,16 @@
             const bookingType = selectedSession.bookingType;
 
             if (bookingType === 'direct') {
-                processDirectBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount);
+                processDirectBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount, analytics);
             } else {
-                processStripeBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount);
+                processStripeBooking(name, email, currentSkillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount, analytics);
             }
         }
 
-        async function processDirectBooking(name, email, skillLevel, selectedAddonNames, finalAmount) {
+        // ⭐ UPDATED: Direct booking with analytics
+        async function processDirectBooking(name, email, skillLevel, selectedAddonNames, finalAmount, analytics) {
             try {
-                console.log('🎯 Processing DIRECT booking...');
+                console.log('🎯 Processing DIRECT booking with analytics...');
                 
                 const requestPayload = {
                     eventId: selectedSession.nbrhId,
@@ -1075,7 +1132,8 @@
                     customerEmail: email,
                     skillLevel: skillLevel,
                     amount: finalAmount,
-                    addons: selectedAddonNames
+                    addons: selectedAddonNames,
+                    analytics: analytics
                 };
 
                 const response = await fetch('/api/create-direct-booking', {
@@ -1100,9 +1158,10 @@
             }
         }
 
-        async function processStripeBooking(name, email, skillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount) {
+        // ⭐ UPDATED: Stripe booking with analytics
+        async function processStripeBooking(name, email, skillLevel, selectedAddonNames, finalAmount, totalAmount, discountAmount, analytics) {
             try {
-                console.log('💳 Processing STRIPE payment booking...');
+                console.log('💳 Processing STRIPE payment booking with analytics...');
                 
                 const requestPayload = {
                     eventId: selectedSession.nbrhId,
@@ -1115,6 +1174,7 @@
                     discountCode: appliedDiscount ? appliedDiscount.code : null,
                     discountAmount: discountAmount,
                     addons: selectedAddonNames,
+                    analytics: analytics,
                     stripeMetadata: {
                         event_id: selectedSession.nbrhId,
                         event_name: selectedSession.className,
