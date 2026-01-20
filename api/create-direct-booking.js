@@ -1,4 +1,4 @@
-// Updated api/create-direct-booking.js - Works with NBRH IDs from Sessions sheet
+// Updated api/create-direct-booking.js - Works with NBRH IDs from Sessions sheet + Analytics
 module.exports = async (req, res) => {
     // Only accept POST requests
     if (req.method !== 'POST') {
@@ -18,7 +18,8 @@ module.exports = async (req, res) => {
             customerEmail, 
             skillLevel,
             amount, 
-            addons
+            addons,
+            analytics // ⭐ NEW: Analytics data
         } = req.body;
         
         // Validate required fields
@@ -34,6 +35,7 @@ module.exports = async (req, res) => {
         console.log('✅ All required fields present');
         console.log('✅ NBRH ID:', eventId);
         console.log('📝 Skill level:', skillLevel);
+        console.log('📊 Analytics:', analytics);
         
         // Check environment variables
         if (!process.env.GOOGLE_SERVICE_ACCOUNT) {
@@ -68,7 +70,8 @@ module.exports = async (req, res) => {
             customerEmail,
             skillLevel,
             amount: amount || 0,
-            addons: addons || []
+            addons: addons || [],
+            analytics: analytics || {} // ⭐ NEW
         });
         
         console.log('✅ Direct booking saved successfully');
@@ -198,7 +201,7 @@ async function saveDirectBookingToSheets(bookingData) {
             throw new Error('No spots remaining for this session');
         }
 
-        // STEP 3: Create booking row
+        // STEP 3: Create booking row with analytics (columns X-AC)
         const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
         
         const bookingRow = [
@@ -217,10 +220,24 @@ async function saveDirectBookingToSheets(bookingData) {
             bookingData.skillLevel || '',       // M: skill_level
             sessionDetails.date || '',          // N: event_date
             sessionDetails.startTime || '',     // O: event_time  
-            sessionDetails.location || ''       // P: event_location
+            sessionDetails.location || '',      // P: event_location
+            '',                                 // Q: [reserved]
+            '',                                 // R: [reserved]
+            '',                                 // S: [reserved]
+            '',                                 // T: [reserved]
+            '',                                 // U: [reserved]
+            '',                                 // V: [reserved]
+            '',                                 // W: [reserved]
+            // ⭐ NEW: Analytics columns (X-AC)
+            bookingData.analytics?.bookingTimestamp || new Date().toISOString(), // X: booking_timestamp
+            bookingData.analytics?.deviceType || 'Unknown',                      // Y: device_type
+            bookingData.analytics?.browser || 'Unknown',                         // Z: browser
+            bookingData.analytics?.daysUntilSession || 0,                        // AA: days_until_session
+            bookingData.analytics?.bookingDayOfWeek || 'Unknown',                // AB: booking_day_of_week
+            bookingData.analytics?.bookingTimeOfDay || 'Unknown'                 // AC: booking_time_of_day
         ];
 
-        console.log('📝 Booking row to save:', bookingRow);
+        console.log('📝 Booking row to save (with analytics):', bookingRow);
 
         // STEP 4: Save to Bookings sheet (in separate spreadsheet)
         console.log('💾 Saving to Bookings sheet...');
@@ -228,7 +245,7 @@ async function saveDirectBookingToSheets(bookingData) {
         
         const appendRequest = {
             spreadsheetId: bookingsSheetId, // Save to Bookings spreadsheet
-            range: 'Bookings!A:P', // Save to Bookings tab
+            range: 'Bookings!A:AC', // ⭐ EXTENDED: Now includes analytics columns X-AC
             valueInputOption: 'USER_ENTERED',
             insertDataOption: 'INSERT_ROWS',
             resource: {
@@ -238,7 +255,7 @@ async function saveDirectBookingToSheets(bookingData) {
         
         try {
             await sheets.spreadsheets.values.append(appendRequest);
-            console.log('✅ Booking saved to Bookings sheet with status "Confirmed"');
+            console.log('✅ Booking saved to Bookings sheet with status "Confirmed" and analytics');
         } catch (appendError) {
             console.error('❌ Failed to append to Bookings sheet:', appendError);
             throw new Error(`Failed to save booking: ${appendError.message}`);
@@ -272,7 +289,7 @@ async function saveDirectBookingToSheets(bookingData) {
             console.log('⚠️ You may need to manually update spots or check Google Service Account permissions');
         }
         
-        console.log('✅ Complete direct booking process finished');
+        console.log('✅ Complete direct booking process finished with analytics');
         
         return { 
             bookingId: bookingData.bookingId,
