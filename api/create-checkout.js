@@ -1,4 +1,4 @@
-// Updated api/create-checkout.js - Works with NBRH IDs from Sessions sheet
+// Updated api/create-checkout.js - Works with NBRH IDs from Sessions sheet + Analytics
 module.exports = async (req, res) => {
     // Only accept POST requests
     if (req.method !== 'POST') {
@@ -25,11 +25,13 @@ module.exports = async (req, res) => {
             discountCode,
             discountAmount,
             addons,
-            stripeMetadata
+            stripeMetadata,
+            analytics // ⭐ NEW: Analytics data from client
         } = req.body;
         
         console.log('✅ Event ID (NBRH ID):', eventId);
         console.log('✅ Extracted skill level:', skillLevel);
+        console.log('📊 Analytics data:', analytics);
         
         // Validate required fields
         if (!skillLevel) {
@@ -48,7 +50,7 @@ module.exports = async (req, res) => {
         
         console.log('💳 Creating Stripe checkout session...');
         
-        // Create Stripe checkout session with ALL booking data in metadata
+        // Create Stripe checkout session with ALL booking data in metadata including analytics
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             customer_email: customerEmail,
@@ -79,7 +81,15 @@ module.exports = async (req, res) => {
                 amount: amount.toString(),
                 originalAmount: originalAmount ? originalAmount.toString() : amount.toString(),
                 discountCode: discountCode || 'None',
-                discountAmount: discountAmount ? discountAmount.toString() : '0'
+                discountAmount: discountAmount ? discountAmount.toString() : '0',
+                // ⭐ NEW: Analytics metadata (columns X-AC)
+                bookingTimestamp: analytics?.bookingTimestamp || new Date().toISOString(),
+                deviceType: analytics?.deviceType || 'Unknown',
+                browser: analytics?.browser || 'Unknown',
+                daysUntilSession: analytics?.daysUntilSession?.toString() || '0',
+                bookingDayOfWeek: analytics?.bookingDayOfWeek || 'Unknown',
+                bookingTimeOfDay: analytics?.bookingTimeOfDay || 'Unknown',
+                screenWidth: analytics?.screenWidth?.toString() || '0'
             }
         });
         
