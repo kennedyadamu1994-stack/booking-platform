@@ -1,4 +1,4 @@
-// Updated api/webhook.js - Works with NBRH IDs and Sessions sheet
+// Updated api/webhook.js - Works with NBRH IDs and Sessions sheet + Analytics
 module.exports = async (req, res) => {
     console.log('Webhook called with method:', req.method);
     
@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
             }
         }
 
-        // Extract booking data from Stripe metadata
+        // Extract booking data from Stripe metadata (including analytics)
         const metadata = checkoutSession.metadata;
         const bookingData = {
             eventId: metadata.eventId, // This is the NBRH ID
@@ -55,17 +55,24 @@ module.exports = async (req, res) => {
             skillLevel: metadata.skillLevel,
             addons: metadata.addons === 'None' ? '' : metadata.addons,
             amount: parseFloat(metadata.amount),
-            paymentIntentId: paymentIntentId
+            paymentIntentId: paymentIntentId,
+            // ⭐ NEW: Analytics from metadata (columns X-AC)
+            bookingTimestamp: metadata.bookingTimestamp,
+            deviceType: metadata.deviceType,
+            browser: metadata.browser,
+            daysUntilSession: parseInt(metadata.daysUntilSession) || 0,
+            bookingDayOfWeek: metadata.bookingDayOfWeek,
+            bookingTimeOfDay: metadata.bookingTimeOfDay
         };
 
-        console.log('Booking data from Stripe metadata:', bookingData);
+        console.log('Booking data from Stripe metadata (with analytics):', bookingData);
 
         // Save the booking to Google Sheets
         const { eventId } = await saveCompleteBookingAfterPayment(bookingData);
 
         res.status(200).json({ 
             success: true, 
-            message: 'Booking saved successfully after payment confirmation',
+            message: 'Booking saved successfully after payment confirmation with analytics',
             sessionId: sessionId,
             paymentIntentId: paymentIntentId,
             eventId: eventId
@@ -80,9 +87,9 @@ module.exports = async (req, res) => {
     }
 };
 
-// Complete function that saves booking AFTER payment
+// Complete function that saves booking AFTER payment (with analytics)
 async function saveCompleteBookingAfterPayment(bookingData) {
-    console.log('Saving complete booking after successful payment...');
+    console.log('Saving complete booking after successful payment with analytics...');
     
     // Import googleapis
     const { google } = require('googleapis');
@@ -144,11 +151,11 @@ async function saveCompleteBookingAfterPayment(bookingData) {
 
     console.log('Session details found:', sessionDetails);
 
-    // STEP 2: Create complete booking row
+    // STEP 2: Create complete booking row with analytics (columns X-AC)
     const bookingId = `BK${Date.now()}`;
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // Build comprehensive booking row
+    // Build comprehensive booking row with analytics
     const bookingRow = [
         bookingId,                          // A: booking_id
         currentDate,                        // B: booking_date
@@ -165,15 +172,29 @@ async function saveCompleteBookingAfterPayment(bookingData) {
         bookingData.skillLevel || '',       // M: skill_level
         sessionDetails.date || '',          // N: event_date
         sessionDetails.startTime || '',     // O: event_time  
-        sessionDetails.location || ''       // P: event_location
+        sessionDetails.location || '',      // P: event_location
+        '',                                 // Q: [reserved]
+        '',                                 // R: [reserved]
+        '',                                 // S: [reserved]
+        '',                                 // T: [reserved]
+        '',                                 // U: [reserved]
+        '',                                 // V: [reserved]
+        '',                                 // W: [reserved]
+        // ⭐ NEW: Analytics columns (X-AC)
+        bookingData.bookingTimestamp || new Date().toISOString(), // X: booking_timestamp
+        bookingData.deviceType || 'Unknown',                      // Y: device_type
+        bookingData.browser || 'Unknown',                         // Z: browser
+        bookingData.daysUntilSession || 0,                        // AA: days_until_session
+        bookingData.bookingDayOfWeek || 'Unknown',                // AB: booking_day_of_week
+        bookingData.bookingTimeOfDay || 'Unknown'                 // AC: booking_time_of_day
     ];
 
-    console.log('Complete booking row to save:', bookingRow);
+    console.log('Complete booking row to save (with analytics):', bookingRow);
 
     // STEP 3: Save to Bookings sheet (in separate spreadsheet)
     const appendRequest = {
         spreadsheetId: bookingsSheetId, // Save to Bookings spreadsheet
-        range: 'Bookings!A:P', // Save to Bookings tab
+        range: 'Bookings!A:AC', // ⭐ EXTENDED: Now includes analytics columns X-AC
         valueInputOption: 'USER_ENTERED',
         insertDataOption: 'INSERT_ROWS',
         resource: {
@@ -181,10 +202,10 @@ async function saveCompleteBookingAfterPayment(bookingData) {
         }
     };
     
-    console.log('Saving booking to Bookings sheet...');
+    console.log('Saving booking to Bookings sheet with analytics...');
     await sheets.spreadsheets.values.append(appendRequest);
     
-    console.log('✅ Booking saved to Bookings sheet with status "Confirmed"');
+    console.log('✅ Booking saved to Bookings sheet with status "Confirmed" and analytics');
 
     // STEP 4: Reduce session spots in Sessions sheet
     const currentSpots = parseInt(sessionDetails.spotsAvailable) || 0;
@@ -216,7 +237,7 @@ async function saveCompleteBookingAfterPayment(bookingData) {
         }
     }
     
-    console.log('✅ Complete booking process finished');
+    console.log('✅ Complete booking process finished with analytics');
     
     return { eventId: bookingData.eventId };
 }
