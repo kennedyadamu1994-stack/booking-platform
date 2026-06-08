@@ -152,14 +152,7 @@
       font-weight: normal; line-height: 1.02; letter-spacing: -0.02em;
       color: var(--text); margin-bottom: 0.9rem;
     }
-    .hero-meta { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; margin-bottom: 1.75rem; }
-    .hero-meta-pill {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      background: rgba(255,255,255,0.1); backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.16); border-radius: 100px;
-      padding: 0.28rem 0.8rem; font-size: 0.78rem; color: var(--text-muted);
-    }
-    .hero-meta-pill i { color: var(--accent); font-size: 0.7rem; }
+    .hero-meta { display: none; }
     .hero-share-btn {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.75rem 1.4rem; font-family: var(--font-sans);
@@ -550,7 +543,7 @@
       /* Confidence */
       if (s.confidenceScore) {
         const cls = confClass(s.confidenceScore);
-        addRow('fa-shield-check', 'Confidence',
+        addRow('fa-circle-check', 'Confidence',
           `<span class="conf-badge ${cls}"><span class="dot"></span>${s.confidenceScore}</span>`);
       }
 
