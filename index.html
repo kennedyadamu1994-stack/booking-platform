@@ -19,9 +19,6 @@
   <meta name="twitter:image"      id="twitterImage"  content="" />
 
   <style>
-    /* ══════════════════════════════════════════
-       TOKENS
-    ══════════════════════════════════════════ */
     :root {
       --accent:        #FF1B6E;
       --accent-dim:    rgba(255,27,110,0.10);
@@ -37,13 +34,11 @@
       --border-bright: rgba(255,255,255,0.14);
       --green:         #22c55e;
       --green-dim:     rgba(34,197,94,0.12);
-      --amber:         #f59e0b;
       --font-serif:    'Young Serif', Georgia, serif;
       --font-sans:     'DM Sans', -apple-system, sans-serif;
       --r:             3px;
       --r-lg:          8px;
 
-      /* Confidence colours */
       --c-verified:    rgba(0,128,0,0.9);
       --c-likely:      rgba(34,139,34,0.9);
       --c-probably:    rgba(202,138,4,0.9);
@@ -67,7 +62,7 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-    /* NAV */
+    /* ── NAV ── */
     .site-nav {
       position: sticky; top: 0;
       background: rgba(27,27,27,0.97);
@@ -78,21 +73,17 @@
     .nav-inner {
       max-width: 1200px; margin: 0 auto;
       padding: 0.85rem 2rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .nav-brand {
       display: flex; align-items: center; gap: 0.65rem;
       text-decoration: none; flex-shrink: 0;
     }
     .nav-brand-logo { height: 30px; object-fit: contain; }
-    .nav-brand-name {
-      font-family: var(--font-serif); font-size: 0.95rem;
-      color: var(--text); line-height: 1.15;
-    }
+    .nav-brand-name { font-family: var(--font-serif); font-size: 0.95rem; color: var(--text); line-height: 1.15; }
     .nav-brand-name small {
-      display: block; font-family: var(--font-sans);
-      font-size: 0.55rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint);
+      display: block; font-family: var(--font-sans); font-size: 0.55rem;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint);
     }
     .nav-back {
       color: var(--text-muted); text-decoration: none;
@@ -101,10 +92,10 @@
     }
     .nav-back:hover { color: var(--accent); }
 
-    /* PAGE */
+    /* ── PAGE ── */
     .page { max-width: 1200px; margin: 0 auto; padding-bottom: 7rem; }
 
-    /* LOADING / ERROR */
+    /* ── LOADING / ERROR ── */
     .loading-state { text-align: center; padding: 5rem 2rem; color: var(--text-faint); }
     .spinner {
       width: 32px; height: 32px;
@@ -123,16 +114,11 @@
     .error-state p  { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; }
     .error-state a  { color: var(--accent); text-decoration: none; }
 
-    /* CONTENT */
-    .content-grid { display: grid; gap: 1px; }
-    .card { background: var(--bg-card); border-bottom: 1px solid var(--border); }
-    .card-inner { padding: 2rem; }
-
-    /* HERO */
+    /* ── HERO ── */
     .hero-card {
       position: relative; min-height: 88vh;
       display: flex; align-items: flex-end;
-      overflow: hidden; border-bottom: none;
+      overflow: hidden;
     }
     .hero-bg {
       position: absolute; inset: 0;
@@ -147,7 +133,6 @@
       position: relative; z-index: 2;
       padding: 6rem 2rem 3rem; width: 100%; max-width: 1200px; margin: 0 auto;
     }
-
     .hero-badge {
       display: inline-flex; align-items: center; gap: 0.45rem;
       background: var(--accent-dim); border: 1px solid var(--accent-mid);
@@ -157,7 +142,6 @@
     }
     .hero-badge-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.6s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.65)} }
-
     .hero-club {
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.12em; color: var(--accent); display: block; margin-bottom: 0.55rem;
@@ -176,7 +160,6 @@
       padding: 0.28rem 0.8rem; font-size: 0.78rem; color: var(--text-muted);
     }
     .hero-meta-pill i { color: var(--accent); font-size: 0.7rem; }
-
     .hero-share-btn {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.75rem 1.4rem; font-family: var(--font-sans);
@@ -188,32 +171,47 @@
     }
     .hero-share-btn:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.28); }
 
-    /* INFO GRID */
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(150px,100%), 1fr));
-      gap: 0.75rem;
-    }
-    .info-item {
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      border-radius: var(--r-lg); padding: 1rem;
-      text-align: center; transition: border-color 0.2s;
-    }
-    .info-item:hover { border-color: var(--border-bright); }
-    .info-icon { font-size: 1rem; color: var(--accent); margin-bottom: 0.45rem; display: block; }
-    .info-label {
-      font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.08em; color: var(--text-faint); margin-bottom: 0.25rem; display: block;
-    }
-    .info-value {
-      font-family: var(--font-serif); font-size: 0.92rem;
-      color: var(--text); font-weight: normal; line-height: 1.3;
+    /* ── INFO LIST ── */
+    .info-panel { background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .info-panel-inner { padding: 0 2rem; }
+
+    .notes-box {
+      padding: 1.5rem 0 1.25rem;
+      font-size: 0.9rem; color: var(--text-muted); line-height: 1.75;
+      border-bottom: 1px solid var(--border);
     }
 
-    /* CONFIDENCE BADGE */
+    .info-row {
+      display: flex; align-items: center;
+      gap: 1.25rem; padding: 1.1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+
+    .info-row-icon {
+      color: var(--accent); font-size: 1rem;
+      width: 22px; text-align: center; flex-shrink: 0;
+    }
+    .info-row-label {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-faint);
+      flex-shrink: 0;
+      /* Fixed width so values always align */
+      min-width: 130px;
+    }
+    .info-row-value {
+      font-size: 0.975rem; color: var(--text);
+      flex: 1; line-height: 1.45;
+    }
+    .info-row-value a {
+      color: var(--accent); text-decoration: none; font-weight: 500;
+    }
+    .info-row-value a:hover { text-decoration: underline; }
+
+    /* Confidence badge inline */
     .conf-badge {
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 4px 10px; border-radius: var(--r);
+      padding: 3px 10px; border-radius: var(--r);
       font-size: 0.72rem; font-weight: 700; color: #fff;
       font-family: var(--font-sans); letter-spacing: 0.02em;
     }
@@ -224,110 +222,24 @@
     .conf-badge.uncertain   { background: var(--c-uncertain); }
     .conf-badge.unconfirmed { background: var(--c-unconfirmed); }
 
-    /* TAGS */
-    .tags-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
-    .tag {
-      display: inline-flex; align-items: center;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 0.7rem; font-weight: 500; color: var(--text-muted);
+    /* Club link buttons inline */
+    .club-link-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .club-link-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.85rem; border-radius: var(--r);
+      font-size: 0.75rem; font-weight: 600; text-decoration: none;
+      transition: all 0.18s; border: 1px solid;
     }
-    .tag.vibe   { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
-    .tag.green  { background: var(--green-dim);  border-color: rgba(34,197,94,0.2); color: var(--green); }
-    .tag.badge-tag {
-      background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25);
-      color: var(--amber);
+    .club-link-btn.primary {
+      background: var(--accent); color: #fff; border-color: var(--accent);
     }
+    .club-link-btn.primary:hover { opacity: 0.88; }
+    .club-link-btn.secondary {
+      background: transparent; color: var(--text-muted); border-color: var(--border-bright);
+    }
+    .club-link-btn.secondary:hover { border-color: var(--accent-mid); color: var(--text); }
 
-    /* EYEBROW + SECTION TITLE */
-    .eyebrow {
-      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.16em; color: var(--accent); display: block; margin-bottom: 0.35rem;
-    }
-    .section-title {
-      font-family: var(--font-serif); font-size: clamp(1.25rem, 3vw, 1.65rem);
-      font-weight: normal; line-height: 1.1; letter-spacing: -0.015em;
-      color: var(--text); margin-bottom: 1.25rem;
-    }
-
-    /* COLLAPSIBLES */
-    .collapsible-header {
-      padding: 1.25rem 2rem;
-      display: flex; justify-content: space-between; align-items: center;
-      cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--border);
-    }
-    .collapsible-header:hover { background: var(--bg-elevated); }
-    .collapsible-title-row { display: flex; flex-direction: column; gap: 0.15rem; }
-    .collapsible-title { font-family: var(--font-serif); font-size: 1.05rem; color: var(--text); font-weight: normal; }
-    .collapsible-icon {
-      width: 28px; height: 28px; border: 1px solid var(--border-bright);
-      border-radius: var(--r); display: flex; align-items: center; justify-content: center;
-      color: var(--text-faint); font-size: 0.65rem; flex-shrink: 0;
-      transition: transform 0.3s, border-color 0.2s, color 0.2s;
-    }
-    .collapsible-header:hover .collapsible-icon { border-color: var(--accent); color: var(--accent); }
-    .collapsible-header.open .collapsible-icon { transform: rotate(180deg); color: var(--accent); border-color: var(--accent); }
-    .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-    .collapsible-content.open { max-height: 3000px; }
-    .collapsible-inner { padding: 1.75rem 2rem; }
-
-    /* ADDRESS BLOCK */
-    .address-block {
-      display: flex; align-items: flex-start; gap: 0.9rem;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      border-radius: var(--r-lg); padding: 1.1rem 1.2rem;
-      text-decoration: none; color: inherit;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .address-block:hover { border-color: var(--accent-mid); transform: translateY(-1px); }
-    .address-icon {
-      width: 38px; height: 38px; flex-shrink: 0;
-      background: var(--accent-dim); border: 1px solid var(--accent-mid);
-      border-radius: var(--r); display: flex; align-items: center; justify-content: center;
-      color: var(--accent); font-size: 0.9rem;
-    }
-    .address-text { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
-    .address-cta { font-size: 0.72rem; color: var(--accent); margin-top: 0.35rem; display: block; font-weight: 600; }
-
-    /* DETAIL LIST */
-    .detail-list { display: grid; gap: 0.5rem; }
-    .detail-row {
-      display: flex; align-items: flex-start; gap: 0.75rem;
-      padding: 0.75rem 0; border-bottom: 1px solid var(--border);
-    }
-    .detail-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .detail-icon { color: var(--accent); font-size: 0.85rem; margin-top: 0.15rem; flex-shrink: 0; width: 16px; text-align: center; }
-    .detail-key { font-size: 0.72rem; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; min-width: 110px; padding-top: 0.1rem; }
-    .detail-val { font-size: 0.875rem; color: var(--text-muted); line-height: 1.55; }
-
-    /* NOTES BOX */
-    .notes-box {
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      border-radius: var(--r-lg); padding: 1.1rem 1.2rem;
-      font-size: 0.875rem; color: var(--text-muted);
-      line-height: 1.7; white-space: pre-wrap; margin-bottom: 1.1rem;
-    }
-
-    /* CLUB HUB BUTTON */
-    .club-hub-btn {
-      display: inline-flex; align-items: center; gap: 0.55rem;
-      background: var(--accent); color: #fff;
-      padding: 0.75rem 1.4rem; border-radius: var(--r);
-      font-size: 0.85rem; font-weight: 600; text-decoration: none;
-      transition: all 0.2s; margin-bottom: 0.75rem;
-    }
-    .club-hub-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(255,27,110,0.3); }
-    .club-website-link {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      color: var(--text-muted); font-size: 0.82rem; text-decoration: none;
-      padding: 0.6rem 1.1rem;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      border-radius: var(--r); transition: border-color 0.2s, color 0.2s;
-    }
-    .club-website-link:hover { border-color: var(--border-bright); color: var(--text); }
-    .club-links-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
-
-    /* STICKY CTA */
+    /* ── STICKY CTA ── */
     .sticky-cta {
       position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
       background: var(--accent); color: #fff; border: none;
@@ -343,7 +255,7 @@
       box-shadow: 0 10px 32px rgba(255,27,110,0.5);
     }
 
-    /* TOAST */
+    /* ── TOAST ── */
     .toast {
       position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%);
       background: var(--bg-elevated); border: 1px solid var(--border-bright);
@@ -353,17 +265,14 @@
     }
     .toast.show { opacity: 1; }
 
-    /* RESPONSIVE */
+    /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .nav-inner { padding: 0.85rem 1.25rem; }
       .hero-card { min-height: 78vh; }
       .hero-content { padding: 4rem 1.25rem 2.5rem; }
       .hero-title { font-size: 2.2rem; }
-      .card-inner { padding: 1.5rem 1.25rem; }
-      .collapsible-header { padding: 1rem 1.25rem; }
-      .collapsible-inner { padding: 1.5rem 1.25rem; }
-      .info-grid { grid-template-columns: 1fr 1fr; }
-      .detail-key { min-width: 90px; }
+      .info-panel-inner { padding: 0 1.25rem; }
+      .info-row-label { min-width: 100px; }
       .sticky-cta { left: 1rem; right: 1rem; transform: none; width: calc(100% - 2rem); }
       .sticky-cta:hover { transform: none; }
     }
@@ -398,9 +307,9 @@
       <a href="https://www.thenbrh.co.uk/">Browse all sessions</a>
     </div>
 
-    <div id="content" class="content-grid" style="display:none;">
+    <div id="content" style="display:none;">
 
-      <!-- ─── HERO ─── -->
+      <!-- HERO -->
       <div class="hero-card">
         <div class="hero-bg" id="heroBg"></div>
         <div class="hero-fade"></div>
@@ -418,53 +327,11 @@
         </div>
       </div>
 
-      <!-- ─── INFO GRID ─── -->
-      <div class="card">
-        <div class="card-inner">
-          <div class="info-grid" id="infoGrid"></div>
-          <div class="tags-row" id="tagsRow"></div>
-        </div>
-      </div>
-
-      <!-- ─── LOCATION & VENUE ─── -->
-      <div class="card" id="venueCard" style="display:none;">
-        <div class="collapsible-header" data-target="venueContent">
-          <div class="collapsible-title-row">
-            <span class="eyebrow" style="margin-bottom:0;">Getting There</span>
-            <span class="collapsible-title">Location &amp; Venue</span>
-          </div>
-          <span class="collapsible-icon"><i class="fa-solid fa-chevron-down"></i></span>
-        </div>
-        <div class="collapsible-content" id="venueContent">
-          <div class="collapsible-inner" id="venueInner"></div>
-        </div>
-      </div>
-
-      <!-- ─── SESSION DETAILS ─── -->
-      <div class="card" id="detailsCard" style="display:none;">
-        <div class="collapsible-header" data-target="detailsContent">
-          <div class="collapsible-title-row">
-            <span class="eyebrow" style="margin-bottom:0;">About This Session</span>
-            <span class="collapsible-title">Session Details</span>
-          </div>
-          <span class="collapsible-icon"><i class="fa-solid fa-chevron-down"></i></span>
-        </div>
-        <div class="collapsible-content" id="detailsContent">
-          <div class="collapsible-inner" id="detailsInner"></div>
-        </div>
-      </div>
-
-      <!-- ─── THE CLUB ─── -->
-      <div class="card" id="clubCard" style="display:none;">
-        <div class="collapsible-header" data-target="clubContent">
-          <div class="collapsible-title-row">
-            <span class="eyebrow" style="margin-bottom:0;">Club Information</span>
-            <span class="collapsible-title">The Club</span>
-          </div>
-          <span class="collapsible-icon"><i class="fa-solid fa-chevron-down"></i></span>
-        </div>
-        <div class="collapsible-content" id="clubContent">
-          <div class="collapsible-inner" id="clubInner"></div>
+      <!-- INFO PANEL -->
+      <div class="info-panel">
+        <div class="info-panel-inner">
+          <div id="notesDisplay" style="display:none;" class="notes-box"></div>
+          <div id="infoList"></div>
         </div>
       </div>
 
@@ -479,17 +346,11 @@
   <div id="toast" class="toast">Link copied!</div>
 
   <script>
-    /* ══════════════════════════════════════════
-       CONFIG
-    ══════════════════════════════════════════ */
     const SHEET_ID = '1P4fON7qVFQt_w9OKoTiweLaT3GkpF9viS910E93BD48';
     const API_KEY  = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
 
     let sessionTemplate = null;
 
-    /* ══════════════════════════════════════════
-       BOOT
-    ══════════════════════════════════════════ */
     const urlParams = new URLSearchParams(window.location.search);
     let sessionId   = urlParams.get('event');
 
@@ -517,9 +378,6 @@
       } catch { showError(); }
     }
 
-    /* ══════════════════════════════════════════
-       LOAD
-    ══════════════════════════════════════════ */
     async function loadSessionData() {
       try {
         const res = await fetch(
@@ -534,30 +392,22 @@
         if (!found) { showError(); return; }
         sessionTemplate = parseRow(found);
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('content').style.display = 'grid';
+        document.getElementById('content').style.display = 'block';
         renderPage();
-        initCollapsibles();
       } catch (e) { console.error(e); showError(); }
     }
 
-    /* ══════════════════════════════════════════
-       PARSE ROW
-    ══════════════════════════════════════════ */
     function parseRow(r) {
       return {
         nbrhId:            r[0]  || '',
         activityType:      r[1]  || '',
         club:              r[2]  || '',
         className:         r[3]  || '',
-        date:              r[4]  || '',
         startTime:         r[5]  || '',
         duration:          r[6]  || '',
         address:           r[7]  || '',
         location:          r[8]  || '',
-        basePrice:         parseFloat(r[9])  || 0,
         totalPrice:        parseFloat(r[11]) || 0,
-        spotsAvailable:    parseInt(r[12])   || 0,
-        totalSpots:        parseInt(r[13])   || 0,
         difficultyLevel:   r[14] || '',
         bookingUrl:        r[15] || '',
         website:           r[16] || '',
@@ -574,36 +424,30 @@
         clubHubUrl:        r[41] || '',
         dayOfWeek:         r[42] || '',
         sessionId:         r[43] || '',
-        endTime:           cleanEndTime(r[44], r[40], r[5]),
+        endTime:           cleanEndTime(r[44], r[40]),
         bookingType:       (r[46] || 'stripe').toLowerCase(),
-        transactionFee:    parseFloat(r[47]) || 0,
         type:              r[37] || ''
       };
     }
 
-    /* End time: API returns formatted time; CSV exports 12/30/1899. Fall back to notes. */
-    function cleanEndTime(raw, notes, startTime) {
-      if (raw && !raw.includes('1899') && !raw.includes('1900') && raw.trim() !== '') {
+    function cleanEndTime(raw, notes) {
+      if (raw && !raw.includes('1899') && !raw.includes('1900') && raw.trim()) {
         return raw.trim();
       }
-      // Extract from notes: "Friday - 5:30 PM - 7:30 PM - Camden - ..."
       if (notes) {
         const parts = notes.split(' - ');
         if (parts.length >= 3) {
-          const candidate = parts[2].trim();
-          if (/\d{1,2}:\d{2}\s*(AM|PM)/i.test(candidate)) return candidate;
+          const c = parts[2].trim();
+          if (/\d{1,2}:\d{2}\s*(AM|PM)/i.test(c)) return c;
         }
       }
       return '';
     }
 
-    /* ══════════════════════════════════════════
-       RENDER PAGE
-    ══════════════════════════════════════════ */
     function renderPage() {
       const s = sessionTemplate;
 
-      /* Meta tags */
+      /* Meta */
       const pageTitle = `${s.className} | The NBRH`;
       document.getElementById('pageTitle').textContent = pageTitle;
       document.getElementById('pageDescription').setAttribute('content', s.notes || s.activityType);
@@ -621,8 +465,7 @@
           `linear-gradient(rgba(0,0,0,0.48),rgba(0,0,0,0.48)), url('${s.imageUrl}') center/cover no-repeat`;
       }
       if (s.type) {
-        const b = document.getElementById('heroBadge');
-        b.style.display = 'inline-flex';
+        document.getElementById('heroBadge').style.display = 'inline-flex';
         document.getElementById('heroBadgeText').textContent = s.type;
       }
       if (s.club) {
@@ -632,17 +475,13 @@
       }
       document.getElementById('sessionTitle').textContent = s.className || 'Session';
 
-      /* Hero meta pills */
       const meta = document.getElementById('heroMeta');
-      const pills = [];
-      if (s.location) pills.push({ icon: 'fa-location-dot', text: s.location });
-      if (s.dayOfWeek && s.startTime) {
-        const timeStr = s.endTime ? `${s.startTime} – ${s.endTime}` : s.startTime;
-        pills.push({ icon: 'fa-clock', text: `${s.dayOfWeek}s · ${timeStr}` });
-      }
-      if (s.difficultyLevel) pills.push({ icon: 'fa-signal',     text: s.difficultyLevel });
-      if (s.totalPrice > 0)  pills.push({ icon: 'fa-pound-sign', text: `£${s.totalPrice.toFixed(2)}` });
-      pills.forEach(p => {
+      [
+        s.location && { icon: 'fa-location-dot', text: s.location },
+        (s.dayOfWeek && s.startTime) && { icon: 'fa-clock', text: `${s.dayOfWeek}s · ${s.endTime ? s.startTime + ' – ' + s.endTime : s.startTime}` },
+        s.difficultyLevel && { icon: 'fa-signal', text: s.difficultyLevel },
+        s.totalPrice > 0 && { icon: 'fa-pound-sign', text: `£${s.totalPrice.toFixed(2)}` }
+      ].filter(Boolean).forEach(p => {
         const span = document.createElement('span');
         span.className = 'hero-meta-pill';
         span.innerHTML = `<i class="fa-solid ${p.icon}"></i> ${p.text}`;
@@ -653,143 +492,89 @@
       const ctaUrl = s.website || s.bookingUrl;
       if (ctaUrl) {
         const sticky = document.getElementById('stickyCta');
-        sticky.href         = ctaUrl;
+        sticky.href          = ctaUrl;
         sticky.style.display = 'inline-flex';
       }
 
-      /* ── Info Grid ── */
-      const grid = document.getElementById('infoGrid');
-      const addInfo = (icon, label, html) => {
-        if (!html) return;
-        const el = document.createElement('div');
-        el.className = 'info-item';
-        el.innerHTML = `<span class="info-icon"><i class="fa-solid ${icon}"></i></span><span class="info-label">${label}</span><div class="info-value">${html}</div>`;
-        grid.appendChild(el);
-      };
-
-      addInfo('fa-location-dot', 'Location', s.location);
-      addInfo('fa-calendar-days', 'Day', s.dayOfWeek);
-
-      if (s.startTime) {
-        const timeHtml = s.endTime ? `${s.startTime}<br><span style="font-size:0.78rem;color:var(--text-muted);">${s.endTime}</span>` : s.startTime;
-        addInfo('fa-clock', 'Time', timeHtml);
+      /* Notes */
+      if (s.notes && s.notes.trim()) {
+        const nd = document.getElementById('notesDisplay');
+        nd.textContent     = s.notes.trim();
+        nd.style.display   = 'block';
       }
 
+      /* Info list */
+      const list = document.getElementById('infoList');
+
+      const addRow = (icon, label, valueHtml) => {
+        if (!valueHtml) return;
+        const row = document.createElement('div');
+        row.className = 'info-row';
+        row.innerHTML = `
+          <span class="info-row-icon"><i class="fa-solid ${icon}"></i></span>
+          <span class="info-row-label">${label}</span>
+          <span class="info-row-value">${valueHtml}</span>`;
+        list.appendChild(row);
+      };
+
+      /* Schedule */
+      addRow('fa-location-dot',    'Location',     s.location);
+      addRow('fa-calendar-days',   'Day',          s.dayOfWeek);
+      if (s.startTime) {
+        const timeVal = s.endTime
+          ? `${s.startTime} <span style="color:var(--text-faint);font-size:0.82rem;">→</span> ${s.endTime}`
+          : s.startTime;
+        addRow('fa-clock', 'Time', timeVal);
+      }
       if (s.duration) {
         const mins = parseInt(s.duration) || 0;
         const hrs  = Math.floor(mins / 60);
         const rem  = mins % 60;
-        const txt  = hrs > 0 ? `${hrs}h${rem ? ' ' + rem + 'm' : ''}` : `${mins} min`;
-        addInfo('fa-hourglass-half', 'Duration', txt);
+        addRow('fa-hourglass-half', 'Duration', hrs > 0 ? `${hrs}h${rem ? ' ' + rem + 'm' : ''}` : `${mins} min`);
       }
+      addRow('fa-pound-sign',      'Price',        s.totalPrice > 0 ? `£${s.totalPrice.toFixed(2)}` : 'Free');
 
-      if (s.totalPrice > 0) {
-        addInfo('fa-pound-sign', 'Price', `£${s.totalPrice.toFixed(2)}`);
-      } else {
-        addInfo('fa-pound-sign', 'Price', 'Free');
-      }
+      /* Session info */
+      addRow('fa-dumbbell',        'Activity',     s.activityType);
+      addRow('fa-signal',          'Level',        s.difficultyLevel);
+      addRow('fa-user-group',      'Age Group',    s.ageGroup);
+      addRow('fa-users',           'Audience',     s.audience);
+      addRow('fa-house',           'Venue Type',   s.indoorOutdoor);
+      addRow('fa-bag-shopping',    'Equipment',    s.equipmentProvided
+        ? (s.equipmentProvided.toLowerCase() === 'yes' ? 'Provided' : 'Bring your own')
+        : null);
+      addRow('fa-clock-rotate-left','Cancellation', s.cancellationHours ? `${s.cancellationHours} hours notice required` : null);
+      addRow('fa-star',            'Vibe',         s.vibe);
+      addRow('fa-tag',             'Badge',        s.badge);
 
-      addInfo('fa-signal',     'Level',     s.difficultyLevel);
-      addInfo('fa-user-group', 'Age Group', s.ageGroup);
-
+      /* Confidence */
       if (s.confidenceScore) {
-        const cls   = confClass(s.confidenceScore);
-        const badge = `<span class="conf-badge ${cls}"><span class="dot"></span>${s.confidenceScore}</span>`;
-        addInfo('fa-shield-check', 'Confidence', badge);
+        const cls = confClass(s.confidenceScore);
+        addRow('fa-shield-check', 'Confidence',
+          `<span class="conf-badge ${cls}"><span class="dot"></span>${s.confidenceScore}</span>`);
       }
 
-      /* Tags row */
-      const tags = document.getElementById('tagsRow');
-      if (s.badge)                                              addTag(tags, s.badge, 'badge-tag');
-      if (s.vibe)                                               addTag(tags, s.vibe, 'vibe');
-      if (s.indoorOutdoor)                                      addTag(tags, s.indoorOutdoor);
-      if (s.audience)                                           addTag(tags, s.audience);
-      if (s.equipmentProvided?.toLowerCase() === 'yes')         addTag(tags, 'Equipment Provided', 'green');
-
-      /* ── Location & Venue dropdown ── */
+      /* Address */
       if (s.address) {
-        document.getElementById('venueCard').style.display = '';
-        const inner = document.getElementById('venueInner');
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address)}`;
-        inner.innerHTML = `
-          <a class="address-block" href="${mapsUrl}" target="_blank" rel="noopener">
-            <div class="address-icon"><i class="fa-solid fa-location-dot"></i></div>
-            <div>
-              <div class="address-text">${s.address}</div>
-              <span class="address-cta">Open in Google Maps →</span>
-            </div>
-          </a>`;
+        addRow('fa-map-pin', 'Address',
+          `<a href="${mapsUrl}" target="_blank" rel="noopener">${s.address}</a>`);
       }
 
-      /* ── Session Details dropdown ── */
-      const hasDetails = s.notes || s.activityType || s.audience || s.equipmentProvided || s.cancellationHours || s.indoorOutdoor;
-      if (hasDetails) {
-        document.getElementById('detailsCard').style.display = '';
-        const inner = document.getElementById('detailsInner');
-        let html = '';
-        if (s.notes) html += `<div class="notes-box">${s.notes.trim()}</div>`;
-        html += '<div class="detail-list">';
-        const rows = [];
-        if (s.activityType)      rows.push({ icon: 'fa-dumbbell',   key: 'Activity',     val: s.activityType });
-        if (s.audience)          rows.push({ icon: 'fa-users',      key: 'Audience',     val: s.audience });
-        if (s.ageGroup)          rows.push({ icon: 'fa-user-group', key: 'Age Group',    val: s.ageGroup });
-        if (s.indoorOutdoor)     rows.push({ icon: 'fa-house',      key: 'Venue Type',   val: s.indoorOutdoor });
-        if (s.equipmentProvided) rows.push({ icon: 'fa-bag-shopping','key': 'Equipment', val: s.equipmentProvided === 'Yes' ? 'Provided' : 'Bring your own' });
-        if (s.cancellationHours) rows.push({ icon: 'fa-clock-rotate-left', key: 'Cancellation', val: `${s.cancellationHours} hours notice required` });
-        rows.forEach(dr => {
-          html += `<div class="detail-row">
-            <span class="detail-icon"><i class="fa-solid ${dr.icon}"></i></span>
-            <span class="detail-key">${dr.key}</span>
-            <span class="detail-val">${dr.val}</span>
-          </div>`;
-        });
-        html += '</div>';
-        inner.innerHTML = html;
-      }
-
-      /* ── The Club dropdown ── */
-      const hasClub = s.clubHubUrl || s.website || s.club;
-      if (hasClub) {
-        document.getElementById('clubCard').style.display = '';
-        const inner = document.getElementById('clubInner');
-        let html = '';
-        if (s.club) {
-          html += `<p style="font-family:var(--font-serif);font-size:1.2rem;color:var(--text);margin-bottom:1rem;font-weight:normal;">${s.club}</p>`;
-        }
-        html += '<div class="club-links-row">';
-        if (s.clubHubUrl) {
-          html += `<a class="club-hub-btn" href="${s.clubHubUrl}" target="_blank" rel="noopener">
-            <i class="fa-solid fa-building"></i> View Club Profile
-          </a>`;
-        }
-        if (s.website) {
-          html += `<a class="club-website-link" href="${s.website}" target="_blank" rel="noopener">
-            <i class="fa-solid fa-globe"></i> Club Website
-          </a>`;
-        }
-        html += '</div>';
-        inner.innerHTML = html;
+      /* Club */
+      if (s.club || s.clubHubUrl || s.website) {
+        let clubHtml = s.club ? `<span style="font-family:var(--font-serif);font-size:1rem;">${s.club}</span>` : '';
+        const links = [];
+        if (s.clubHubUrl) links.push(`<a class="club-link-btn primary" href="${s.clubHubUrl}" target="_blank" rel="noopener"><i class="fa-solid fa-building"></i> View Profile</a>`);
+        if (s.website)    links.push(`<a class="club-link-btn secondary" href="${s.website}" target="_blank" rel="noopener"><i class="fa-solid fa-globe"></i> Website</a>`);
+        if (links.length) clubHtml += `<div class="club-link-row">${links.join('')}</div>`;
+        if (clubHtml) addRow('fa-trophy', 'Club', clubHtml);
       }
     }
 
-    /* ══════════════════════════════════════════
-       HELPERS
-    ══════════════════════════════════════════ */
     function confClass(label) {
-      if (!label) return 'unconfirmed';
-      const map = {
-        'Verified': 'verified', 'Likely Active': 'likely',
-        'Probably Active': 'probably', 'Uncertain': 'uncertain', 'Unconfirmed': 'unconfirmed'
-      };
-      return map[label] || 'unconfirmed';
-    }
-
-    function addTag(container, text, cls) {
-      if (!text) return;
-      const el = document.createElement('span');
-      el.className = 'tag' + (cls ? ' ' + cls : '');
-      el.textContent = text;
-      container.appendChild(el);
+      return { 'Verified': 'verified', 'Likely Active': 'likely', 'Probably Active': 'probably',
+               'Uncertain': 'uncertain', 'Unconfirmed': 'unconfirmed' }[label] || 'unconfirmed';
     }
 
     function showError() {
@@ -797,9 +582,6 @@
       document.getElementById('error').style.display   = '';
     }
 
-    /* ══════════════════════════════════════════
-       SHARE
-    ══════════════════════════════════════════ */
     async function shareSession() {
       const url   = location.href;
       const title = sessionTemplate ? sessionTemplate.className : 'Check out this session';
@@ -816,22 +598,6 @@
       const t = document.getElementById('toast');
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2200);
-    }
-
-    /* ══════════════════════════════════════════
-       COLLAPSIBLES
-    ══════════════════════════════════════════ */
-    function initCollapsibles() {
-      document.querySelectorAll('.collapsible-header').forEach(h => {
-        h.addEventListener('click', () => {
-          const targetId = h.dataset.target;
-          const content  = document.getElementById(targetId);
-          if (!content) return;
-          const isOpen = h.classList.toggle('open');
-          content.classList.toggle('open', isOpen);
-          content.style.maxHeight = isOpen ? content.scrollHeight + 'px' : '0';
-        });
-      });
     }
   </script>
 
