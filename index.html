@@ -20,7 +20,7 @@
 
   <style>
     /* ══════════════════════════════════════════
-       DESIGN TOKENS — shared with Club Directory
+       TOKENS
     ══════════════════════════════════════════ */
     :root {
       --accent:        #FF1B6E;
@@ -33,17 +33,22 @@
       --bg:            #1B1B1B;
       --bg-card:       #212121;
       --bg-elevated:   #2a2a2a;
-      --bg-hover:      #303030;
       --border:        rgba(255,255,255,0.08);
       --border-bright: rgba(255,255,255,0.14);
       --green:         #22c55e;
       --green-dim:     rgba(34,197,94,0.12);
       --amber:         #f59e0b;
-      --amber-dim:     rgba(245,158,11,0.12);
       --font-serif:    'Young Serif', Georgia, serif;
       --font-sans:     'DM Sans', -apple-system, sans-serif;
       --r:             3px;
       --r-lg:          8px;
+
+      /* Confidence colours */
+      --c-verified:    rgba(0,128,0,0.9);
+      --c-likely:      rgba(34,139,34,0.9);
+      --c-probably:    rgba(202,138,4,0.9);
+      --c-uncertain:   rgba(234,88,12,0.9);
+      --c-unconfirmed: rgba(185,28,28,0.9);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,9 +67,7 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-    /* ══════════════════════════════════════════
-       NAV
-    ══════════════════════════════════════════ */
+    /* NAV */
     .site-nav {
       position: sticky; top: 0;
       background: rgba(27,27,27,0.97);
@@ -82,7 +85,10 @@
       text-decoration: none; flex-shrink: 0;
     }
     .nav-brand-logo { height: 30px; object-fit: contain; }
-    .nav-brand-name { font-family: var(--font-serif); font-size: 0.95rem; color: var(--text); line-height: 1.15; }
+    .nav-brand-name {
+      font-family: var(--font-serif); font-size: 0.95rem;
+      color: var(--text); line-height: 1.15;
+    }
     .nav-brand-name small {
       display: block; font-family: var(--font-sans);
       font-size: 0.55rem; font-weight: 600;
@@ -91,18 +97,14 @@
     .nav-back {
       color: var(--text-muted); text-decoration: none;
       font-size: 0.75rem; font-weight: 500; letter-spacing: 0.03em;
-      padding: 0.4rem 0.75rem; white-space: nowrap; transition: color 0.2s;
+      padding: 0.4rem 0.75rem; transition: color 0.2s; white-space: nowrap;
     }
     .nav-back:hover { color: var(--accent); }
 
-    /* ══════════════════════════════════════════
-       PAGE
-    ══════════════════════════════════════════ */
+    /* PAGE */
     .page { max-width: 1200px; margin: 0 auto; padding-bottom: 7rem; }
 
-    /* ══════════════════════════════════════════
-       LOADING / ERROR
-    ══════════════════════════════════════════ */
+    /* LOADING / ERROR */
     .loading-state { text-align: center; padding: 5rem 2rem; color: var(--text-faint); }
     .spinner {
       width: 32px; height: 32px;
@@ -118,35 +120,26 @@
       padding: 2rem; text-align: center;
     }
     .error-state h2 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: normal; color: #ef4444; margin-bottom: 0.5rem; }
-    .error-state p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; }
-    .error-state a { color: var(--accent); text-decoration: none; }
+    .error-state p  { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .error-state a  { color: var(--accent); text-decoration: none; }
 
-    /* ══════════════════════════════════════════
-       CONTENT
-    ══════════════════════════════════════════ */
+    /* CONTENT */
     .content-grid { display: grid; gap: 1px; }
-
     .card { background: var(--bg-card); border-bottom: 1px solid var(--border); }
     .card-inner { padding: 2rem; }
 
-    /* ══════════════════════════════════════════
-       HERO
-    ══════════════════════════════════════════ */
+    /* HERO */
     .hero-card {
-      position: relative;
-      min-height: 88vh;
+      position: relative; min-height: 88vh;
       display: flex; align-items: flex-end;
       overflow: hidden; border-bottom: none;
     }
     .hero-bg {
       position: absolute; inset: 0;
-      background:
-        linear-gradient(rgba(0,0,0,0.48), rgba(0,0,0,0.48)),
-        url('') center center / cover no-repeat;
-      transition: background-image 0.4s ease;
+      background: linear-gradient(rgba(0,0,0,0.48),rgba(0,0,0,0.48)) center/cover no-repeat;
     }
     .hero-fade {
-      position: absolute; bottom: 0; left: 0; right: 0; height: 320px;
+      position: absolute; bottom: 0; left: 0; right: 0; height: 340px;
       background: linear-gradient(to bottom, transparent 0%, rgba(27,27,27,0.5) 35%, rgba(27,27,27,0.9) 65%, #1B1B1B 100%);
       pointer-events: none; z-index: 1;
     }
@@ -162,10 +155,7 @@
       font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--accent); margin-bottom: 0.9rem;
     }
-    .hero-badge-dot {
-      width: 6px; height: 6px; background: var(--accent);
-      border-radius: 50%; animation: pulse 1.6s infinite;
-    }
+    .hero-badge-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.6s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.65)} }
 
     .hero-club {
@@ -178,10 +168,7 @@
       font-weight: normal; line-height: 1.02; letter-spacing: -0.02em;
       color: var(--text); margin-bottom: 0.9rem;
     }
-    .hero-meta {
-      display: flex; flex-wrap: wrap; gap: 0.6rem;
-      align-items: center; margin-bottom: 1.75rem;
-    }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; margin-bottom: 1.75rem; }
     .hero-meta-pill {
       display: inline-flex; align-items: center; gap: 0.35rem;
       background: rgba(255,255,255,0.1); backdrop-filter: blur(6px);
@@ -190,37 +177,18 @@
     }
     .hero-meta-pill i { color: var(--accent); font-size: 0.7rem; }
 
-    .hero-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; }
-    .hero-btn {
+    .hero-share-btn {
       display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.8rem 1.6rem; font-family: var(--font-sans);
-      font-size: 0.85rem; font-weight: 600; border-radius: var(--r); border: none;
-      cursor: pointer; text-decoration: none; transition: all 0.2s; white-space: nowrap; line-height: 1;
-    }
-    .hero-btn-primary { background: var(--accent); color: #fff; }
-    .hero-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(255,27,110,0.35); }
-    .hero-btn-outline {
+      padding: 0.75rem 1.4rem; font-family: var(--font-sans);
+      font-size: 0.82rem; font-weight: 600; border-radius: var(--r);
       background: rgba(255,255,255,0.09); color: var(--text);
-      border: 1px solid rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.18); cursor: pointer;
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      transition: all 0.2s;
     }
-    .hero-btn-outline:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.28); }
+    .hero-share-btn:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.28); }
 
-    /* ══════════════════════════════════════════
-       SPOTS BANNER
-    ══════════════════════════════════════════ */
-    .spots-banner {
-      padding: 0.9rem 2rem;
-      display: flex; align-items: center; gap: 0.6rem;
-      font-size: 0.8rem; font-weight: 600;
-    }
-    .spots-banner.available { background: rgba(34,197,94,0.08); color: var(--green); border-bottom: 1px solid rgba(34,197,94,0.14); }
-    .spots-banner.low       { background: rgba(245,158,11,0.08); color: var(--amber); border-bottom: 1px solid rgba(245,158,11,0.14); }
-    .spots-banner.full      { background: rgba(239,68,68,0.08); color: #ef4444;     border-bottom: 1px solid rgba(239,68,68,0.14); }
-
-    /* ══════════════════════════════════════════
-       INFO GRID
-    ══════════════════════════════════════════ */
+    /* INFO GRID */
     .info-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(min(150px,100%), 1fr));
@@ -237,9 +205,26 @@
       font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.08em; color: var(--text-faint); margin-bottom: 0.25rem; display: block;
     }
-    .info-value { font-family: var(--font-serif); font-size: 0.95rem; color: var(--text); font-weight: normal; line-height: 1.3; }
+    .info-value {
+      font-family: var(--font-serif); font-size: 0.92rem;
+      color: var(--text); font-weight: normal; line-height: 1.3;
+    }
 
-    /* Tags */
+    /* CONFIDENCE BADGE */
+    .conf-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: var(--r);
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+      font-family: var(--font-sans); letter-spacing: 0.02em;
+    }
+    .conf-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.6); flex-shrink: 0; }
+    .conf-badge.verified    { background: var(--c-verified); }
+    .conf-badge.likely      { background: var(--c-likely); }
+    .conf-badge.probably    { background: var(--c-probably); }
+    .conf-badge.uncertain   { background: var(--c-uncertain); }
+    .conf-badge.unconfirmed { background: var(--c-unconfirmed); }
+
+    /* TAGS */
     .tags-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
     .tag {
       display: inline-flex; align-items: center;
@@ -247,12 +232,14 @@
       padding: 3px 10px; border-radius: 20px;
       font-size: 0.7rem; font-weight: 500; color: var(--text-muted);
     }
-    .tag.vibe { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
-    .tag.green { background: var(--green-dim); border-color: rgba(34,197,94,0.2); color: var(--green); }
+    .tag.vibe   { background: var(--accent-dim); border-color: var(--accent-mid); color: var(--accent); }
+    .tag.green  { background: var(--green-dim);  border-color: rgba(34,197,94,0.2); color: var(--green); }
+    .tag.badge-tag {
+      background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25);
+      color: var(--amber);
+    }
 
-    /* ══════════════════════════════════════════
-       SECTION HEADERS
-    ══════════════════════════════════════════ */
+    /* EYEBROW + SECTION TITLE */
     .eyebrow {
       font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.16em; color: var(--accent); display: block; margin-bottom: 0.35rem;
@@ -263,58 +250,10 @@
       color: var(--text); margin-bottom: 1.25rem;
     }
 
-    /* ══════════════════════════════════════════
-       ATTENDEES
-    ══════════════════════════════════════════ */
-    .attendees-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 1.25rem;
-    }
-    .attendees-count {
-      font-size: 0.78rem; font-weight: 600; color: var(--accent);
-      background: var(--accent-dim); border: 1px solid var(--accent-mid);
-      padding: 3px 10px; border-radius: 20px;
-    }
-    .attendees-grid {
-      display: flex; flex-wrap: wrap; gap: 0.85rem;
-    }
-    .attendee-item { text-align: center; }
-    .attendee-avatar {
-      width: 52px; height: 52px;
-      background: linear-gradient(135deg, var(--accent) 0%, #ff6b6b 100%);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      color: #fff; font-family: var(--font-serif); font-size: 1rem; margin: 0 auto 5px;
-    }
-    .attendee-name {
-      font-size: 0.68rem; color: var(--text-faint);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52px;
-    }
-    .attendees-empty {
-      padding: 2.5rem 1rem; text-align: center; color: var(--text-faint);
-    }
-    .attendees-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .attendees-empty-text { font-size: 0.82rem; line-height: 1.6; }
-
-    .skill-row {
-      margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
-      display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
-    }
-    .skill-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); font-weight: 600; }
-    .skill-tag {
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 0.7rem; font-weight: 500;
-    }
-    .skill-tag.beginner     { background: rgba(59,130,246,0.12); color: #60a5fa; }
-    .skill-tag.intermediate { background: rgba(245,158,11,0.12); color: var(--amber); }
-    .skill-tag.advanced     { background: var(--accent-dim);     color: var(--accent); }
-    .skill-tag.plus         { background: var(--green-dim);       color: var(--green); }
-    .skill-tag.other        { background: var(--bg-elevated);     color: var(--text-faint); }
-
-    /* ══════════════════════════════════════════
-       COLLAPSIBLES
-    ══════════════════════════════════════════ */
+    /* COLLAPSIBLES */
     .collapsible-header {
-      padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center;
+      padding: 1.25rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
       cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--border);
     }
     .collapsible-header:hover { background: var(--bg-elevated); }
@@ -327,32 +266,68 @@
       transition: transform 0.3s, border-color 0.2s, color 0.2s;
     }
     .collapsible-header:hover .collapsible-icon { border-color: var(--accent); color: var(--accent); }
-    .collapsible-header.expanded .collapsible-icon { transform: rotate(180deg); color: var(--accent); border-color: var(--accent); }
+    .collapsible-header.open .collapsible-icon { transform: rotate(180deg); color: var(--accent); border-color: var(--accent); }
     .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-    .collapsible-content.expanded { max-height: 3000px; }
+    .collapsible-content.open { max-height: 3000px; }
     .collapsible-inner { padding: 1.75rem 2rem; }
 
-    /* ══════════════════════════════════════════
-       NOTES / PREP
-    ══════════════════════════════════════════ */
-    .prep-list { list-style: none; display: grid; gap: 0.6rem; }
-    .prep-item {
-      display: flex; align-items: flex-start; gap: 0.85rem;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      border-radius: var(--r-lg); padding: 0.9rem 1rem;
-    }
-    .prep-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
-    .prep-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
-
-    .notes-block {
+    /* ADDRESS BLOCK */
+    .address-block {
+      display: flex; align-items: flex-start; gap: 0.9rem;
       background: var(--bg-elevated); border: 1px solid var(--border);
       border-radius: var(--r-lg); padding: 1.1rem 1.2rem;
-      font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; white-space: pre-wrap;
+      text-decoration: none; color: inherit;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .address-block:hover { border-color: var(--accent-mid); transform: translateY(-1px); }
+    .address-icon {
+      width: 38px; height: 38px; flex-shrink: 0;
+      background: var(--accent-dim); border: 1px solid var(--accent-mid);
+      border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+      color: var(--accent); font-size: 0.9rem;
+    }
+    .address-text { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
+    .address-cta { font-size: 0.72rem; color: var(--accent); margin-top: 0.35rem; display: block; font-weight: 600; }
+
+    /* DETAIL LIST */
+    .detail-list { display: grid; gap: 0.5rem; }
+    .detail-row {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      padding: 0.75rem 0; border-bottom: 1px solid var(--border);
+    }
+    .detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .detail-icon { color: var(--accent); font-size: 0.85rem; margin-top: 0.15rem; flex-shrink: 0; width: 16px; text-align: center; }
+    .detail-key { font-size: 0.72rem; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; min-width: 110px; padding-top: 0.1rem; }
+    .detail-val { font-size: 0.875rem; color: var(--text-muted); line-height: 1.55; }
+
+    /* NOTES BOX */
+    .notes-box {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 1.1rem 1.2rem;
+      font-size: 0.875rem; color: var(--text-muted);
+      line-height: 1.7; white-space: pre-wrap; margin-bottom: 1.1rem;
     }
 
-    /* ══════════════════════════════════════════
-       STICKY CTA
-    ══════════════════════════════════════════ */
+    /* CLUB HUB BUTTON */
+    .club-hub-btn {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      background: var(--accent); color: #fff;
+      padding: 0.75rem 1.4rem; border-radius: var(--r);
+      font-size: 0.85rem; font-weight: 600; text-decoration: none;
+      transition: all 0.2s; margin-bottom: 0.75rem;
+    }
+    .club-hub-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(255,27,110,0.3); }
+    .club-website-link {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--text-muted); font-size: 0.82rem; text-decoration: none;
+      padding: 0.6rem 1.1rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--r); transition: border-color 0.2s, color 0.2s;
+    }
+    .club-website-link:hover { border-color: var(--border-bright); color: var(--text); }
+    .club-links-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+
+    /* STICKY CTA */
     .sticky-cta {
       position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
       background: var(--accent); color: #fff; border: none;
@@ -368,7 +343,7 @@
       box-shadow: 0 10px 32px rgba(255,27,110,0.5);
     }
 
-    /* Share success toast */
+    /* TOAST */
     .toast {
       position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%);
       background: var(--bg-elevated); border: 1px solid var(--border-bright);
@@ -378,9 +353,7 @@
     }
     .toast.show { opacity: 1; }
 
-    /* ══════════════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════════════ */
+    /* RESPONSIVE */
     @media (max-width: 768px) {
       .nav-inner { padding: 0.85rem 1.25rem; }
       .hero-card { min-height: 78vh; }
@@ -390,6 +363,7 @@
       .collapsible-header { padding: 1rem 1.25rem; }
       .collapsible-inner { padding: 1.5rem 1.25rem; }
       .info-grid { grid-template-columns: 1fr 1fr; }
+      .detail-key { min-width: 90px; }
       .sticky-cta { left: 1rem; right: 1rem; transform: none; width: calc(100% - 2rem); }
       .sticky-cta:hover { transform: none; }
     }
@@ -413,49 +387,38 @@
 
   <div class="page">
 
-    <!-- LOADING -->
     <div id="loading" class="loading-state">
       <div class="spinner"></div>
       <p class="loading-text">Loading session…</p>
     </div>
 
-    <!-- ERROR -->
     <div id="error" class="error-state" style="display:none;">
       <h2>Session Not Found</h2>
       <p>This session doesn't exist or is no longer available.</p>
       <a href="https://www.thenbrh.co.uk/">Browse all sessions</a>
     </div>
 
-    <!-- CONTENT -->
     <div id="content" class="content-grid" style="display:none;">
 
-      <!-- HERO -->
-      <div class="hero-card" id="heroCard">
+      <!-- ─── HERO ─── -->
+      <div class="hero-card">
         <div class="hero-bg" id="heroBg"></div>
         <div class="hero-fade"></div>
         <div class="hero-content">
           <div class="hero-badge" id="heroBadge" style="display:none;">
             <div class="hero-badge-dot"></div>
-            <span id="heroBadgeText">Drop In Session</span>
+            <span id="heroBadgeText">Session</span>
           </div>
           <span class="hero-club" id="heroClub" style="display:none;"></span>
           <h1 class="hero-title" id="sessionTitle">Session Name</h1>
           <div class="hero-meta" id="heroMeta"></div>
-          <div class="hero-actions">
-            <a href="#" class="hero-btn hero-btn-primary" id="ctaButton" style="display:none;">
-              Book this session <i class="fa-solid fa-arrow-right" style="font-size:0.8rem;"></i>
-            </a>
-            <button class="hero-btn hero-btn-outline" id="shareBtn" onclick="shareSession()">
-              <i class="fa-solid fa-share-nodes" style="font-size:0.8rem;"></i> Share
-            </button>
-          </div>
+          <button class="hero-share-btn" onclick="shareSession()">
+            <i class="fa-solid fa-share-nodes" style="font-size:0.8rem;"></i> Share this session
+          </button>
         </div>
       </div>
 
-      <!-- SPOTS BANNER -->
-      <div id="spotsBanner" style="display:none;"></div>
-
-      <!-- SESSION INFO -->
+      <!-- ─── INFO GRID ─── -->
       <div class="card">
         <div class="card-inner">
           <div class="info-grid" id="infoGrid"></div>
@@ -463,65 +426,45 @@
         </div>
       </div>
 
-      <!-- WHO'S COMING -->
-      <div class="card" id="attendeesCard">
-        <div class="collapsible-header expanded" data-target="#attendeesContent">
+      <!-- ─── LOCATION & VENUE ─── -->
+      <div class="card" id="venueCard" style="display:none;">
+        <div class="collapsible-header" data-target="venueContent">
           <div class="collapsible-title-row">
-            <span class="eyebrow" style="margin-bottom:0;">Community</span>
-            <span class="collapsible-title">Who's Coming?</span>
-          </div>
-          <span class="collapsible-icon" style="transform:rotate(180deg); color:var(--accent); border-color:var(--accent);">
-            <i class="fa-solid fa-chevron-down"></i>
-          </span>
-        </div>
-        <div class="collapsible-content expanded" id="attendeesContent" style="max-height:3000px;">
-          <div class="collapsible-inner">
-            <div class="attendees-header">
-              <div>
-                <span class="eyebrow" style="margin-bottom:0.2rem;">Signed up</span>
-              </div>
-              <span class="attendees-count" id="attendeesCount">0 attending</span>
-            </div>
-            <div id="attendeesGrid" class="attendees-grid"></div>
-            <div id="skillRow" class="skill-row" style="display:none;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- NOTES / WHAT TO EXPECT -->
-      <div class="card" id="notesCard" style="display:none;">
-        <div class="collapsible-header" data-target="#notesContent">
-          <div class="collapsible-title-row">
-            <span class="eyebrow" style="margin-bottom:0;">Before You Go</span>
-            <span class="collapsible-title">What to Expect</span>
+            <span class="eyebrow" style="margin-bottom:0;">Getting There</span>
+            <span class="collapsible-title">Location &amp; Venue</span>
           </div>
           <span class="collapsible-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
-        <div class="collapsible-content" id="notesContent">
-          <div class="collapsible-inner">
-            <div id="sessionNotes"></div>
-          </div>
+        <div class="collapsible-content" id="venueContent">
+          <div class="collapsible-inner" id="venueInner"></div>
         </div>
       </div>
 
-      <!-- GENERAL PREP (always shown) -->
-      <div class="card">
-        <div class="collapsible-header" data-target="#prepContent">
+      <!-- ─── SESSION DETAILS ─── -->
+      <div class="card" id="detailsCard" style="display:none;">
+        <div class="collapsible-header" data-target="detailsContent">
           <div class="collapsible-title-row">
-            <span class="eyebrow" style="margin-bottom:0;">Get Ready</span>
-            <span class="collapsible-title">What to Bring</span>
+            <span class="eyebrow" style="margin-bottom:0;">About This Session</span>
+            <span class="collapsible-title">Session Details</span>
           </div>
           <span class="collapsible-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
-        <div class="collapsible-content" id="prepContent">
-          <div class="collapsible-inner">
-            <ul class="prep-list">
-              <li class="prep-item"><span class="prep-icon">👟</span><span class="prep-text">Wear comfortable clothing suitable for physical activity</span></li>
-              <li class="prep-item"><span class="prep-icon">💧</span><span class="prep-text">Bring a water bottle to stay hydrated</span></li>
-              <li class="prep-item"><span class="prep-icon">⏰</span><span class="prep-text">Arrive 10 minutes early to get settled in</span></li>
-              <li class="prep-item"><span class="prep-icon">😄</span><span class="prep-text">Come with an open mind and positive energy</span></li>
-            </ul>
+        <div class="collapsible-content" id="detailsContent">
+          <div class="collapsible-inner" id="detailsInner"></div>
+        </div>
+      </div>
+
+      <!-- ─── THE CLUB ─── -->
+      <div class="card" id="clubCard" style="display:none;">
+        <div class="collapsible-header" data-target="clubContent">
+          <div class="collapsible-title-row">
+            <span class="eyebrow" style="margin-bottom:0;">Club Information</span>
+            <span class="collapsible-title">The Club</span>
           </div>
+          <span class="collapsible-icon"><i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+        <div class="collapsible-content" id="clubContent">
+          <div class="collapsible-inner" id="clubInner"></div>
         </div>
       </div>
 
@@ -530,10 +473,9 @@
 
   <!-- STICKY CTA -->
   <a id="stickyCta" class="sticky-cta" href="#">
-    Book this session <i class="fa-solid fa-arrow-right" style="font-size:0.8rem;"></i>
+    Book Now <i class="fa-solid fa-arrow-right" style="font-size:0.8rem;"></i>
   </a>
 
-  <!-- TOAST -->
   <div id="toast" class="toast">Link copied!</div>
 
   <script>
@@ -543,11 +485,7 @@
     const SHEET_ID = '1P4fON7qVFQt_w9OKoTiweLaT3GkpF9viS910E93BD48';
     const API_KEY  = 'AIzaSyDK2LyxRj64ILoXIO37OJyo9qgjWyq18cU';
 
-    /* ══════════════════════════════════════════
-       STATE
-    ══════════════════════════════════════════ */
     let sessionTemplate = null;
-    let attendeesData   = [];
 
     /* ══════════════════════════════════════════
        BOOT
@@ -558,113 +496,105 @@
     if (!sessionId) {
       showError();
     } else {
-      if (sessionId.startsWith('NBRH')) {
-        convertNbrhToSessionId(sessionId);
-      } else {
-        loadSessionData();
-      }
+      sessionId.startsWith('NBRH') ? convertNbrhToSessionId(sessionId) : loadSessionData();
     }
 
-    /* ══════════════════════════════════════════
-       NBRH → SID CONVERSION
-    ══════════════════════════════════════════ */
     async function convertNbrhToSessionId(nbrhId) {
       try {
-        const cleanNbrhId = nbrhId.split(':')[0];
-        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AV?key=${API_KEY}`);
+        const cleanId = nbrhId.split(':')[0];
+        const res     = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sessions!A:AV?key=${API_KEY}`);
         if (!res.ok) throw new Error();
-        const data  = await res.json();
-        const rows  = data.values;
+        const rows = (await res.json()).values || [];
         for (let i = 1; i < rows.length; i++) {
           const rid = rows[i][0];
-          if (rid === nbrhId || rid === cleanNbrhId || (rid && rid.split(':')[0] === cleanNbrhId)) {
+          if (rid === nbrhId || rid === cleanId || (rid && rid.split(':')[0] === cleanId)) {
             sessionId = rows[i][43];
             loadSessionData();
             return;
           }
         }
         showError();
-      } catch {
-        showError();
-      }
+      } catch { showError(); }
     }
 
     /* ══════════════════════════════════════════
-       LOAD DATA
+       LOAD
     ══════════════════════════════════════════ */
     async function loadSessionData() {
       try {
-        const [templatesRes, bookingsRes] = await Promise.all([
-          fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Session%20Templates!A:AV?key=${API_KEY}`),
-          fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Bookings!A:M?key=${API_KEY}`)
-        ]);
-        if (!templatesRes.ok) throw new Error('Failed to load session');
-
-        const templatesData = await templatesRes.json();
-        const templateRows  = templatesData.values || [];
-        let templateRow     = null;
-
-        for (let i = 1; i < templateRows.length; i++) {
-          if (templateRows[i][43] === sessionId) { templateRow = templateRows[i]; break; }
+        const res = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Session%20Templates!A:AV?key=${API_KEY}`
+        );
+        if (!res.ok) throw new Error();
+        const rows = (await res.json()).values || [];
+        let found  = null;
+        for (let i = 1; i < rows.length; i++) {
+          if (rows[i][43] === sessionId) { found = rows[i]; break; }
         }
-        if (!templateRow) { showError(); return; }
-
-        sessionTemplate = parseSessionRow(templateRow);
-
-        if (bookingsRes.ok) {
-          const bookingsData = await bookingsRes.json();
-          attendeesData = processAttendeesData(bookingsData.values || [], sessionTemplate.nbrhId);
-        }
-
-        document.getElementById('loading').style.display  = 'none';
-        document.getElementById('content').style.display  = 'grid';
-
+        if (!found) { showError(); return; }
+        sessionTemplate = parseRow(found);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'grid';
         renderPage();
         initCollapsibles();
-
-      } catch (e) {
-        console.error(e);
-        showError();
-      }
+      } catch (e) { console.error(e); showError(); }
     }
 
     /* ══════════════════════════════════════════
        PARSE ROW
     ══════════════════════════════════════════ */
-    function parseSessionRow(row) {
+    function parseRow(r) {
       return {
-        nbrhId:             row[0]  || '',
-        activityType:       row[1]  || '',
-        club:               row[2]  || '',
-        className:          row[3]  || '',
-        date:               row[4]  || '',
-        startTime:          row[5]  || '',
-        duration:           row[6]  || '',
-        address:            row[7]  || '',
-        location:           row[8]  || '',
-        basePrice:          parseFloat(row[9])  || 0,
-        totalPrice:         parseFloat(row[11]) || 0,
-        spotsAvailable:     parseInt(row[12])   || 0,
-        totalSpots:         parseInt(row[13])   || 0,
-        difficultyLevel:    row[14] || '',
-        bookingUrl:         row[15] || '',
-        website:            row[16] || '',
-        imageUrl:           row[17] || '',
-        ageGroup:           row[18] || '',
-        equipmentProvided:  row[19] || '',
-        indoorOutdoor:      row[21] || '',
-        badge:              row[22] || '',
-        audience:           row[23] || '',
-        vibe:               row[26] || '',
-        notes:              row[40] || '',
-        dayOfWeek:          row[42] || '',   // "Days" column
-        sessionId:          row[43] || '',
-        endTime:            row[44] || '',   // actual End Time column
-        week:               row[45] || '',
-        bookingType:        (row[46] || 'stripe').toLowerCase(),
-        transactionFee:     parseFloat(row[47]) || 0,
-        type:               row[37] || ''
+        nbrhId:            r[0]  || '',
+        activityType:      r[1]  || '',
+        club:              r[2]  || '',
+        className:         r[3]  || '',
+        date:              r[4]  || '',
+        startTime:         r[5]  || '',
+        duration:          r[6]  || '',
+        address:           r[7]  || '',
+        location:          r[8]  || '',
+        basePrice:         parseFloat(r[9])  || 0,
+        totalPrice:        parseFloat(r[11]) || 0,
+        spotsAvailable:    parseInt(r[12])   || 0,
+        totalSpots:        parseInt(r[13])   || 0,
+        difficultyLevel:   r[14] || '',
+        bookingUrl:        r[15] || '',
+        website:           r[16] || '',
+        imageUrl:          r[17] || '',
+        ageGroup:          r[18] || '',
+        equipmentProvided: r[19] || '',
+        cancellationHours: r[20] || '',
+        indoorOutdoor:     r[21] || '',
+        badge:             r[22] || '',
+        audience:          r[23] || '',
+        confidenceScore:   r[24] || '',
+        vibe:              r[26] || '',
+        notes:             r[40] || '',
+        clubHubUrl:        r[41] || '',
+        dayOfWeek:         r[42] || '',
+        sessionId:         r[43] || '',
+        endTime:           cleanEndTime(r[44], r[40], r[5]),
+        bookingType:       (r[46] || 'stripe').toLowerCase(),
+        transactionFee:    parseFloat(r[47]) || 0,
+        type:              r[37] || ''
       };
+    }
+
+    /* End time: API returns formatted time; CSV exports 12/30/1899. Fall back to notes. */
+    function cleanEndTime(raw, notes, startTime) {
+      if (raw && !raw.includes('1899') && !raw.includes('1900') && raw.trim() !== '') {
+        return raw.trim();
+      }
+      // Extract from notes: "Friday - 5:30 PM - 7:30 PM - Camden - ..."
+      if (notes) {
+        const parts = notes.split(' - ');
+        if (parts.length >= 3) {
+          const candidate = parts[2].trim();
+          if (/\d{1,2}:\d{2}\s*(AM|PM)/i.test(candidate)) return candidate;
+        }
+      }
+      return '';
     }
 
     /* ══════════════════════════════════════════
@@ -673,11 +603,11 @@
     function renderPage() {
       const s = sessionTemplate;
 
-      /* Meta */
-      const title = `${s.className} | The NBRH`;
-      document.getElementById('pageTitle').textContent       = title;
+      /* Meta tags */
+      const pageTitle = `${s.className} | The NBRH`;
+      document.getElementById('pageTitle').textContent = pageTitle;
       document.getElementById('pageDescription').setAttribute('content', s.notes || s.activityType);
-      document.getElementById('ogTitle').setAttribute('content', title);
+      document.getElementById('ogTitle').setAttribute('content', pageTitle);
       document.getElementById('ogDescription').setAttribute('content', s.notes || `${s.className} at ${s.location}`);
       if (s.imageUrl) {
         document.getElementById('ogImage').setAttribute('content', s.imageUrl);
@@ -685,89 +615,66 @@
       }
       document.getElementById('ogUrl').setAttribute('content', location.href);
 
-      /* Hero background */
-      const heroBg = document.getElementById('heroBg');
+      /* Hero */
       if (s.imageUrl) {
-        heroBg.style.background = `linear-gradient(rgba(0,0,0,0.48),rgba(0,0,0,0.48)), url('${s.imageUrl}') center center / cover no-repeat`;
+        document.getElementById('heroBg').style.background =
+          `linear-gradient(rgba(0,0,0,0.48),rgba(0,0,0,0.48)), url('${s.imageUrl}') center/cover no-repeat`;
       }
-
-      /* Badge */
       if (s.type) {
-        const badge = document.getElementById('heroBadge');
-        badge.style.display = 'inline-flex';
+        const b = document.getElementById('heroBadge');
+        b.style.display = 'inline-flex';
         document.getElementById('heroBadgeText').textContent = s.type;
       }
-
-      /* Club */
       if (s.club) {
-        const clubEl = document.getElementById('heroClub');
-        clubEl.textContent = s.club;
-        clubEl.style.display = 'block';
+        const c = document.getElementById('heroClub');
+        c.textContent = s.club;
+        c.style.display = 'block';
       }
-
-      /* Title */
       document.getElementById('sessionTitle').textContent = s.className || 'Session';
 
       /* Hero meta pills */
-      const metaEl = document.getElementById('heroMeta');
+      const meta = document.getElementById('heroMeta');
       const pills = [];
-      if (s.location)           pills.push({ icon: 'fa-location-dot', text: s.location });
-      if (s.dayOfWeek && s.startTime) pills.push({ icon: 'fa-clock',        text: `${s.dayOfWeek}s · ${s.startTime}` });
-      else if (s.startTime)     pills.push({ icon: 'fa-clock',        text: s.startTime });
-      if (s.difficultyLevel)    pills.push({ icon: 'fa-signal',       text: s.difficultyLevel });
-      if (s.totalPrice > 0)     pills.push({ icon: 'fa-pound-sign',   text: `£${s.totalPrice.toFixed(2)}` });
-
+      if (s.location) pills.push({ icon: 'fa-location-dot', text: s.location });
+      if (s.dayOfWeek && s.startTime) {
+        const timeStr = s.endTime ? `${s.startTime} – ${s.endTime}` : s.startTime;
+        pills.push({ icon: 'fa-clock', text: `${s.dayOfWeek}s · ${timeStr}` });
+      }
+      if (s.difficultyLevel) pills.push({ icon: 'fa-signal',     text: s.difficultyLevel });
+      if (s.totalPrice > 0)  pills.push({ icon: 'fa-pound-sign', text: `£${s.totalPrice.toFixed(2)}` });
       pills.forEach(p => {
         const span = document.createElement('span');
         span.className = 'hero-meta-pill';
         span.innerHTML = `<i class="fa-solid ${p.icon}"></i> ${p.text}`;
-        metaEl.appendChild(span);
+        meta.appendChild(span);
       });
 
-      /* CTA button */
-      const ctaUrl = s.website || s.bookingUrl || '#';
-      if (ctaUrl !== '#') {
-        const btn     = document.getElementById('ctaButton');
-        const sticky  = document.getElementById('stickyCta');
-        btn.href      = ctaUrl;
-        btn.style.display = 'inline-flex';
-        sticky.href   = ctaUrl;
+      /* Sticky CTA */
+      const ctaUrl = s.website || s.bookingUrl;
+      if (ctaUrl) {
+        const sticky = document.getElementById('stickyCta');
+        sticky.href         = ctaUrl;
         sticky.style.display = 'inline-flex';
-        // Update button text for direct booking type
-        if (s.bookingType === 'direct') {
-          btn.innerHTML    = 'Register Interest <i class="fa-solid fa-arrow-right" style="font-size:0.8rem;"></i>';
-          sticky.innerHTML = 'Register Interest <i class="fa-solid fa-arrow-right" style="font-size:0.8rem;"></i>';
-        }
       }
 
-      /* Spots banner */
-      const banner = document.getElementById('spotsBanner');
-      if (s.spotsAvailable > 0 || s.totalSpots > 0) {
-        banner.style.display = 'flex';
-        if (s.spotsAvailable <= 0) {
-          banner.className = 'spots-banner full';
-          banner.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Sold out — check back soon or visit the club website';
-        } else if (s.spotsAvailable <= 5) {
-          banner.className = 'spots-banner low';
-          banner.innerHTML = `<i class="fa-solid fa-fire"></i> Only ${s.spotsAvailable} spot${s.spotsAvailable === 1 ? '' : 's'} left — book soon`;
-        } else {
-          banner.className = 'spots-banner available';
-          banner.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${s.spotsAvailable} spot${s.spotsAvailable === 1 ? '' : 's'} available`;
-        }
-      }
-
-      /* Info grid */
+      /* ── Info Grid ── */
       const grid = document.getElementById('infoGrid');
-      const addInfo = (icon, label, value) => {
-        if (!value) return;
+      const addInfo = (icon, label, html) => {
+        if (!html) return;
         const el = document.createElement('div');
         el.className = 'info-item';
-        el.innerHTML = `<span class="info-icon"><i class="fa-solid ${icon}"></i></span><span class="info-label">${label}</span><div class="info-value">${value}</div>`;
+        el.innerHTML = `<span class="info-icon"><i class="fa-solid ${icon}"></i></span><span class="info-label">${label}</span><div class="info-value">${html}</div>`;
         grid.appendChild(el);
       };
-      addInfo('fa-location-dot',   'Location',   s.location);
-      addInfo('fa-calendar-days',  'Day',        s.dayOfWeek);
-      addInfo('fa-clock',          'Start Time', s.startTime);
+
+      addInfo('fa-location-dot', 'Location', s.location);
+      addInfo('fa-calendar-days', 'Day', s.dayOfWeek);
+
+      if (s.startTime) {
+        const timeHtml = s.endTime ? `${s.startTime}<br><span style="font-size:0.78rem;color:var(--text-muted);">${s.endTime}</span>` : s.startTime;
+        addInfo('fa-clock', 'Time', timeHtml);
+      }
+
       if (s.duration) {
         const mins = parseInt(s.duration) || 0;
         const hrs  = Math.floor(mins / 60);
@@ -775,102 +682,108 @@
         const txt  = hrs > 0 ? `${hrs}h${rem ? ' ' + rem + 'm' : ''}` : `${mins} min`;
         addInfo('fa-hourglass-half', 'Duration', txt);
       }
+
       if (s.totalPrice > 0) {
         addInfo('fa-pound-sign', 'Price', `£${s.totalPrice.toFixed(2)}`);
       } else {
         addInfo('fa-pound-sign', 'Price', 'Free');
       }
-      addInfo('fa-signal',      'Level',     s.difficultyLevel);
-      addInfo('fa-user-group',  'Audience',  s.ageGroup || s.audience);
-      addInfo('fa-house',       'Venue',     s.indoorOutdoor);
-      if (s.totalSpots > 0) addInfo('fa-users', 'Capacity', `${s.totalSpots} total`);
 
-      /* Tags */
-      const tagsRow = document.getElementById('tagsRow');
-      if (s.vibe)             addTag(tagsRow, s.vibe, 'vibe');
-      if (s.audience)         addTag(tagsRow, s.audience);
-      if (s.equipmentProvided && s.equipmentProvided.toLowerCase() === 'yes') addTag(tagsRow, 'Equipment Provided', 'green');
-      if (s.badge)            addTag(tagsRow, s.badge);
+      addInfo('fa-signal',     'Level',     s.difficultyLevel);
+      addInfo('fa-user-group', 'Age Group', s.ageGroup);
 
-      /* Attendees */
-      renderAttendees();
-
-      /* Notes */
-      if (s.notes && s.notes.trim()) {
-        document.getElementById('notesCard').style.display = '';
-        const notesEl = document.getElementById('sessionNotes');
-        notesEl.innerHTML = `<div class="notes-block">${s.notes.trim()}</div>`;
+      if (s.confidenceScore) {
+        const cls   = confClass(s.confidenceScore);
+        const badge = `<span class="conf-badge ${cls}"><span class="dot"></span>${s.confidenceScore}</span>`;
+        addInfo('fa-shield-check', 'Confidence', badge);
       }
-    }
 
-    /* ══════════════════════════════════════════
-       ATTENDEES
-    ══════════════════════════════════════════ */
-    function processAttendeesData(rows, nbrhId) {
-      const attendees = [];
-      if (!rows || rows.length < 2) return attendees;
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (row[2] === nbrhId && row[9] === 'Confirmed') {
-          attendees.push({
-            customerName: row[4]  || 'Guest',
-            skillLevel:   row[12] || 'Not specified'
-          });
-        }
+      /* Tags row */
+      const tags = document.getElementById('tagsRow');
+      if (s.badge)                                              addTag(tags, s.badge, 'badge-tag');
+      if (s.vibe)                                               addTag(tags, s.vibe, 'vibe');
+      if (s.indoorOutdoor)                                      addTag(tags, s.indoorOutdoor);
+      if (s.audience)                                           addTag(tags, s.audience);
+      if (s.equipmentProvided?.toLowerCase() === 'yes')         addTag(tags, 'Equipment Provided', 'green');
+
+      /* ── Location & Venue dropdown ── */
+      if (s.address) {
+        document.getElementById('venueCard').style.display = '';
+        const inner = document.getElementById('venueInner');
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address)}`;
+        inner.innerHTML = `
+          <a class="address-block" href="${mapsUrl}" target="_blank" rel="noopener">
+            <div class="address-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div>
+              <div class="address-text">${s.address}</div>
+              <span class="address-cta">Open in Google Maps →</span>
+            </div>
+          </a>`;
       }
-      return attendees;
-    }
 
-    function renderAttendees() {
-      const grid  = document.getElementById('attendeesGrid');
-      const count = document.getElementById('attendeesCount');
-
-      if (!attendeesData.length) {
-        count.textContent = 'Be the first!';
-        grid.innerHTML = `
-          <div class="attendees-empty">
-            <div class="attendees-empty-icon">👋</div>
-            <div class="attendees-empty-text">No one has signed up yet. Be the first to join!</div>
+      /* ── Session Details dropdown ── */
+      const hasDetails = s.notes || s.activityType || s.audience || s.equipmentProvided || s.cancellationHours || s.indoorOutdoor;
+      if (hasDetails) {
+        document.getElementById('detailsCard').style.display = '';
+        const inner = document.getElementById('detailsInner');
+        let html = '';
+        if (s.notes) html += `<div class="notes-box">${s.notes.trim()}</div>`;
+        html += '<div class="detail-list">';
+        const rows = [];
+        if (s.activityType)      rows.push({ icon: 'fa-dumbbell',   key: 'Activity',     val: s.activityType });
+        if (s.audience)          rows.push({ icon: 'fa-users',      key: 'Audience',     val: s.audience });
+        if (s.ageGroup)          rows.push({ icon: 'fa-user-group', key: 'Age Group',    val: s.ageGroup });
+        if (s.indoorOutdoor)     rows.push({ icon: 'fa-house',      key: 'Venue Type',   val: s.indoorOutdoor });
+        if (s.equipmentProvided) rows.push({ icon: 'fa-bag-shopping','key': 'Equipment', val: s.equipmentProvided === 'Yes' ? 'Provided' : 'Bring your own' });
+        if (s.cancellationHours) rows.push({ icon: 'fa-clock-rotate-left', key: 'Cancellation', val: `${s.cancellationHours} hours notice required` });
+        rows.forEach(dr => {
+          html += `<div class="detail-row">
+            <span class="detail-icon"><i class="fa-solid ${dr.icon}"></i></span>
+            <span class="detail-key">${dr.key}</span>
+            <span class="detail-val">${dr.val}</span>
           </div>`;
-        return;
-      }
-
-      count.textContent = `${attendeesData.length} attending`;
-      const show = Math.min(attendeesData.length, 10);
-
-      let html = '';
-      for (let i = 0; i < show; i++) {
-        const a       = attendeesData[i];
-        const first   = a.customerName.split(' ')[0];
-        const initials = a.customerName.split(' ').map(n => n[0] || '').join('').slice(0, 2).toUpperCase();
-        html += `<div class="attendee-item"><div class="attendee-avatar">${initials}</div><div class="attendee-name">${first}</div></div>`;
-      }
-      if (attendeesData.length > 10) {
-        html += `<div class="attendee-item"><div class="attendee-avatar" style="background:var(--bg-elevated);color:var(--text-muted);font-family:var(--font-sans);font-size:0.75rem;">+${attendeesData.length - 10}</div><div class="attendee-name">more</div></div>`;
-      }
-      grid.innerHTML = html;
-
-      // Skill breakdown
-      const skillCounts = {};
-      attendeesData.forEach(a => { const sk = a.skillLevel || 'Not specified'; skillCounts[sk] = (skillCounts[sk] || 0) + 1; });
-      const keys = Object.keys(skillCounts);
-      if (keys.length) {
-        const sr = document.getElementById('skillRow');
-        sr.style.display = 'flex';
-        sr.innerHTML = '<span class="skill-lbl">Skill mix:</span>';
-        keys.sort().forEach(sk => {
-          const cls = sk === 'Beginner' ? 'beginner' : sk === 'Intermediate' ? 'intermediate' : sk === 'Advanced' ? 'advanced' : sk === 'Advanced+' ? 'plus' : 'other';
-          const tag = document.createElement('span');
-          tag.className = `skill-tag ${cls}`;
-          tag.textContent = `${sk} (${skillCounts[sk]})`;
-          sr.appendChild(tag);
         });
+        html += '</div>';
+        inner.innerHTML = html;
+      }
+
+      /* ── The Club dropdown ── */
+      const hasClub = s.clubHubUrl || s.website || s.club;
+      if (hasClub) {
+        document.getElementById('clubCard').style.display = '';
+        const inner = document.getElementById('clubInner');
+        let html = '';
+        if (s.club) {
+          html += `<p style="font-family:var(--font-serif);font-size:1.2rem;color:var(--text);margin-bottom:1rem;font-weight:normal;">${s.club}</p>`;
+        }
+        html += '<div class="club-links-row">';
+        if (s.clubHubUrl) {
+          html += `<a class="club-hub-btn" href="${s.clubHubUrl}" target="_blank" rel="noopener">
+            <i class="fa-solid fa-building"></i> View Club Profile
+          </a>`;
+        }
+        if (s.website) {
+          html += `<a class="club-website-link" href="${s.website}" target="_blank" rel="noopener">
+            <i class="fa-solid fa-globe"></i> Club Website
+          </a>`;
+        }
+        html += '</div>';
+        inner.innerHTML = html;
       }
     }
 
     /* ══════════════════════════════════════════
        HELPERS
     ══════════════════════════════════════════ */
+    function confClass(label) {
+      if (!label) return 'unconfirmed';
+      const map = {
+        'Verified': 'verified', 'Likely Active': 'likely',
+        'Probably Active': 'probably', 'Uncertain': 'uncertain', 'Unconfirmed': 'unconfirmed'
+      };
+      return map[label] || 'unconfirmed';
+    }
+
     function addTag(container, text, cls) {
       if (!text) return;
       const el = document.createElement('span');
@@ -893,16 +806,16 @@
       if (navigator.share) {
         try { await navigator.share({ title, text: `Join me at ${title}`, url }); return; } catch {}
       }
-      try {
-        await navigator.clipboard.writeText(url);
-      } catch {
+      try { await navigator.clipboard.writeText(url); }
+      catch {
         const ta = document.createElement('textarea');
-        ta.value = url; ta.style.cssText = 'position:fixed;top:-9999px'; document.body.appendChild(ta);
-        ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        ta.value = url; ta.style.cssText = 'position:fixed;top:-9999px';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
       }
-      const toast = document.getElementById('toast');
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2200);
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
     }
 
     /* ══════════════════════════════════════════
@@ -911,17 +824,12 @@
     function initCollapsibles() {
       document.querySelectorAll('.collapsible-header').forEach(h => {
         h.addEventListener('click', () => {
-          const target = document.querySelector(h.dataset.target);
-          if (!target) return;
-          const isOpen = h.classList.toggle('expanded');
-          target.classList.toggle('expanded', isOpen);
-          target.style.maxHeight = isOpen ? target.scrollHeight + 'px' : '0px';
-          const icon = h.querySelector('.collapsible-icon');
-          if (icon) {
-            icon.style.transform       = isOpen ? 'rotate(180deg)' : '';
-            icon.style.color           = isOpen ? 'var(--accent)' : '';
-            icon.style.borderColor     = isOpen ? 'var(--accent)' : '';
-          }
+          const targetId = h.dataset.target;
+          const content  = document.getElementById(targetId);
+          if (!content) return;
+          const isOpen = h.classList.toggle('open');
+          content.classList.toggle('open', isOpen);
+          content.style.maxHeight = isOpen ? content.scrollHeight + 'px' : '0';
         });
       });
     }
